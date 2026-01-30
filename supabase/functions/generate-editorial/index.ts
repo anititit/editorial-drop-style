@@ -72,7 +72,19 @@ Focus on the aesthetic qualities visible in the images - colors, textures, silho
 DO NOT analyze faces or personal traits. Only interpret the visual aesthetic references.`;
 
 function isDirectImageUrl(url: string) {
-  return /\.(png|jpe?g|webp)(\?.*)?$/i.test(url.trim());
+  const trimmed = url.trim();
+  // Accept common image CDNs (Unsplash, Pexels, etc.) even without file extension
+  const trustedImageCdns = [
+    /images\.unsplash\.com/i,
+    /images\.pexels\.com/i,
+    /i\.pinimg\.com/i,
+    /cdn\.pixabay\.com/i,
+  ];
+  if (trustedImageCdns.some((rx) => rx.test(trimmed))) {
+    return true;
+  }
+  // Fallback: check for image extension
+  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(trimmed);
 }
 
 function looksLikePinterestPinPage(url: string) {
