@@ -21,6 +21,7 @@ interface ProfileSectionProps {
   paletteHex: string[];
   vibeKeywords: string[];
   whyThis: string[];
+  confidence?: number;
 }
 
 export function ProfileSection({
@@ -29,9 +30,11 @@ export function ProfileSection({
   paletteHex,
   vibeKeywords,
   whyThis,
+  confidence,
 }: ProfileSectionProps) {
   const primaryName = AESTHETIC_NAMES[aestheticPrimary] || aestheticPrimary;
   const secondaryName = AESTHETIC_NAMES[aestheticSecondary] || aestheticSecondary;
+  const isConceptualReading = confidence !== undefined && confidence < 0.7;
 
   return (
     <motion.section
@@ -43,6 +46,11 @@ export function ProfileSection({
       {/* Aesthetic Profile */}
       <div className="text-center space-y-4">
         <span className="editorial-caption">Seu Perfil Estético</span>
+        {isConceptualReading && (
+          <p className="text-xs text-muted-foreground/70 italic">
+            Leitura mais conceitual — baseada em paleta, contraste e textura.
+          </p>
+        )}
         <div className="space-y-2">
           <h2 className="editorial-headline text-3xl md:text-4xl">{primaryName}</h2>
           <p className="editorial-subhead text-lg text-muted-foreground">

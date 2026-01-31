@@ -114,6 +114,7 @@ const ResultPage = () => {
           paletteHex={profile.palette_hex || ["#F5F5F5", "#2C2C2C", "#D4C4B0"]}
           vibeKeywords={profile.vibe_keywords || []}
           whyThis={profile.why_this || []}
+          confidence={profile.confidence}
         />
 
         <div className="editorial-divider" />
