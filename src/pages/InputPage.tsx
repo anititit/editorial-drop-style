@@ -57,8 +57,9 @@ const InputPage = () => {
   const [region, setRegion] = useState("brasil");
   const [fragranceIntensity, setFragranceIntensity] = useState("medio");
 
-  // Loading state
+  // Loading and error state
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const hasValidInput = mode === "upload" 
     ? images.length === 3 
@@ -70,6 +71,7 @@ const InputPage = () => {
     if (!hasValidInput) return;
 
     setIsLoading(true);
+    setHasError(false);
 
     try {
       const imageData = mode === "upload" ? images : urls;
@@ -118,17 +120,17 @@ const InputPage = () => {
       navigate(`/resultado/${id}`);
     } catch (err) {
       console.error("Error generating editorial:", err);
-      toast({
-        title: "Erro ao gerar editorial",
-        description: "Por favor, tente novamente com outras imagens.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
+      setHasError(true);
     }
   };
 
-  if (isLoading) {
-    return <LoadingEditorial />;
+  const handleRetry = () => {
+    setHasError(false);
+    setIsLoading(false);
+  };
+
+  if (isLoading || hasError) {
+    return <LoadingEditorial hasError={hasError} onRetry={handleRetry} />;
   }
 
   return (
