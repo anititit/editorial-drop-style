@@ -6,6 +6,151 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Generate a short unique debug ID for correlating logs
+function generateDebugId(): string {
+  return `dbg_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
+}
+
+// Secure error response - never expose internal details to client
+function errorResponse(error: string, message: string, debugId: string, status = 200) {
+  return new Response(
+    JSON.stringify({ error, message, debug_id: debugId }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// ============================================================================
+// INPUT VALIDATION
+// ============================================================================
+
+const ALLOWED_OCCASIONS = ["trabalho", "casual", "date", "noite", "viagem"];
+const ALLOWED_PRICE_RANGES = ["acessivel", "medio", "premium", "misturar"];
+const ALLOWED_REGIONS = ["brasil", "global"];
+const ALLOWED_INTENSITIES = ["suave", "medio", "marcante"];
+
+function sanitizePreferences(prefs: any): {
+  occasion: string;
+  priceRange: string;
+  region: string;
+  fragranceIntensity: string;
+} {
+  return {
+    occasion: ALLOWED_OCCASIONS.includes(prefs?.occasion) ? prefs.occasion : "casual",
+    priceRange: ALLOWED_PRICE_RANGES.includes(prefs?.priceRange) ? prefs.priceRange : "misturar",
+    region: ALLOWED_REGIONS.includes(prefs?.region) ? prefs.region : "brasil",
+    fragranceIntensity: ALLOWED_INTENSITIES.includes(prefs?.fragranceIntensity) ? prefs.fragranceIntensity : "medio",
+  };
+}
+
+function isDirectImageUrl(url: string): boolean {
+  const trimmed = url.trim();
+  // Accept common image CDNs (Unsplash, Pexels, etc.) even without file extension
+  const trustedImageCdns = [
+    /images\.unsplash\.com/i,
+    /images\.pexels\.com/i,
+    /i\.pinimg\.com/i,
+    /cdn\.pixabay\.com/i,
+  ];
+  if (trustedImageCdns.some((rx) => rx.test(trimmed))) {
+    return true;
+  }
+  // Fallback: check for image extension
+  return /\.(png|jpe?g|webp)(\?.*)?$/i.test(trimmed);
+}
+
+function looksLikePinterestPinPage(url: string): boolean {
+  return /pinterest\.[a-z.]+\/pin\//i.test(url.trim());
+}
+
+function validateUrlImages(images: string[]): { ok: true; cleaned: string[] } | { ok: false; error: string; message: string } {
+  const cleaned = (images || []).map((u) => (typeof u === "string" ? u.trim() : "")).filter(Boolean);
+
+  if (cleaned.length !== 3) {
+    return {
+      ok: false,
+      error: "need_exactly_3",
+      message: "Envie exatamente 3 imagens (upload) ou cole 3 URLs.",
+    };
+  }
+
+  const pinPage = cleaned.find(looksLikePinterestPinPage);
+  if (pinPage) {
+    return {
+      ok: false,
+      error: "pinterest_pin_page",
+      message: "Esse link é uma página do Pinterest, não uma imagem direta. Use um link i.pinimg.com/...jpg/.png ou faça upload da imagem.",
+    };
+  }
+
+  const notDirect = cleaned.find((u) => !isDirectImageUrl(u));
+  if (notDirect) {
+    return {
+      ok: false,
+      error: "not_direct_image",
+      message: "Cole links diretos de imagem terminando em .jpg, .png ou .webp (ex.: i.pinimg.com/...jpg).",
+    };
+  }
+
+  return { ok: true, cleaned };
+}
+
+function validateBase64Image(data: string): { valid: boolean; error?: string } {
+  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+  if (typeof data !== "string") {
+    return { valid: false, error: "Invalid image data type" };
+  }
+
+  if (!data.startsWith("data:image/")) {
+    return { valid: false, error: "Invalid image format" };
+  }
+
+  // Estimate size (base64 is ~4/3 of original)
+  const size = (data.length * 3) / 4;
+  if (size > MAX_SIZE) {
+    return { valid: false, error: "Image too large (max 10MB)" };
+  }
+
+  return { valid: true };
+}
+
+function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: boolean; preferences: any } | { ok: false; error: string; message: string } {
+  // Validate images field exists and is an array
+  if (!body || !Array.isArray(body.images)) {
+    return { ok: false, error: "invalid_input", message: "Campo 'images' deve ser um array." };
+  }
+
+  // Must have exactly 3 images
+  if (body.images.length !== 3) {
+    return { ok: false, error: "need_exactly_3", message: "Envie exatamente 3 imagens." };
+  }
+
+  // Detect if URLs or base64
+  const isUrls = body.isUrls === true || 
+    (body.images.length > 0 && typeof body.images[0] === "string" && body.images[0].trim().startsWith("http"));
+
+  if (isUrls) {
+    const validation = validateUrlImages(body.images);
+    if (!validation.ok) {
+      return validation;
+    }
+  } else {
+    // Validate base64 images
+    for (let i = 0; i < body.images.length; i++) {
+      const imgValidation = validateBase64Image(body.images[i]);
+      if (!imgValidation.valid) {
+        return { ok: false, error: "invalid_image", message: `Imagem ${i + 1} inválida: ${imgValidation.error}` };
+      }
+    }
+  }
+
+  return { ok: true, images: body.images, isUrls, preferences: body.preferences };
+}
+
+// ============================================================================
+// AI PROMPT & RESPONSE HANDLING
+// ============================================================================
+
 const SYSTEM_PROMPT = `You are a luxury fashion editorial consultant for a Brazilian audience. You analyze moodboard/inspiration images and generate magazine-style editorial guides in the style of Vogue and Harper's Bazaar.
 
 CRITICAL RULES:
@@ -71,59 +216,6 @@ All text content MUST be in Brazilian Portuguese (pt-BR).
 Focus on the aesthetic qualities visible in the images - colors, textures, silhouettes, mood.
 DO NOT analyze faces or personal traits. Only interpret the visual aesthetic references.`;
 
-function isDirectImageUrl(url: string) {
-  const trimmed = url.trim();
-  // Accept common image CDNs (Unsplash, Pexels, etc.) even without file extension
-  const trustedImageCdns = [
-    /images\.unsplash\.com/i,
-    /images\.pexels\.com/i,
-    /i\.pinimg\.com/i,
-    /cdn\.pixabay\.com/i,
-  ];
-  if (trustedImageCdns.some((rx) => rx.test(trimmed))) {
-    return true;
-  }
-  // Fallback: check for image extension
-  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(trimmed);
-}
-
-function looksLikePinterestPinPage(url: string) {
-  return /pinterest\.[a-z.]+\/pin\//i.test(url.trim());
-}
-
-function validateUrlImages(images: string[]) {
-  const cleaned = (images || []).map((u) => (u || "").trim()).filter(Boolean);
-
-  if (cleaned.length !== 3) {
-    return {
-      ok: false,
-      error: "need_exactly_3",
-      message: "Envie exatamente 3 imagens (upload) ou cole 3 URLs.",
-    };
-  }
-
-  const pinPage = cleaned.find(looksLikePinterestPinPage);
-  if (pinPage) {
-    return {
-      ok: false,
-      error: "pinterest_pin_page",
-      message:
-        "Esse link é uma página do Pinterest, não uma imagem direta. Use um link i.pinimg.com/...jpg/.png ou faça upload da imagem.",
-    };
-  }
-
-  const notDirect = cleaned.find((u) => !isDirectImageUrl(u));
-  if (notDirect) {
-    return {
-      ok: false,
-      error: "not_direct_image",
-      message: "Cole links diretos de imagem terminando em .jpg, .png ou .webp (ex.: i.pinimg.com/...jpg).",
-    };
-  }
-
-  return { ok: true, cleaned };
-}
-
 function normalizeModelContent(content: any): string {
   if (typeof content === "string") return content;
 
@@ -153,24 +245,18 @@ function extractJson(text: string): any {
 
   try {
     return JSON.parse(cleaned);
-  } catch (directParseError) {
-    console.log("Direct JSON parse failed, attempting extraction...");
+  } catch {
+    // Direct parse failed, attempt extraction
   }
 
   const first = cleaned.indexOf("{");
   const last = cleaned.lastIndexOf("}");
   if (first === -1 || last === -1 || last <= first) {
-    throw new Error("NO_JSON_FOUND: Nenhum objeto JSON encontrado na resposta do modelo.");
+    throw new Error("NO_JSON_FOUND");
   }
 
   const candidate = cleaned.slice(first, last + 1);
-  try {
-    return JSON.parse(candidate);
-  } catch (extractParseError) {
-    // Try to identify the specific JSON error
-    const errorMsg = extractParseError instanceof Error ? extractParseError.message : "Unknown parse error";
-    throw new Error(`JSON_PARSE_ERROR: ${errorMsg}`);
-  }
+  return JSON.parse(candidate);
 }
 
 function validateEditorialStructure(obj: any): { valid: boolean; missing: string[] } {
@@ -210,76 +296,48 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
   return { valid: missing.length === 0, missing };
 }
 
+// ============================================================================
+// MAIN HANDLER
+// ============================================================================
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const debugId = generateDebugId();
+
   try {
-    // IMPORTANT: call req.json() only once
     const body = await req.json();
-    console.log("REQ_BODY:", body);
+    console.log(`[${debugId}] Request received`);
 
-    const images = body?.images;
-    const preferences = body?.preferences;
-
-    // robust URL detection (even if client sends isUrls wrong)
-    const isUrlsDetected =
-      body?.isUrls === true ||
-      (Array.isArray(images) &&
-        images.length > 0 &&
-        typeof images[0] === "string" &&
-        images[0].trim().startsWith("http"));
-
-    const isUrls = Boolean(isUrlsDetected);
-
-    if (!Array.isArray(images)) {
-      return new Response(JSON.stringify({ error: "invalid_input", message: "Campo 'images' deve ser um array." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Validate request body structure
+    const validation = validateRequestBody(body);
+    if (!validation.ok) {
+      console.log(`[${debugId}] Validation failed: ${validation.error}`);
+      return errorResponse(validation.error, validation.message, debugId, 400);
     }
 
-    if (isUrls) {
-      const v = validateUrlImages(images);
-      if (!v.ok) {
-        return new Response(JSON.stringify({ error: v.error, message: v.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
+    const { images, isUrls } = validation;
+    const preferences = sanitizePreferences(body.preferences);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "missing_key", message: "LOVABLE_API_KEY não configurada." }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error(`[${debugId}] LOVABLE_API_KEY not configured`);
+      return errorResponse("config_error", "Serviço temporariamente indisponível.", debugId);
     }
 
     const preferencesContext = `
 Preferências do usuário:
-- Ocasião: ${preferences?.occasion || "casual"}
-- Faixa de preço: ${preferences?.priceRange || "misturar"}
-- Região: ${preferences?.region || "brasil"}
-- Intensidade de fragrância: ${preferences?.fragranceIntensity || "medio"}
+- Ocasião: ${preferences.occasion}
+- Faixa de preço: ${preferences.priceRange}
+- Região: ${preferences.region}
+- Intensidade de fragrância: ${preferences.fragranceIntensity}
 `;
 
-    let imageContent: any[] = [];
-
-    if (isUrls) {
-      imageContent = images.map((url: string) => ({
-        type: "image_url",
-        image_url: { url: url.trim() },
-      }));
-    } else {
-      // base64 images should come like "data:image/jpeg;base64,...."
-      imageContent = images.map((base64: string) => ({
-        type: "image_url",
-        image_url: { url: base64 },
-      }));
-    }
+    const imageContent = isUrls
+      ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
+      : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
 
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
@@ -288,7 +346,7 @@ Preferências do usuário:
         content: [
           {
             type: "text",
-            text: `Analise estas 3 imagens de referência e gere um editorial completo no estilo Vogue/Harper’s. ${preferencesContext}
+            text: `Analise estas 3 imagens de referência e gere um editorial completo no estilo Vogue/Harper's. ${preferencesContext}
 LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
           },
           ...imageContent,
@@ -296,7 +354,7 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
       },
     ];
 
-    console.log("Calling Lovable AI Gateway... isUrls=", isUrls);
+    console.log(`[${debugId}] Calling AI Gateway (isUrls=${isUrls})`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -305,7 +363,6 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // If gemini-2.5-pro keeps returning 400, try: "google/gemini-2.0-flash"
         model: "google/gemini-2.5-pro",
         messages,
         max_tokens: 4000,
@@ -315,100 +372,50 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI Gateway error:", response.status, errorText);
-
-      // IMPORTANT: do not throw; return JSON so UI doesn't blank
-      return new Response(
-        JSON.stringify({
-          error: "gateway_error",
-          status: response.status,
-          message: "O serviço de IA recusou a requisição.",
-          details: errorText,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      console.error(`[${debugId}] AI Gateway error: ${response.status} - ${errorText}`);
+      return errorResponse("gateway_error", "O serviço de IA está temporariamente indisponível.", debugId);
     }
 
     const data = await response.json();
-    console.log("AI Gateway response received");
-
     const rawContent = data?.choices?.[0]?.message?.content;
+
     if (!rawContent) {
-      return new Response(
-        JSON.stringify({
-          error: "no_model_content",
-          message: "Não foi possível gerar o editorial. Tente novamente.",
-          debug: data,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      console.error(`[${debugId}] No content in AI response`);
+      return errorResponse("no_model_content", "Não foi possível gerar o editorial. Tente novamente.", debugId);
     }
 
     const contentText = normalizeModelContent(rawContent);
-    console.log("MODEL_RAW_OUTPUT (first 500 chars):", contentText.substring(0, 500));
+    console.log(`[${debugId}] AI response received (length=${contentText.length})`);
 
     let result: any;
     try {
       result = extractJson(contentText);
     } catch (parseError) {
       const errorMsg = parseError instanceof Error ? parseError.message : "Unknown parse error";
-      console.error("JSON parse error:", errorMsg);
-      console.error("MODEL_RAW_OUTPUT:", contentText.substring(0, 1000));
+      console.error(`[${debugId}] JSON parse failed: ${errorMsg}`);
+      console.error(`[${debugId}] Raw output preview: ${contentText.substring(0, 500)}`);
 
-      // Categorize the error for better user messaging
-      let userMessage = "Não foi possível gerar o editorial com essas referências.";
-      let errorCode = "invalid_model_json";
+      const userMessage = errorMsg.includes("NO_JSON_FOUND")
+        ? "A IA não retornou um editorial estruturado. Tente com imagens mais claras."
+        : "O editorial gerado estava incompleto. Tente novamente.";
 
-      if (errorMsg.includes("NO_JSON_FOUND")) {
-        errorCode = "no_json_in_response";
-        userMessage = "A IA não retornou um editorial estruturado. Tente com imagens mais claras.";
-      } else if (errorMsg.includes("JSON_PARSE_ERROR")) {
-        errorCode = "malformed_json";
-        userMessage = "O editorial gerado estava incompleto. Tente novamente.";
-      }
-
-      return new Response(
-        JSON.stringify({
-          error: errorCode,
-          message: userMessage,
-          debug: { parseError: errorMsg, outputPreview: contentText.substring(0, 200) },
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return errorResponse("malformed_json", userMessage, debugId);
     }
 
     // Validate the structure of the parsed JSON
-    const validation = validateEditorialStructure(result);
-    if (!validation.valid) {
-      console.error("Missing required fields:", validation.missing);
-      console.log("Parsed result:", JSON.stringify(result).substring(0, 500));
-
-      return new Response(
-        JSON.stringify({
-          error: "incomplete_editorial",
-          message: "O editorial gerado está incompleto. Tente novamente ou use imagens diferentes.",
-          debug: { missingFields: validation.missing },
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    const structureValidation = validateEditorialStructure(result);
+    if (!structureValidation.valid) {
+      console.error(`[${debugId}] Missing fields: ${structureValidation.missing.join(", ")}`);
+      return errorResponse("incomplete_editorial", "O editorial gerado está incompleto. Tente novamente ou use imagens diferentes.", debugId);
     }
 
+    console.log(`[${debugId}] Editorial generated successfully`);
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Edge function error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({
-        error: "server_error",
-        message: "Erro interno do servidor. Tente novamente.",
-        debug: { errorMessage },
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    console.error(`[${debugId}] Unhandled error: ${errorMessage}`);
+    return errorResponse("server_error", "Erro interno do servidor. Tente novamente.", debugId, 500);
   }
 });
