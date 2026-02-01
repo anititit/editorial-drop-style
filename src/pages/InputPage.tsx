@@ -67,61 +67,99 @@ const InputPage = () => {
         try { new URL(u); return true; } catch { return false; }
       }).length === 3;
 
+  // Retryable error codes
+  const RETRYABLE_ERRORS = [
+    "no_json_in_response",
+    "malformed_json", 
+    "incomplete_editorial",
+    "gateway_error",
+    "no_model_content",
+    "server_error",
+  ];
+
+  const callGenerateEditorial = async () => {
+    const imageData = mode === "upload" ? images : urls;
+    
+    const { data, error } = await supabase.functions.invoke("generate-editorial", {
+      body: {
+        images: imageData,
+        isUrls: mode === "url",
+        preferences: {
+          occasion,
+          priceRange,
+          region,
+          fragranceIntensity,
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Edge function error:", error);
+      throw { type: "network", message: error.message || "Erro de conexão" };
+    }
+
+    // Check for error responses from the edge function
+    if (data?.error) {
+      console.error("API error:", data.error, data.message);
+      throw { type: data.error, message: data.message };
+    }
+
+    // Validate essential fields
+    if (!data?.profile || !data?.editorial) {
+      throw { type: "incomplete_editorial", message: "Estrutura inválida" };
+    }
+
+    return data as EditorialResult;
+  };
+
   const handleGenerate = async () => {
     if (!hasValidInput) return;
 
     setIsLoading(true);
     setHasError(false);
 
-    try {
-      const imageData = mode === "upload" ? images : urls;
-      
-      const { data, error } = await supabase.functions.invoke("generate-editorial", {
-        body: {
-          images: imageData,
-          isUrls: mode === "url",
-          preferences: {
-            occasion,
-            priceRange,
-            region,
-            fragranceIntensity,
-          },
-        },
-      });
+    const MAX_RETRIES = 1;
+    let lastError: any = null;
 
-      if (error) {
-        console.error("Edge function error:", error);
-        throw new Error(error.message || "Erro ao gerar editorial");
-      }
-
-      // Parse result with fallbacks
-      let result: EditorialResult;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        result = data as EditorialResult;
-        // Validate essential fields
-        if (!result.profile || !result.editorial) {
-          throw new Error("Invalid response structure");
+        console.log(`Generation attempt ${attempt + 1}/${MAX_RETRIES + 1}`);
+        
+        const result = await callGenerateEditorial();
+
+        // Save to history
+        const preferences: UserPreferences = {
+          occasion,
+          priceRange,
+          region,
+          fragranceIntensity,
+        };
+        const id = saveResult(result, preferences);
+
+        // Navigate to results
+        navigate(`/resultado/${id}`);
+        return;
+      } catch (err: any) {
+        lastError = err;
+        console.error(`Attempt ${attempt + 1} failed:`, err);
+
+        // Check if error is retryable
+        const isRetryable = 
+          err?.type === "network" || 
+          RETRYABLE_ERRORS.includes(err?.type);
+
+        if (!isRetryable || attempt === MAX_RETRIES) {
+          break;
         }
-      } catch {
-        console.error("Invalid response, using fallback:", data);
-        result = DEFAULT_RESULT;
+
+        // Wait briefly before retry
+        console.log("Retrying in 1 second...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
-      // Save to history
-      const preferences: UserPreferences = {
-        occasion,
-        priceRange,
-        region,
-        fragranceIntensity,
-      };
-      const id = saveResult(result, preferences);
-
-      // Navigate to results
-      navigate(`/resultado/${id}`);
-    } catch (err) {
-      console.error("Error generating editorial:", err);
-      setHasError(true);
     }
+
+    console.error("All attempts failed:", lastError);
+    setHasError(true);
   };
 
   const handleRetry = () => {
