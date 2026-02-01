@@ -60,6 +60,7 @@ const InputPage = () => {
   // Loading and error state
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [errorType, setErrorType] = useState<string | undefined>();
 
   const hasValidInput = mode === "upload" 
     ? images.length === 3 
@@ -67,7 +68,7 @@ const InputPage = () => {
         try { new URL(u); return true; } catch { return false; }
       }).length === 3;
 
-  // Retryable error codes
+  // Retryable error codes (safety errors should NOT be retried automatically)
   const RETRYABLE_ERRORS = [
     "no_json_in_response",
     "malformed_json", 
@@ -75,6 +76,12 @@ const InputPage = () => {
     "gateway_error",
     "no_model_content",
     "server_error",
+  ];
+
+  // Non-retryable errors that need user action
+  const NON_RETRYABLE_ERRORS = [
+    "selfie_not_allowed",
+    "content_not_allowed",
   ];
 
   const callGenerateEditorial = async () => {
@@ -117,6 +124,7 @@ const InputPage = () => {
 
     setIsLoading(true);
     setHasError(false);
+    setErrorType(undefined);
 
     const MAX_RETRIES = 1;
     let lastError: any = null;
@@ -143,6 +151,11 @@ const InputPage = () => {
         lastError = err;
         console.error(`Attempt ${attempt + 1} failed:`, err);
 
+        // Non-retryable errors break immediately
+        if (NON_RETRYABLE_ERRORS.includes(err?.type)) {
+          break;
+        }
+
         // Check if error is retryable
         const isRetryable = 
           err?.type === "network" || 
@@ -159,16 +172,18 @@ const InputPage = () => {
     }
 
     console.error("All attempts failed:", lastError);
+    setErrorType(lastError?.type);
     setHasError(true);
   };
 
   const handleRetry = () => {
     setHasError(false);
+    setErrorType(undefined);
     setIsLoading(false);
   };
 
   if (isLoading || hasError) {
-    return <LoadingEditorial hasError={hasError} onRetry={handleRetry} />;
+    return <LoadingEditorial hasError={hasError} errorType={errorType} onRetry={handleRetry} />;
   }
 
   return (
