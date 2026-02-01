@@ -153,16 +153,61 @@ function extractJson(text: string): any {
 
   try {
     return JSON.parse(cleaned);
-  } catch {}
+  } catch (directParseError) {
+    console.log("Direct JSON parse failed, attempting extraction...");
+  }
 
   const first = cleaned.indexOf("{");
   const last = cleaned.lastIndexOf("}");
   if (first === -1 || last === -1 || last <= first) {
-    throw new Error("No JSON object found in model output");
+    throw new Error("NO_JSON_FOUND: Nenhum objeto JSON encontrado na resposta do modelo.");
   }
 
   const candidate = cleaned.slice(first, last + 1);
-  return JSON.parse(candidate);
+  try {
+    return JSON.parse(candidate);
+  } catch (extractParseError) {
+    // Try to identify the specific JSON error
+    const errorMsg = extractParseError instanceof Error ? extractParseError.message : "Unknown parse error";
+    throw new Error(`JSON_PARSE_ERROR: ${errorMsg}`);
+  }
+}
+
+function validateEditorialStructure(obj: any): { valid: boolean; missing: string[] } {
+  const requiredPaths = [
+    "profile",
+    "profile.aesthetic_primary",
+    "profile.confidence",
+    "profile.palette_hex",
+    "editorial",
+    "editorial.headline",
+    "editorial.outfits",
+    "editorial.makeup",
+    "editorial.fragrance",
+  ];
+
+  const missing: string[] = [];
+
+  for (const path of requiredPaths) {
+    const keys = path.split(".");
+    let current = obj;
+    let found = true;
+
+    for (const key of keys) {
+      if (current && typeof current === "object" && key in current) {
+        current = current[key];
+      } else {
+        found = false;
+        break;
+      }
+    }
+
+    if (!found) {
+      missing.push(path);
+    }
+  }
+
+  return { valid: missing.length === 0, missing };
 }
 
 serve(async (req) => {
@@ -306,14 +351,43 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
     try {
       result = extractJson(contentText);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError);
-      console.error("MODEL_RAW_OUTPUT:", contentText);
+      const errorMsg = parseError instanceof Error ? parseError.message : "Unknown parse error";
+      console.error("JSON parse error:", errorMsg);
+      console.error("MODEL_RAW_OUTPUT:", contentText.substring(0, 1000));
+
+      // Categorize the error for better user messaging
+      let userMessage = "Não foi possível gerar o editorial com essas referências.";
+      let errorCode = "invalid_model_json";
+
+      if (errorMsg.includes("NO_JSON_FOUND")) {
+        errorCode = "no_json_in_response";
+        userMessage = "A IA não retornou um editorial estruturado. Tente com imagens mais claras.";
+      } else if (errorMsg.includes("JSON_PARSE_ERROR")) {
+        errorCode = "malformed_json";
+        userMessage = "O editorial gerado estava incompleto. Tente novamente.";
+      }
 
       return new Response(
         JSON.stringify({
-          error: "invalid_model_json",
-          message:
-            "Não foi possível gerar o editorial com essas referências. Tente novamente ou use imagens diferentes.",
+          error: errorCode,
+          message: userMessage,
+          debug: { parseError: errorMsg, outputPreview: contentText.substring(0, 200) },
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Validate the structure of the parsed JSON
+    const validation = validateEditorialStructure(result);
+    if (!validation.valid) {
+      console.error("Missing required fields:", validation.missing);
+      console.log("Parsed result:", JSON.stringify(result).substring(0, 500));
+
+      return new Response(
+        JSON.stringify({
+          error: "incomplete_editorial",
+          message: "O editorial gerado está incompleto. Tente novamente ou use imagens diferentes.",
+          debug: { missingFields: validation.missing },
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -325,9 +399,16 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
   } catch (error) {
     console.error("Edge function error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: "server_error", message: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "server_error",
+        message: "Erro interno do servidor. Tente novamente.",
+        debug: { errorMessage },
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
