@@ -95,7 +95,7 @@ function validateUrlImages(images: string[]): { ok: true; cleaned: string[] } | 
 }
 
 function validateBase64Image(data: string): { valid: boolean; error?: string } {
-  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_SIZE = 6 * 1024 * 1024; // 6MB (updated from 10MB)
 
   if (typeof data !== "string") {
     return { valid: false, error: "Invalid image data type" };
@@ -105,10 +105,17 @@ function validateBase64Image(data: string): { valid: boolean; error?: string } {
     return { valid: false, error: "Invalid image format" };
   }
 
+  // Check for valid image types
+  const validTypes = ["data:image/jpeg", "data:image/jpg", "data:image/png", "data:image/webp"];
+  const hasValidType = validTypes.some(t => data.startsWith(t));
+  if (!hasValidType) {
+    return { valid: false, error: "Only JPG, PNG, WebP allowed" };
+  }
+
   // Estimate size (base64 is ~4/3 of original)
   const size = (data.length * 3) / 4;
   if (size > MAX_SIZE) {
-    return { valid: false, error: "Image too large (max 10MB)" };
+    return { valid: false, error: "Image too large (max 6MB)" };
   }
 
   return { valid: true };
@@ -145,6 +152,109 @@ function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: b
   }
 
   return { ok: true, images: body.images, isUrls, preferences: body.preferences };
+}
+
+// ============================================================================
+// CONTENT SAFETY CHECK
+// ============================================================================
+
+const SAFETY_CHECK_PROMPT = `You are a content safety classifier. Analyze these images and respond with ONLY a JSON object.
+
+Check for:
+1. SELFIE: Is any image a selfie or personal photo with a clearly visible face as the main subject? (Fashion campaign/editorial photos with models are OK - only block amateur personal photos)
+2. NUDITY: Is there explicit nudity or sexual content?
+3. MINORS: Are there images that appear to be inappropriate content involving minors?
+
+Respond with ONLY this JSON (no markdown, no explanation):
+{"selfie": true/false, "nudity": true/false, "minors": true/false}
+
+IMPORTANT: 
+- Fashion editorials, campaigns, runway photos with models are ALLOWED (selfie=false)
+- Only block if it's clearly an amateur selfie/personal photo
+- Product photos, textures, still life, objects are always allowed`;
+
+async function checkContentSafety(
+  images: string[],
+  isUrls: boolean,
+  apiKey: string,
+  debugId: string
+): Promise<{ safe: true } | { safe: false; reason: "selfie_not_allowed" | "content_not_allowed" }> {
+  const imageContent = isUrls
+    ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
+    : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
+
+  const messages = [
+    { role: "system", content: SAFETY_CHECK_PROMPT },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "Analyze these 3 images for content safety. Respond with JSON only." },
+        ...imageContent,
+      ],
+    },
+  ];
+
+  try {
+    console.log(`[${debugId}] Running content safety check...`);
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages,
+        max_tokens: 100,
+        temperature: 0,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`[${debugId}] Safety check API error: ${response.status}`);
+      // On safety check failure, allow through (fail open for availability)
+      return { safe: true };
+    }
+
+    const data = await response.json();
+    const rawContent = data?.choices?.[0]?.message?.content;
+    
+    if (!rawContent) {
+      console.error(`[${debugId}] No content in safety check response`);
+      return { safe: true };
+    }
+
+    const contentText = normalizeModelContent(rawContent);
+    console.log(`[${debugId}] Safety check response: ${contentText}`);
+
+    // Parse safety result
+    let safetyResult: { selfie?: boolean; nudity?: boolean; minors?: boolean };
+    try {
+      safetyResult = extractJson(contentText);
+    } catch {
+      console.error(`[${debugId}] Failed to parse safety check JSON`);
+      return { safe: true };
+    }
+
+    // Check for violations
+    if (safetyResult.nudity === true || safetyResult.minors === true) {
+      console.log(`[${debugId}] Content blocked: nudity=${safetyResult.nudity}, minors=${safetyResult.minors}`);
+      return { safe: false, reason: "content_not_allowed" };
+    }
+
+    if (safetyResult.selfie === true) {
+      console.log(`[${debugId}] Content blocked: selfie detected`);
+      return { safe: false, reason: "selfie_not_allowed" };
+    }
+
+    console.log(`[${debugId}] Content safety check passed`);
+    return { safe: true };
+  } catch (error) {
+    console.error(`[${debugId}] Safety check error:`, error);
+    // Fail open for availability
+    return { safe: true };
+  }
 }
 
 // ============================================================================
@@ -354,7 +464,24 @@ LEMBRETE FINAL: Retorne APENAS JSON válido (sem markdown, sem texto extra).`,
       },
     ];
 
-    console.log(`[${debugId}] Calling AI Gateway (isUrls=${isUrls})`);
+    // ========================================
+    // CONTENT SAFETY CHECK (before AI generation)
+    // ========================================
+    console.log(`[${debugId}] Starting content safety check...`);
+    const safetyCheck = await checkContentSafety(images, isUrls, LOVABLE_API_KEY, debugId);
+    
+    if (!safetyCheck.safe) {
+      const safetyMessages: Record<string, string> = {
+        selfie_not_allowed: "Este projeto não aceita selfies. Envie imagens de editorial, produtos, texturas ou cenários.",
+        content_not_allowed: "Envie apenas referências de moda/beleza (sem nudez e sem menores).",
+      };
+      return errorResponse(safetyCheck.reason, safetyMessages[safetyCheck.reason], debugId);
+    }
+
+    // ========================================
+    // EDITORIAL GENERATION
+    // ========================================
+    console.log(`[${debugId}] Calling AI Gateway for editorial (isUrls=${isUrls})`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

@@ -19,12 +19,30 @@ const LOADING_STEPS: LoadingStep[] = [
 
 const EXTENDED_THRESHOLD = 25000;
 
+// Error messages for specific error types
+const ERROR_MESSAGES: Record<string, { title: string; text: string }> = {
+  selfie_not_allowed: {
+    title: "Use só referências, por favor.",
+    text: "Este projeto não aceita selfies. Envie imagens de editorial, produtos, texturas ou cenários.",
+  },
+  content_not_allowed: {
+    title: "Não consigo usar essas imagens.",
+    text: "Envie apenas referências de moda/beleza (sem nudez e sem menores).",
+  },
+};
+
+const DEFAULT_ERROR = {
+  title: "Não deu pra montar seu editorial.",
+  text: "Tente outras referências ou use 'Ver exemplo'.",
+};
+
 interface LoadingEditorialProps {
   hasError?: boolean;
+  errorType?: string;
   onRetry?: () => void;
 }
 
-export function LoadingEditorial({ hasError = false, onRetry }: LoadingEditorialProps) {
+export function LoadingEditorial({ hasError = false, errorType, onRetry }: LoadingEditorialProps) {
   const navigate = useNavigate();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
@@ -66,6 +84,11 @@ export function LoadingEditorial({ hasError = false, onRetry }: LoadingEditorial
     navigate(`/resultado/${id}`);
   };
 
+  // Get error message based on type
+  const errorMessage = errorType && ERROR_MESSAGES[errorType] 
+    ? ERROR_MESSAGES[errorType] 
+    : DEFAULT_ERROR;
+
   // Error state
   if (hasError) {
     return (
@@ -77,10 +100,10 @@ export function LoadingEditorial({ hasError = false, onRetry }: LoadingEditorial
         >
           <div className="space-y-3">
             <h2 className="editorial-headline text-2xl">
-              Não deu pra montar seu editorial.
+              {errorMessage.title}
             </h2>
             <p className="editorial-body text-muted-foreground">
-              Tente outras referências ou use "Ver exemplo".
+              {errorMessage.text}
             </p>
           </div>
 
