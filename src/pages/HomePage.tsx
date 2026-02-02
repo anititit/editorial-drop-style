@@ -65,12 +65,12 @@ const HomePage = () => {
               >
                 <EditorialButton variant="secondary" className="gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Drop Editorial Pro (24h)
+                  DROP Pro (24h)
                 </EditorialButton>
               </motion.div>
             </Link>
             <p className="text-xs text-muted-foreground mt-3">
-              sem call • entrega em até 24h • PDF A4
+              fechamento editorial para creators e marcas
             </p>
           </div>
         </motion.div>
