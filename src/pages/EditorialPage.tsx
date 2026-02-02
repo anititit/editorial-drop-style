@@ -51,13 +51,13 @@ const EditorialPage = () => {
           className="max-w-md mx-auto space-y-6"
         >
           <p className="editorial-body text-foreground/90 leading-relaxed">
-            O Editorial é um espaço de leitura e observação.
+            Imagem é linguagem.
           </p>
           <p className="editorial-body text-foreground/90 leading-relaxed">
-            Aqui, estética é linguagem.
+            Imagem não é detalhe, é construção.
           </p>
           <p className="editorial-body text-muted-foreground leading-relaxed">
-            Escrevemos sobre imagem, marcas, cultura visual e aquilo que molda o jeito como vemos — e somos vistos.
+            Neste espaço, observamos marcas, cultura visual e os códigos que moldam o jeito como vemos, e como somos vistos.
           </p>
         </motion.div>
 
