@@ -14,13 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      rate_limits: {
+        Row: {
+          ip_address: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          ip_address: string
+          request_count?: number
+          window_start?: string
+        }
+        Update: {
+          ip_address?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_ip: string
+          p_max_requests?: number
+          p_window_seconds?: number
+        }
+        Returns: {
+          allowed: boolean
+          retry_after: number
+        }[]
+      }
+      cleanup_rate_limits: {
+        Args: { p_older_than_seconds?: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
