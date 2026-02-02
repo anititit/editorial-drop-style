@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { HistorySection } from "@/components/HistorySection";
-import { ImageIcon, Link as LinkIcon } from "lucide-react";
+import { ImageIcon, Link as LinkIcon, Sparkles } from "lucide-react";
 
 const HomePage = () => {
   return (
@@ -54,6 +54,25 @@ const HomePage = () => {
             <br />
             <span className="italic">Sem selfies.</span>
           </p>
+
+          {/* Pro CTA */}
+          <div className="pt-8 mt-8 border-t border-border/40">
+            <Link to="/pro">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-block"
+              >
+                <EditorialButton variant="secondary" className="gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Drop Editorial Pro (24h)
+                </EditorialButton>
+              </motion.div>
+            </Link>
+            <p className="text-xs text-muted-foreground mt-3">
+              sem call • entrega em até 24h • PDF A4
+            </p>
+          </div>
         </motion.div>
 
         {/* History Section */}

@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      pro_requests: {
+        Row: {
+          budget: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          objective: string | null
+          occasion: string | null
+          order_code: string
+          platform: string | null
+          reference_urls: string[]
+          status: string
+          tone: string | null
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          objective?: string | null
+          occasion?: string | null
+          order_code: string
+          platform?: string | null
+          reference_urls: string[]
+          status?: string
+          tone?: string | null
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          objective?: string | null
+          occasion?: string | null
+          order_code?: string
+          platform?: string | null
+          reference_urls?: string[]
+          status?: string
+          tone?: string | null
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           ip_address: string
