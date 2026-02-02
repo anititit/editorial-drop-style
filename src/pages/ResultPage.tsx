@@ -9,26 +9,122 @@ import { FragranceSection } from "@/components/results/FragranceSection";
 import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useRef, useState } from "react";
 
 const ResultPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const savedResult = id ? getResultById(id) : null;
   const result = savedResult?.result || DEFAULT_RESULT;
   const { profile, editorial } = result;
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    if (!contentRef.current || isExporting) return;
+
+    setIsExporting(true);
     toast({
-      title: "Preparando impressão...",
-      description: "Use 'Salvar como PDF' no diálogo de impressão.",
+      title: "Gerando PDF...",
+      description: "Aguarde um momento.",
     });
 
-    // Small delay to show toast before print dialog
-    setTimeout(() => {
-      window.print();
-    }, 300);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const element = contentRef.current;
+
+      // Render at higher resolution for quality
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#FAFAF8",
+        logging: false,
+      });
+
+      // A4 dimensions in mm
+      const a4Width = 210;
+      const a4Height = 297;
+      const margin = 12; // mm
+
+      // Content area
+      const contentWidth = a4Width - margin * 2;
+      const contentHeight = a4Height - margin * 2;
+
+      // Calculate image dimensions to fit A4 width
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // Calculate how many pages we need
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
+
+        // Calculate the portion of the image for this page
+        const sourceY = (page * contentHeight * canvas.width) / contentWidth;
+        const sourceHeight = Math.min(
+          (contentHeight * canvas.width) / contentWidth,
+          canvas.height - sourceY
+        );
+
+        // Create a canvas for this page's portion
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+
+        const ctx = pageCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0, sourceY,
+            canvas.width, sourceHeight,
+            0, 0,
+            canvas.width, sourceHeight
+          );
+
+          const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
+
+          pdf.addImage(
+            pageImgData,
+            "JPEG",
+            margin,
+            margin,
+            imgWidth,
+            pageImgHeight
+          );
+        }
+      }
+
+      pdf.save(`editorial-drop-${id || "resultado"}.pdf`);
+
+      toast({
+        title: "PDF exportado!",
+        description: "O arquivo foi salvo.",
+      });
+    } catch (err) {
+      console.error("PDF export error:", err);
+      toast({
+        title: "Erro ao exportar",
+        description: "Não foi possível gerar o PDF.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -46,13 +142,13 @@ const ResultPage = () => {
         </div>
       </header>
 
-      {/* Content - print-friendly */}
-      <div className="container-results print-container py-10 space-y-16">
+      {/* Content - PDF capture area */}
+      <div ref={contentRef} className="container-results py-10 space-y-16">
         {/* Headline & Dek */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4 print-section print-avoid-break"
+          className="text-center space-y-4"
         >
           <h1 className="editorial-headline text-3xl md:text-4xl">
             {editorial.headline || "Seu Editorial"}
@@ -66,41 +162,33 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
-        {/* Profile Section - new page */}
-        <div className="print-section print-avoid-break">
-          <ProfileSection
-            aestheticPrimary={profile.aesthetic_primary || "minimal_chic"}
-            aestheticSecondary={profile.aesthetic_secondary || "clean_glow"}
-            paletteHex={profile.palette_hex || ["#F5F5F5", "#2C2C2C", "#D4C4B0"]}
-            vibeKeywords={profile.vibe_keywords || []}
-            whyThis={profile.why_this || []}
-            confidence={profile.confidence}
-          />
-        </div>
+        {/* Profile Section */}
+        <ProfileSection
+          aestheticPrimary={profile.aesthetic_primary || "minimal_chic"}
+          aestheticSecondary={profile.aesthetic_secondary || "clean_glow"}
+          paletteHex={profile.palette_hex || ["#F5F5F5", "#2C2C2C", "#D4C4B0"]}
+          vibeKeywords={profile.vibe_keywords || []}
+          whyThis={profile.why_this || []}
+          confidence={profile.confidence}
+        />
 
         <div className="editorial-divider" />
 
-        {/* Outfits Section - new page for print */}
-        <div className="print-page-break">
-          <OutfitsSection outfits={editorial.outfits || DEFAULT_RESULT.editorial.outfits} />
-        </div>
+        {/* Outfits Section */}
+        <OutfitsSection outfits={editorial.outfits || DEFAULT_RESULT.editorial.outfits} />
 
         <div className="editorial-divider" />
 
-        {/* Makeup Section - new page for print */}
-        <div className="print-page-break print-section">
-          <MakeupSection
-            day={editorial.makeup?.day || DEFAULT_RESULT.editorial.makeup.day}
-            night={editorial.makeup?.night || DEFAULT_RESULT.editorial.makeup.night}
-          />
-        </div>
+        {/* Makeup Section */}
+        <MakeupSection
+          day={editorial.makeup?.day || DEFAULT_RESULT.editorial.makeup.day}
+          night={editorial.makeup?.night || DEFAULT_RESULT.editorial.makeup.night}
+        />
 
         <div className="editorial-divider" />
 
         {/* Fragrance Section */}
-        <div className="print-section print-avoid-break">
-          <FragranceSection fragrance={editorial.fragrance || DEFAULT_RESULT.editorial.fragrance} />
-        </div>
+        <FragranceSection fragrance={editorial.fragrance || DEFAULT_RESULT.editorial.fragrance} />
 
         {/* Footer Note */}
         {editorial.footer_note && (
@@ -108,7 +196,7 @@ const ResultPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-center pt-8 border-t border-border/30 print-footer print-avoid-break"
+            className="text-center pt-8 border-t border-border/30"
           >
             <p className="editorial-subhead text-sm text-muted-foreground">
               {editorial.footer_note}
@@ -128,9 +216,14 @@ const ResultPage = () => {
             <RotateCcw className="w-4 h-4 mr-2" />
             Novo Editorial
           </EditorialButton>
-          <EditorialButton variant="primary" className="flex-1" onClick={handleExportPDF}>
+          <EditorialButton 
+            variant="primary" 
+            className="flex-1" 
+            onClick={handleExportPDF}
+            disabled={isExporting}
+          >
             <Download className="w-4 h-4 mr-2" />
-            Exportar PDF
+            {isExporting ? "Gerando..." : "Exportar PDF"}
           </EditorialButton>
         </div>
       </div>
