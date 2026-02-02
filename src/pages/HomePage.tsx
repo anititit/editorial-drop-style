@@ -57,7 +57,7 @@ const HomePage = () => {
 
           {/* Pro CTA */}
           <div className="pt-8 mt-8 border-t border-border/40">
-            <Link to="/pro">
+            <Link to="/input?mode=upload&pro=true">
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -65,12 +65,12 @@ const HomePage = () => {
               >
                 <EditorialButton variant="secondary" className="gap-2">
                   <Sparkles className="w-4 h-4" />
-                  DROP Pro (24h)
+                  DROP Pro
                 </EditorialButton>
               </motion.div>
             </Link>
             <p className="text-xs text-muted-foreground mt-3">
-              fechamento editorial para creators e marcas
+              Persona + Brand Codes + Shotlist + Copy Kit
             </p>
           </div>
         </motion.div>

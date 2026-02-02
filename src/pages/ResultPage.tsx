@@ -232,11 +232,11 @@ const ResultPage = () => {
           <Link to={`/pro?from=${id}`} className="block">
             <EditorialButton variant="ghost" className="w-full text-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Fechar a edição (Pro — 24h)
+              Gerar versão Pro
             </EditorialButton>
           </Link>
           <p className="text-xs text-muted-foreground text-center">
-            Direção completa + shotlist + copy kit, entregue em até 24h.
+            Persona + Brand Codes + Shotlist + Copy Kit
           </p>
         </div>
       </div>
