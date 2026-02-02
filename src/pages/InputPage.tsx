@@ -246,7 +246,7 @@ const InputPage = () => {
             disabled={!hasValidInput}
             onClick={handleGenerate}
           >
-            Gerar Leitura Estética
+            Gerar Editorial
           </EditorialButton>
           {!hasValidInput && (
             <p className="text-xs text-muted-foreground text-center mt-3">
