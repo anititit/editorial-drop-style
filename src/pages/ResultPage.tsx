@@ -382,13 +382,20 @@ const ResultPage = () => {
                 className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0"
               >
                 <span className="text-xs text-muted-foreground w-24 flex-shrink-0 uppercase tracking-wider pt-0.5">
-                  {fragrance.tier === "accessible" && "Acessível"}
-                  {fragrance.tier === "mid" && "Intermediário"}
-                  {fragrance.tier === "premium" && "Premium"}
+                  {fragrance.price_tier === "affordable" && "Acessível"}
+                  {fragrance.price_tier === "mid" && "Intermediário"}
+                  {fragrance.price_tier === "premium" && "Premium"}
                 </span>
-                <div>
+                <div className="flex-1">
                   <p className="font-medium">{fragrance.name}</p>
-                  <p className="text-sm text-muted-foreground">{fragrance.notes}</p>
+                  <p className="text-sm text-muted-foreground">{fragrance.brand}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{fragrance.notes}</p>
+                  {fragrance.why_it_matches && (
+                    <p className="text-xs text-muted-foreground/80 italic mt-1">"{fragrance.why_it_matches}"</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ~R$ {fragrance.approximate_price_brl?.toLocaleString('pt-BR')}
+                  </p>
                 </div>
               </div>
             ))}
