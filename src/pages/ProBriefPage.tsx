@@ -4,10 +4,12 @@ import { ArrowLeft, ArrowRight, Sparkles, Image as ImageIcon, Building2, Layers 
 import { Link, useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ProImageUploader } from "@/components/ProImageUploader";
+import { PreferenceChip } from "@/components/PreferenceChip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+import { BRAND_CATEGORIES, BRAND_OBJECTIVES } from "@/lib/types";
 
 type GuidanceType = "visual" | "brands" | "both";
 
@@ -35,11 +37,18 @@ const GUIDANCE_OPTIONS = [
 const ProBriefPage = () => {
   const navigate = useNavigate();
   
+  // Brand info
+  const [brandName, setBrandName] = useState("");
+  const [category, setCategory] = useState("lifestyle");
+  const [objective, setObjective] = useState("consistencia");
+  
+  // Guidance type and references
   const [guidanceType, setGuidanceType] = useState<GuidanceType | null>(null);
   const [visualRefs, setVisualRefs] = useState<string[]>([]);
   const [brandRefs, setBrandRefs] = useState<string[]>(["", "", ""]);
   
   const needsVisual = guidanceType === "visual" || guidanceType === "both";
+  const hasValidBrand = brandName.trim().length >= 2;
   const needsBrands = guidanceType === "brands" || guidanceType === "both";
   
   const updateBrandRef = (index: number, value: string) => {
@@ -51,6 +60,7 @@ const ProBriefPage = () => {
   const filledBrandRefs = brandRefs.filter((b) => b.trim().length > 0);
   
   const isValid = () => {
+    if (!hasValidBrand) return false;
     if (!guidanceType) return false;
     
     if (needsVisual && visualRefs.length !== 3) return false;
@@ -64,6 +74,9 @@ const ProBriefPage = () => {
     
     // Store data in sessionStorage for the Pro generation
     const proData = {
+      brandName: brandName.trim(),
+      category,
+      objective,
       guidanceType,
       visualRefs: needsVisual ? visualRefs : [],
       brandRefs: needsBrands ? filledBrandRefs : [],
@@ -111,6 +124,58 @@ const ProBriefPage = () => {
             Escolha o tipo de referência que melhor traduz a essência da sua marca.
           </p>
         </motion.header>
+
+        {/* Brand Info Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-6"
+        >
+          {/* Brand Name */}
+          <div className="space-y-2">
+            <Label htmlFor="brandName" className="editorial-caption">
+              Marca / Projeto *
+            </Label>
+            <Input
+              id="brandName"
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+              placeholder="Nome da sua marca ou projeto"
+              className="bg-muted/30 border-border/50"
+            />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-3">
+            <span className="editorial-caption block">Categoria *</span>
+            <div className="flex flex-wrap gap-2">
+              {BRAND_CATEGORIES.map((c) => (
+                <PreferenceChip
+                  key={c.id}
+                  label={c.label}
+                  selected={category === c.id}
+                  onClick={() => setCategory(c.id)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Objective */}
+          <div className="space-y-3">
+            <span className="editorial-caption block">Objetivo *</span>
+            <div className="flex flex-wrap gap-2">
+              {BRAND_OBJECTIVES.map((o) => (
+                <PreferenceChip
+                  key={o.id}
+                  label={o.label}
+                  selected={objective === o.id}
+                  onClick={() => setObjective(o.id)}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.section>
 
         <div className="editorial-divider" />
 
@@ -232,11 +297,12 @@ const ProBriefPage = () => {
             Gerar Editorial Kit
             <ArrowRight className="w-4 h-4 ml-2" />
           </EditorialButton>
-          {!isValid() && guidanceType && (
+          {!isValid() && (
             <p className="text-xs text-muted-foreground text-center mt-2">
-              {needsVisual && visualRefs.length !== 3 && "Envie exatamente 3 referências visuais."}
-              {needsVisual && visualRefs.length !== 3 && needsBrands && filledBrandRefs.length < 2 && " "}
-              {needsBrands && filledBrandRefs.length < 2 && "Cite pelo menos 2 marcas."}
+              {!hasValidBrand && "Digite o nome da marca. "}
+              {hasValidBrand && !guidanceType && "Selecione um tipo de referência. "}
+              {hasValidBrand && guidanceType && needsVisual && visualRefs.length !== 3 && "Envie exatamente 3 referências visuais. "}
+              {hasValidBrand && guidanceType && needsBrands && filledBrandRefs.length < 2 && "Cite pelo menos 2 marcas."}
             </p>
           )}
         </div>
