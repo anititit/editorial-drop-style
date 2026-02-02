@@ -64,30 +64,22 @@ const EditorialPage = () => {
         >
           <h2 className="editorial-caption text-muted-foreground mb-8">Artigos</h2>
           
-          {/* Empty state - replace with article list when content is available */}
-          <div className="py-16 text-center">
-            <p className="editorial-body text-muted-foreground/60 italic">
-              Em breve
-            </p>
+          {/* Article list */}
+          <div className="divide-y divide-border/30">
+            <article className="group py-8 first:pt-0">
+              <Link to="/editorial/o-codigo-do-luxo-silencioso" className="block space-y-3">
+                <span className="editorial-caption text-muted-foreground/60">
+                  Códigos Visuais · Janeiro 2026
+                </span>
+                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
+                  O Código do Luxo Silencioso
+                </h3>
+                <p className="editorial-body text-muted-foreground line-clamp-2">
+                  Por que as marcas mais desejadas abandonaram os logos? Uma leitura sobre o novo vocabulário do prestígio.
+                </p>
+              </Link>
+            </article>
           </div>
-
-          {/* 
-          Article list structure (uncomment when articles are available):
-          
-          <article className="group py-6 border-b border-border/30 last:border-0">
-            <Link to="/editorial/article-slug" className="block space-y-2">
-              <span className="editorial-caption text-muted-foreground/60">
-                Categoria · Data
-              </span>
-              <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors">
-                Título do Artigo
-              </h3>
-              <p className="editorial-body text-muted-foreground line-clamp-2">
-                Excerpt do artigo com no máximo duas linhas...
-              </p>
-            </Link>
-          </article>
-          */}
         </motion.section>
       </div>
     </div>
