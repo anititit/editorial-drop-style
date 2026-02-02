@@ -54,8 +54,42 @@ function extractJson(text: string): any {
   return JSON.parse(candidate);
 }
 
-function buildProSystemPrompt(hasVisual: boolean, hasBrands: boolean, brandNames: string[]): string {
+function buildProSystemPrompt(
+  hasVisual: boolean, 
+  hasBrands: boolean, 
+  brandNames: string[],
+  brandInfo?: { name: string; category: string; objective: string }
+): string {
   let inputContext = "";
+  
+  // Add brand context if provided
+  let brandContext = "";
+  if (brandInfo?.name) {
+    const categoryLabels: Record<string, string> = {
+      moda: "Moda",
+      beleza: "Beleza", 
+      joias: "Joias",
+      food: "Food & Drink",
+      wellness: "Wellness",
+      design: "Design",
+      lifestyle: "Lifestyle",
+      tech: "Tech",
+    };
+    const objectiveLabels: Record<string, string> = {
+      consistencia: "Consistência visual",
+      reposicionamento: "Reposicionamento de marca",
+      conversao: "Conversão e vendas",
+      lancamento: "Lançamento de marca/produto",
+    };
+    
+    brandContext = `
+CONTEXTO DA MARCA:
+- Nome: ${brandInfo.name}
+- Categoria: ${categoryLabels[brandInfo.category] || brandInfo.category}
+- Objetivo principal: ${objectiveLabels[brandInfo.objective] || brandInfo.objective}
+
+Use estas informações para contextualizar todo o editorial. O nome da marca deve influenciar o tom e a personalidade.`;
+  }
   
   if (hasVisual && hasBrands) {
     inputContext = `Você receberá DOIS tipos de referência:
@@ -78,6 +112,7 @@ IMPORTANTE: Nunca sugira copiar essas marcas. Use-as como norte criativo para de
   }
 
   return `Você é um consultor de direção criativa e branding de alto nível para marcas brasileiras. Você gera um Brand Editorial Kit completo no tom de revistas como Vogue e Harper's Bazaar.
+${brandContext}
 
 ${inputContext}
 
@@ -87,6 +122,7 @@ REGRAS CRÍTICAS:
 3. Se receber imagens abstratas, interprete paleta, contraste, textura e mood.
 4. Todos os campos são OBRIGATÓRIOS.
 5. Todo conteúdo textual DEVE ser em português brasileiro (pt-BR).
+6. Se um nome de marca foi fornecido, use-o para personalizar o tom e a direção criativa.
 
 Retorne este JSON EXATO com TODOS os campos preenchidos:
 
@@ -174,13 +210,14 @@ async function callAI(
   images: string[],
   isUrls: boolean,
   brandRefs: string[],
+  brandInfo: { name: string; category: string; objective: string } | undefined,
   apiKey: string,
   debugId: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
   const hasVisual = images.length > 0;
   const hasBrands = brandRefs.length > 0;
   
-  const systemPrompt = buildProSystemPrompt(hasVisual, hasBrands, brandRefs);
+  const systemPrompt = buildProSystemPrompt(hasVisual, hasBrands, brandRefs, brandInfo);
   
   const userContent: any[] = [];
   
@@ -281,7 +318,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { images = [], isUrls = false, brandRefs = [] } = body;
+    const { images = [], isUrls = false, brandRefs = [], brandInfo } = body;
 
     // Validate input - at least one type of reference must be provided
     const hasVisual = Array.isArray(images) && images.length > 0;
@@ -308,12 +345,12 @@ serve(async (req) => {
     }
 
     // Call AI with retry
-    let result = await callAI(images, isUrls, brandRefs, apiKey, debugId);
+    let result = await callAI(images, isUrls, brandRefs, brandInfo, apiKey, debugId);
 
     // Retry once on failure
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, brandRefs, apiKey, debugId);
+      result = await callAI(images, isUrls, brandRefs, brandInfo, apiKey, debugId);
     }
 
     if (!result.success) {
