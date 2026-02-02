@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { BRAND_CATEGORIES, BRAND_OBJECTIVES } from "@/lib/types";
+import { BRAND_CATEGORIES } from "@/lib/types";
 
 type GuidanceType = "visual" | "brands" | "both";
 type DepthType = "essencial" | "completo";
@@ -54,7 +54,6 @@ const ProBriefPage = () => {
   // Brand info
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("lifestyle");
-  const [objective, setObjective] = useState("consistencia");
   
   // Guidance type and references
   const [guidanceType, setGuidanceType] = useState<GuidanceType | null>(null);
@@ -94,7 +93,6 @@ const ProBriefPage = () => {
     const proData = {
       brandName: brandName.trim(),
       category,
-      objective,
       guidanceType,
       visualRefs: needsVisual ? visualRefs : [],
       brandRefs: needsBrands ? filledBrandRefs : [],
@@ -180,20 +178,6 @@ const ProBriefPage = () => {
             </div>
           </div>
 
-          {/* Objective */}
-          <div className="space-y-3">
-            <span className="editorial-caption block">Objetivo *</span>
-            <div className="flex flex-wrap gap-2">
-              {BRAND_OBJECTIVES.map((o) => (
-                <PreferenceChip
-                  key={o.id}
-                  label={o.label}
-                  selected={objective === o.id}
-                  onClick={() => setObjective(o.id)}
-                />
-              ))}
-            </div>
-          </div>
         </motion.section>
 
         <div className="editorial-divider" />

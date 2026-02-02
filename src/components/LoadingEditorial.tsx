@@ -86,7 +86,6 @@ export function LoadingEditorial({ hasError = false, errorType, onRetry }: Loadi
     const id = saveResult(DEFAULT_RESULT, {
       brandName: "Exemplo",
       category: "lifestyle",
-      objective: "consistencia",
     });
     navigate(`/resultado/${id}`);
   };

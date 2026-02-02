@@ -84,17 +84,14 @@ function errorResponse(error: string, message: string, debugId: string, status =
 // ============================================================================
 
 const ALLOWED_CATEGORIES = ["moda", "beleza", "joias", "food", "wellness", "design", "lifestyle", "tech"];
-const ALLOWED_OBJECTIVES = ["consistencia", "premium", "conversao", "lancamento"];
 
 function sanitizeBrandInfo(brandInfo: any): {
   name: string;
   category: string;
-  objective: string;
 } {
   return {
     name: typeof brandInfo?.name === "string" ? brandInfo.name.trim().slice(0, 100) : "Marca",
     category: ALLOWED_CATEGORIES.includes(brandInfo?.category) ? brandInfo.category : "lifestyle",
-    objective: ALLOWED_OBJECTIVES.includes(brandInfo?.objective) ? brandInfo.objective : "consistencia",
   };
 }
 
@@ -277,7 +274,7 @@ async function checkContentSafety(
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-function buildSystemPrompt(brandInfo: { name: string; category: string; objective: string }): string {
+function buildSystemPrompt(brandInfo: { name: string; category: string }): string {
   const categoryContext: Record<string, string> = {
     moda: "moda e vestuário - silhuetas, tecidos, styling",
     beleza: "beleza e cosméticos - texturas, acabamentos, aplicações",
@@ -289,18 +286,12 @@ function buildSystemPrompt(brandInfo: { name: string; category: string; objectiv
     tech: "tecnologia e digital - interfaces, clareza, experiência de produto",
   };
 
-  const objectiveContext: Record<string, string> = {
-    consistencia: "criar identidade visual consistente e reconhecível",
-    premium: "elevar percepção de valor e posicionamento",
-    conversao: "gerar desejo e ação de compra",
-    lancamento: "introduzir novidade com impacto",
-  };
-
   return `Você é um consultor editorial de marcas de alto nível para o mercado brasileiro. Analisa referências visuais e gera guias editoriais no tom de Vogue e Harper's Bazaar.
 
 MARCA: ${brandInfo.name}
 CATEGORIA: ${categoryContext[brandInfo.category] || categoryContext.lifestyle}
-OBJETIVO: ${objectiveContext[brandInfo.objective] || objectiveContext.consistencia}
+
+Infira o objetivo e direção da marca a partir das referências visuais fornecidas.
 
 REGRAS CRÍTICAS:
 1. Retorne APENAS JSON válido. Sem markdown. Sem explicações.
@@ -313,7 +304,6 @@ Retorne este JSON EXATO:
 {
   "profile": {
     "category": "${brandInfo.category}",
-    "objective": "${brandInfo.objective}",
     "persona": {
       "archetype": "nome do arquétipo da marca (ex: A Curadora, O Inovador)",
       "cultural_age": "faixa etária cultural do público (ex: 28-35)",
@@ -432,7 +422,7 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
 async function callAI(
   images: string[],
   isUrls: boolean,
-  brandInfo: { name: string; category: string; objective: string },
+  brandInfo: { name: string; category: string },
   apiKey: string,
   debugId: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {

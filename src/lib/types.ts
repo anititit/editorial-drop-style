@@ -29,7 +29,6 @@ export interface MiniContentSystem {
 
 export interface BrandProfile {
   category: string;
-  objective: string;
   persona: BrandPersonaLight;
   visual_codes: VisualBrandCodes;
 }
@@ -57,7 +56,6 @@ export interface SavedResult {
 export interface UserPreferences {
   brandName: string;
   category: string;
-  objective: string;
 }
 
 // Brand categories
@@ -72,18 +70,11 @@ export const BRAND_CATEGORIES = [
   { id: "tech", label: "Tech" },
 ] as const;
 
-export const BRAND_OBJECTIVES = [
-  { id: "consistencia", label: "Consistência" },
-  { id: "reposicionamento", label: "Reposicionamento" },
-  { id: "conversao", label: "Conversão" },
-  { id: "lancamento", label: "Lançamento" },
-] as const;
 
 // Default/fallback result
 export const DEFAULT_RESULT: EditorialResult = {
   profile: {
     category: "lifestyle",
-    objective: "consistencia",
     persona: {
       archetype: "A Curadora",
       cultural_age: "28-35",
