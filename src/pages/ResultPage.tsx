@@ -350,7 +350,7 @@ const ResultPage = () => {
           </div>
           
           {/* Pro Upgrade CTA */}
-          <Link to={`/pro?from=${id}`} className="block">
+          <Link to="/pro/brief" className="block">
             <EditorialButton variant="ghost" className="w-full text-sm">
               <Sparkles className="w-4 h-4 mr-2" />
               Versão Pro (beta)
