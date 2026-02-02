@@ -229,9 +229,6 @@ export function ImageUploader({
                 <p className="text-xs text-muted-foreground mt-1">
                   PNG, JPG ou WebP (máx. 6MB cada)
                 </p>
-                <p className="text-xs text-muted-foreground/70 mt-2">
-                  Você pode selecionar várias de uma vez
-                </p>
               </div>
             </div>
 
@@ -244,7 +241,6 @@ export function ImageUploader({
           ref={inputRef}
           type="file"
           accept="image/jpeg,image/jpg,image/png,image/webp"
-          multiple
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
