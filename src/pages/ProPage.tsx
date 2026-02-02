@@ -26,12 +26,21 @@ const ProPage = () => {
   const [hasGenerated, setHasGenerated] = useState(false);
 
   // Get stored data from the Pro brief
-  const getProBriefData = (): { images: string[]; brandRefs: string[] } | null => {
+  const getProBriefData = (): { 
+    brandName: string; 
+    category: string; 
+    objective: string;
+    images: string[]; 
+    brandRefs: string[];
+  } | null => {
     const storedBrief = sessionStorage.getItem("pro_brief");
     if (storedBrief) {
       try {
         const parsed = JSON.parse(storedBrief);
         return {
+          brandName: parsed.brandName || "",
+          category: parsed.category || "lifestyle",
+          objective: parsed.objective || "consistencia",
           images: parsed.visualRefs || [],
           brandRefs: parsed.brandRefs || [],
         };
@@ -46,7 +55,13 @@ const ProPage = () => {
       try {
         const parsed = JSON.parse(storedImages);
         if (Array.isArray(parsed) && parsed.length === 3) {
-          return { images: parsed, brandRefs: [] };
+          return { 
+            brandName: "", 
+            category: "lifestyle", 
+            objective: "consistencia",
+            images: parsed, 
+            brandRefs: [] 
+          };
         }
       } catch (e) {
         console.error("Failed to parse stored images:", e);
@@ -75,6 +90,11 @@ const ProPage = () => {
           images: briefData.images,
           isUrls,
           brandRefs: briefData.brandRefs,
+          brandInfo: {
+            name: briefData.brandName,
+            category: briefData.category,
+            objective: briefData.objective,
+          },
         },
       });
 
