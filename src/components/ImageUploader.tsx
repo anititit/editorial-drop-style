@@ -201,11 +201,16 @@ export function ImageUploader({
           </div>
         )}
 
-        {/* Drag hint when images exist but not full */}
+        {/* Add more button */}
         {images.length > 0 && images.length < maxImages && (
-          <p className="text-xs text-muted-foreground text-center">
-            Arraste mais imagens ou clique em "Adicionar"
-          </p>
+          <button
+            type="button"
+            onClick={triggerInput}
+            className="w-full py-3 border-2 border-dashed border-border/60 rounded-lg flex items-center justify-center gap-2 hover:border-foreground/40 hover:bg-muted/30 transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">Adicionar mais fotos</span>
+          </button>
         )}
 
         {/* Drop Zone (when no images) */}
