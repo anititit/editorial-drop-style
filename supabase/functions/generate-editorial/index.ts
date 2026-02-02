@@ -158,7 +158,9 @@ function validateBase64Image(data: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: boolean } | { ok: false; error: string; message: string } {
+type FragranceBudget = "affordable" | "mid" | "premium" | "mix";
+
+function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: boolean; fragranceBudget: FragranceBudget } | { ok: false; error: string; message: string } {
   if (!body || !Array.isArray(body.images) || body.images.length !== 3) {
     return { ok: false, error: "invalid_input", message: "Envie exatamente 3 imagens." };
   }
@@ -178,7 +180,13 @@ function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: b
     }
   }
 
-  return { ok: true, images: body.images, isUrls };
+  // Validate fragrance budget (default to "mix" if not provided)
+  const validBudgets: FragranceBudget[] = ["affordable", "mid", "premium", "mix"];
+  const fragranceBudget: FragranceBudget = validBudgets.includes(body.fragranceBudget) 
+    ? body.fragranceBudget 
+    : "mix";
+
+  return { ok: true, images: body.images, isUrls, fragranceBudget };
 }
 
 // ============================================================================
@@ -262,7 +270,47 @@ async function checkContentSafety(
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-function buildSystemPrompt(): string {
+function buildSystemPrompt(fragranceBudget: FragranceBudget): string {
+  // Build fragrance instructions based on budget
+  let fragranceInstructions = "";
+  
+  if (fragranceBudget === "affordable") {
+    fragranceInstructions = `
+FRAGRÂNCIAS - FAIXA ACESSÍVEL (até R$ 250):
+- Sugira EXATAMENTE 3 perfumes, TODOS na faixa acessível
+- Priorize marcas amplamente disponíveis no Brasil: Natura, O Boticário, Zara, Avon, Eudora
+- NUNCA sugira marcas de nicho ou luxo
+- Cada perfume deve custar até R$ 250
+- Exemplos de calibração (NÃO se limite a eles): Natura Essencial, O Boticário Malbec, Zara Red Vanilla`;
+  } else if (fragranceBudget === "mid") {
+    fragranceInstructions = `
+FRAGRÂNCIAS - FAIXA INTERMEDIÁRIA (R$ 251 a R$ 650):
+- Sugira EXATAMENTE 3 perfumes, TODOS na faixa intermediária
+- Priorize marcas designer comuns no Brasil: Narciso Rodriguez, YSL, Armani, Lancôme, Carolina Herrera, Paco Rabanne
+- EVITE marcas de nicho/luxo (Le Labo, Byredo, MFK, etc.)
+- Cada perfume deve custar entre R$ 251 e R$ 650
+- Exemplos de calibração (NÃO se limite a eles): Narciso Rodriguez For Her, YSL Libre EDT, Armani My Way`;
+  } else if (fragranceBudget === "premium") {
+    fragranceInstructions = `
+FRAGRÂNCIAS - FAIXA PREMIUM (acima de R$ 650):
+- Sugira EXATAMENTE 3 perfumes, TODOS na faixa premium
+- Pode incluir marcas de nicho e luxo: Byredo, Le Labo, Maison Francis Kurkdjian, Tom Ford Private Blend, Creed
+- Cada perfume deve custar acima de R$ 650
+- Exemplos de calibração (NÃO se limite a eles): Byredo Gypsy Water, Le Labo Santal 33, MFK Baccarat Rouge 540`;
+  } else {
+    // "mix" - default
+    fragranceInstructions = `
+FRAGRÂNCIAS - MISTURAR FAIXAS:
+- Sugira EXATAMENTE 3 perfumes, um de cada faixa de preço:
+  1. Acessível (até R$ 250): Priorize Natura, O Boticário, Zara, Avon
+  2. Intermediário (R$ 251-650): Priorize designer comum no Brasil (Narciso Rodriguez, YSL, Armani)
+  3. Premium (acima de R$ 650): Pode ser nicho/luxo (Byredo, Le Labo, MFK)
+- Exemplos de calibração (NÃO se limite a eles):
+  - Acessível: Natura Essencial, O Boticário Malbec
+  - Intermediário: YSL Libre, Armani My Way
+  - Premium: Le Labo Santal 33, Byredo Mojave Ghost`;
+  }
+
   return `Você é um consultor de estilo pessoal de alto nível para o mercado brasileiro. Analisa referências visuais e gera leituras estéticas no tom de Vogue e Harper's Bazaar.
 
 Este é um serviço de ESTILO PESSOAL (não de marcas). Você analisa as referências visuais para entender a identidade estética da PESSOA.
@@ -273,6 +321,7 @@ REGRAS CRÍTICAS:
 3. TODOS os campos são OBRIGATÓRIOS.
 4. Todo texto em português brasileiro (pt-BR).
 5. Tom: Vogue/Harper's Bazaar — elegante, confiante, aspiracional, nunca didático.
+${fragranceInstructions}
 
 Retorne este JSON EXATO:
 
@@ -332,9 +381,14 @@ Retorne este JSON EXATO:
       "lips": "lábios noite"
     },
     "fragrances": [
-      { "name": "Nome do perfume (Marca)", "notes": "notas principais", "tier": "accessible" },
-      { "name": "Nome do perfume (Marca)", "notes": "notas", "tier": "mid" },
-      { "name": "Nome do perfume (Marca)", "notes": "notas", "tier": "premium" }
+      { 
+        "name": "Nome do Perfume", 
+        "brand": "Marca",
+        "notes": "notas olfativas principais", 
+        "price_tier": "affordable|mid|premium",
+        "approximate_price_brl": 180,
+        "why_it_matches": "uma linha curta explicando a conexão com o estilo"
+      }
     ],
     "footer_note": "nota de fechamento editorial elegante"
   }
@@ -345,7 +399,7 @@ INSTRUÇÕES:
 - confidence: 0.85 padrão, 0.45-0.65 se imagens são muito abstratas
 - looks: Cada look deve ter peças específicas, não genéricas
 - makeup: Produtos e técnicas específicas, não vagas
-- fragrances: Perfumes reais com notas reais
+- fragrances: EXATAMENTE 3 perfumes seguindo as regras de faixa acima. Use perfumes REAIS disponíveis no Brasil. Os exemplos são apenas calibração — sugira outros que combinem melhor com o estilo.
 - why_this: Justificativas baseadas nas cores, texturas e mood das referências
 
 Tom: Premium, confiante, nunca arrogante. Editorial de moda, não consultoria genérica.`;
@@ -420,13 +474,14 @@ async function callAI(
   images: string[],
   isUrls: boolean,
   apiKey: string,
-  debugId: string
+  debugId: string,
+  fragranceBudget: FragranceBudget
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
   const imageContent = isUrls
     ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
     : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
 
-  const systemPrompt = buildSystemPrompt();
+  const systemPrompt = buildSystemPrompt(fragranceBudget);
 
   const messages = [
     { role: "system", content: systemPrompt },
@@ -532,7 +587,7 @@ serve(async (req) => {
       return errorResponse(validation.error, validation.message, debugId);
     }
 
-    const { images, isUrls } = validation;
+    const { images, isUrls, fragranceBudget } = validation;
 
     // Get API key
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -554,11 +609,12 @@ serve(async (req) => {
     }
 
     // Generate personal aesthetic reading with retry
-    let result = await callAI(images, isUrls, apiKey, debugId);
+    console.log(`[${debugId}] Fragrance budget: ${fragranceBudget}`);
+    let result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
     
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, apiKey, debugId);
+      result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
     }
 
     if (!result.success) {

@@ -30,8 +30,11 @@ export interface MakeupRecommendation {
 
 export interface FragranceSuggestion {
   name: string;
+  brand: string;
   notes: string;
-  tier: "accessible" | "mid" | "premium";
+  price_tier: "affordable" | "mid" | "premium";
+  approximate_price_brl: number;
+  why_it_matches: string;
 }
 
 export interface PersonalEditorial {
@@ -112,9 +115,9 @@ export const DEFAULT_RESULT: EditorialResult = {
       lips: "Batom nude rosado matte",
     },
     fragrances: [
-      { name: "Santal 33 (Le Labo)", notes: "Sândalo, íris, couro", tier: "premium" },
-      { name: "Flowerbomb Nectar (Viktor&Rolf)", notes: "Floral intenso", tier: "mid" },
-      { name: "Natura Essencial (Natura)", notes: "Amadeirado fresco", tier: "accessible" },
+      { name: "Essencial Oud", brand: "Natura", notes: "Oud, âmbar, baunilha", price_tier: "affordable", approximate_price_brl: 180, why_it_matches: "Sofisticação acessível com fundo amadeirado" },
+      { name: "Libre", brand: "Yves Saint Laurent", notes: "Lavanda, flor de laranjeira, baunilha", price_tier: "mid", approximate_price_brl: 450, why_it_matches: "Equilíbrio entre frescor e sensualidade" },
+      { name: "Santal 33", brand: "Le Labo", notes: "Sândalo, íris, couro", price_tier: "premium", approximate_price_brl: 1800, why_it_matches: "Minimalismo olfativo para uma assinatura única" },
     ],
     footer_note: "Este é um resultado parcial. Tente novamente com outras referências.",
   },
