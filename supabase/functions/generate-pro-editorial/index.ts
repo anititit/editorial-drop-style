@@ -58,7 +58,8 @@ function buildProSystemPrompt(
   hasVisual: boolean, 
   hasBrands: boolean, 
   brandNames: string[],
-  brandInfo?: { name: string; category: string; objective: string }
+  brandInfo?: { name: string; category: string; objective: string },
+  depth: "essencial" | "completo" = "completo"
 ): string {
   let inputContext = "";
   
@@ -111,6 +112,48 @@ Analise o universo dessas marcas para extrair:
 IMPORTANTE: Nunca sugira copiar essas marcas. Use-as como norte criativo para desenvolver uma identidade ORIGINAL.`;
   }
 
+  // Build JSON schema based on depth
+  const isEssencial = depth === "essencial";
+  
+  const editorialDirectionsSchema = isEssencial ? "" : `
+  "editorial_directions": [
+    {
+      "type": "signature",
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual (NOVA informação, não repita brand_codes)",
+      "composition": "direção de enquadramento (NOVA informação)",
+      "styling_environment": "styling e ambiente (NOVA informação)",
+      "usage_context": "contexto conceitual de uso"
+    },
+    {
+      "type": "aspirational",
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual (diferente de signature)",
+      "composition": "direção de enquadramento (diferente de signature)",
+      "styling_environment": "styling e ambiente (diferente de signature)",
+      "usage_context": "contexto conceitual de uso"
+    },
+    {
+      "type": "conversion",
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual (diferente das anteriores)",
+      "composition": "direção de enquadramento (diferente das anteriores)",
+      "styling_environment": "styling e ambiente (diferente das anteriores)",
+      "usage_context": "contexto conceitual de uso"
+    }
+  ],`;
+
+  const directionsInstructions = isEssencial ? "" : `
+- editorial_directions: Cada direção deve adicionar NOVA informação. NÃO repita o que já está em brand_codes. 
+  - Signature: identidade core
+  - Aspirational: elevação e desejo
+  - Conversion: decisão de compra
+  Cada uma com mood, composição e styling ÚNICOS.`;
+
+  const depthNote = isEssencial 
+    ? `\n\nATENÇÃO: Este é um editorial ESSENCIAL. Foque na essência sem incluir direções editoriais múltiplas. Seja incisivo e direto.`
+    : `\n\nATENÇÃO: Este é um editorial COMPLETO. Inclua 3 direções editoriais distintas, cada uma adicionando valor único sem repetir informações.`;
+
   return `Você é um diretor criativo de branding de alto nível. Você gera documentos de marca no tom editorial de Vogue e Harper's Bazaar.
 
 ${brandContext}
@@ -129,6 +172,7 @@ REGRAS TÉCNICAS:
 2. NUNCA mencione copiar ou imitar marcas.
 3. Todos os campos são OBRIGATÓRIOS.
 4. Todo texto DEVE ser em português brasileiro (pt-BR).
+5. NUNCA repita informações entre seções. Cada seção deve adicionar valor novo.${depthNote}
 
 Retorne este JSON EXATO:
 
@@ -157,33 +201,7 @@ Retorne este JSON EXATO:
       "allowed_words": ["5-6 palavras permitidas"],
       "forbidden_words": ["5-6 palavras proibidas"]
     }
-  },
-  "editorial_directions": [
-    {
-      "type": "signature",
-      "title": "nome poético da direção",
-      "visual_mood": "descrição do mood visual",
-      "composition": "direção de enquadramento e composição",
-      "styling_environment": "styling e ambiente",
-      "usage_context": "contexto conceitual de uso (sem passos táticos)"
-    },
-    {
-      "type": "aspirational",
-      "title": "nome poético da direção",
-      "visual_mood": "descrição do mood visual",
-      "composition": "direção de enquadramento e composição",
-      "styling_environment": "styling e ambiente",
-      "usage_context": "contexto conceitual de uso"
-    },
-    {
-      "type": "conversion",
-      "title": "nome poético da direção",
-      "visual_mood": "descrição do mood visual",
-      "composition": "direção de enquadramento e composição",
-      "styling_environment": "styling e ambiente",
-      "usage_context": "contexto conceitual de uso"
-    }
-  ],
+  },${editorialDirectionsSchema}
   "editorial_example": {
     "title": "título de uma campanha ou momento editorial hipotético",
     "description": "descrição poética de uma aplicação editorial (3-4 frases, sem checklist)"
@@ -193,8 +211,7 @@ Retorne este JSON EXATO:
 
 INSTRUÇÕES DE CONTEÚDO:
 - persona.archetype: Arquétipos elegantes e aspiracionais
-- positioning: Uma frase que define o diferencial de forma editorial
-- editorial_directions: Conceituais, não táticas. Sem "ideias de post" ou "o que postar"
+- positioning: Uma frase que define o diferencial de forma editorial${directionsInstructions}
 - editorial_example: UM exemplo apenas. Campanha, imagem, ou momento de marca. Descritivo, não prescritivo.
 - editorial_closing: Reflexão de encerramento. Poético, alinhado ao tom da marca.
 
@@ -206,13 +223,14 @@ async function callAI(
   isUrls: boolean,
   brandRefs: string[],
   brandInfo: { name: string; category: string; objective: string } | undefined,
+  depth: "essencial" | "completo",
   apiKey: string,
   debugId: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
   const hasVisual = images.length > 0;
   const hasBrands = brandRefs.length > 0;
   
-  const systemPrompt = buildProSystemPrompt(hasVisual, hasBrands, brandRefs, brandInfo);
+  const systemPrompt = buildProSystemPrompt(hasVisual, hasBrands, brandRefs, brandInfo, depth);
   
   const userContent: any[] = [];
   
@@ -248,7 +266,7 @@ async function callAI(
   ];
 
   try {
-    console.log(`[${debugId}] Calling AI for Pro editorial (visual: ${hasVisual}, brands: ${hasBrands})...`);
+    console.log(`[${debugId}] Calling AI for Pro editorial (visual: ${hasVisual}, brands: ${hasBrands}, depth: ${depth})...`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -289,9 +307,14 @@ async function callAI(
       return { success: false, error: "json_parse_error", message: "Erro ao processar resposta. Tente novamente." };
     }
 
-    // Basic structure validation
-    if (!parsed.persona || !parsed.positioning || !parsed.brand_codes || !parsed.editorial_directions) {
+    // Basic structure validation - editorial_directions only required for "completo"
+    const requiresDirections = depth === "completo";
+    if (!parsed.persona || !parsed.positioning || !parsed.brand_codes) {
       console.error(`[${debugId}] Incomplete structure`);
+      return { success: false, error: "incomplete_structure", message: "Resposta incompleta. Tente novamente." };
+    }
+    if (requiresDirections && !parsed.editorial_directions) {
+      console.error(`[${debugId}] Missing editorial_directions for completo mode`);
       return { success: false, error: "incomplete_structure", message: "Resposta incompleta. Tente novamente." };
     }
 
@@ -313,7 +336,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { images = [], isUrls = false, brandRefs = [], brandInfo } = body;
+    const { images = [], isUrls = false, brandRefs = [], brandInfo, depth = "completo" } = body;
 
     // Validate input - at least one type of reference must be provided
     const hasVisual = Array.isArray(images) && images.length > 0;
@@ -339,13 +362,16 @@ serve(async (req) => {
       return errorResponse("config_error", "Configuração do servidor incompleta.", debugId);
     }
 
+    // Validate depth
+    const validDepth = depth === "essencial" || depth === "completo" ? depth : "completo";
+
     // Call AI with retry
-    let result = await callAI(images, isUrls, brandRefs, brandInfo, apiKey, debugId);
+    let result = await callAI(images, isUrls, brandRefs, brandInfo, validDepth, apiKey, debugId);
 
     // Retry once on failure
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, brandRefs, brandInfo, apiKey, debugId);
+      result = await callAI(images, isUrls, brandRefs, brandInfo, validDepth, apiKey, debugId);
     }
 
     if (!result.success) {

@@ -32,6 +32,7 @@ const ProPage = () => {
     objective: string;
     images: string[]; 
     brandRefs: string[];
+    depth: "essencial" | "completo";
   } | null => {
     const storedBrief = sessionStorage.getItem("pro_brief");
     if (storedBrief) {
@@ -43,6 +44,7 @@ const ProPage = () => {
           objective: parsed.objective || "consistencia",
           images: parsed.visualRefs || [],
           brandRefs: parsed.brandRefs || [],
+          depth: parsed.depth === "essencial" ? "essencial" : "completo",
         };
       } catch (e) {
         console.error("Failed to parse pro brief:", e);
@@ -60,7 +62,8 @@ const ProPage = () => {
             category: "lifestyle", 
             objective: "consistencia",
             images: parsed, 
-            brandRefs: [] 
+            brandRefs: [],
+            depth: "completo", // legacy defaults to completo
           };
         }
       } catch (e) {
@@ -95,6 +98,7 @@ const ProPage = () => {
             category: briefData.category,
             objective: briefData.objective,
           },
+          depth: briefData.depth,
         },
       });
 

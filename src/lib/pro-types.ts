@@ -44,7 +44,7 @@ export interface ProEditorialResult {
   persona: BrandPersona;
   positioning: string;
   brand_codes: BrandCodes;
-  editorial_directions: EditorialDirection[];
+  editorial_directions?: EditorialDirection[]; // Optional for "essencial" mode
   editorial_example: EditorialExample;
   editorial_closing: string;
 }

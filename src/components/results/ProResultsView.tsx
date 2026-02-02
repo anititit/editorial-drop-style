@@ -29,6 +29,9 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 
 export function ProResultsView({ result }: ProResultsViewProps) {
   const { persona, positioning, brand_codes, editorial_directions, editorial_example, editorial_closing } = result;
+  
+  // Check if we have editorial directions to display (Completo mode)
+  const hasDirections = editorial_directions && editorial_directions.length > 0;
 
   return (
     <div className="pro-editorial-content space-y-16 leading-relaxed">
@@ -178,48 +181,50 @@ export function ProResultsView({ result }: ProResultsViewProps) {
         </div>
       </section>
 
-      {/* 04 — Editorial Directions */}
-      <section className="space-y-8 page-break-after">
-        <SectionTitle number="04">Direções Editoriais</SectionTitle>
-        
-        <div className="space-y-6">
-          {editorial_directions.map((direction, i) => (
-            <Card key={i} className="space-y-4">
-              <div className="flex items-baseline gap-3">
-                <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {direction.type === "signature" && "Assinatura"}
-                  {direction.type === "aspirational" && "Aspiracional"}
-                  {direction.type === "conversion" && "Conversão"}
-                </span>
-                <h4 className="text-lg font-medium">{direction.title}</h4>
-              </div>
-              
-              <div className="grid gap-4 md:grid-cols-2 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Mood Visual:</span>
-                  <p className="mt-1 leading-relaxed">{direction.visual_mood}</p>
+      {/* 04 — Editorial Directions (only for Completo mode) */}
+      {hasDirections && (
+        <section className="space-y-8 page-break-after">
+          <SectionTitle number="04">Direções Editoriais</SectionTitle>
+          
+          <div className="space-y-6">
+            {editorial_directions.map((direction, i) => (
+              <Card key={i} className="space-y-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    {direction.type === "signature" && "Assinatura"}
+                    {direction.type === "aspirational" && "Aspiracional"}
+                    {direction.type === "conversion" && "Conversão"}
+                  </span>
+                  <h4 className="text-lg font-medium">{direction.title}</h4>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Composição:</span>
-                  <p className="mt-1 leading-relaxed">{direction.composition}</p>
+                
+                <div className="grid gap-4 md:grid-cols-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Mood Visual:</span>
+                    <p className="mt-1 leading-relaxed">{direction.visual_mood}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Composição:</span>
+                    <p className="mt-1 leading-relaxed">{direction.composition}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Styling / Ambiente:</span>
+                    <p className="mt-1 leading-relaxed">{direction.styling_environment}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Contexto de Uso:</span>
+                    <p className="mt-1 leading-relaxed">{direction.usage_context}</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Styling / Ambiente:</span>
-                  <p className="mt-1 leading-relaxed">{direction.styling_environment}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Contexto de Uso:</span>
-                  <p className="mt-1 leading-relaxed">{direction.usage_context}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </section>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* 05 — Editorial Example */}
+      {/* Editorial Example (section number adjusts based on mode) */}
       <section className="space-y-6 page-break-after">
-        <SectionTitle number="05">Aplicação Editorial — Exemplo</SectionTitle>
+        <SectionTitle number={hasDirections ? "05" : "04"}>Aplicação Editorial — Exemplo</SectionTitle>
         
         <Card className="bg-muted/50 border border-border/50">
           <h4 className="text-lg font-medium mb-4">{editorial_example.title}</h4>
@@ -229,7 +234,7 @@ export function ProResultsView({ result }: ProResultsViewProps) {
         </Card>
       </section>
 
-      {/* 06 — Editorial Closing */}
+      {/* Editorial Closing */}
       <section className="py-10 text-center max-w-xl mx-auto">
         <div className="w-16 h-px bg-border mx-auto mb-8" />
         <p className="text-base leading-relaxed italic text-muted-foreground">
