@@ -45,6 +45,7 @@ const InputPage = () => {
   const { toast } = useToast();
 
   const initialMode = searchParams.get("mode") === "url" ? "url" : "upload";
+  const isProMode = searchParams.get("pro") === "true";
   const [mode, setMode] = useState<"upload" | "url">(initialMode);
 
   // Image states
@@ -159,6 +160,10 @@ const InputPage = () => {
         
         const result = await callGenerateEditorial();
 
+        // Store images in sessionStorage for Pro flow
+        const imageData = mode === "upload" ? images : urls;
+        sessionStorage.setItem("editorial_images", JSON.stringify(imageData));
+
         // Save to history
         const preferences: UserPreferences = {
           occasion,
@@ -168,8 +173,12 @@ const InputPage = () => {
         };
         const id = saveResult(result, preferences);
 
-        // Navigate to results
-        navigate(`/resultado/${id}`);
+        // Navigate to results (or Pro if in pro mode)
+        if (isProMode) {
+          navigate(`/pro?from=${id}`);
+        } else {
+          navigate(`/resultado/${id}`);
+        }
         return;
       } catch (err: any) {
         lastError = err;

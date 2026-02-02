@@ -1,347 +1,298 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Sparkles, Send } from "lucide-react";
+import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { PreferenceChip } from "@/components/PreferenceChip";
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
+import { ProLoadingEditorial } from "@/components/ProLoadingEditorial";
+import { ProResultsView } from "@/components/results/ProResultsView";
 import { getResultById } from "@/lib/storage";
+import { ProEditorialResult, DEFAULT_PRO_RESULT } from "@/lib/pro-types";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const OBJECTIVES = [
-  { id: "consistencia", label: "Consistência do feed" },
-  { id: "conversao", label: "Conversão" },
-  { id: "lancamento", label: "Lançamento / drop" },
-  { id: "reposicionamento", label: "Reposicionamento" },
-];
-
-const PLATFORMS = [
-  { id: "instagram", label: "Instagram" },
-  { id: "tiktok", label: "TikTok" },
-  { id: "youtube", label: "YouTube" },
-];
-
-const TONES = [
-  { id: "minimal_chic", label: "Minimal chic" },
-  { id: "romantic_modern", label: "Romantic modern" },
-  { id: "after_dark", label: "After dark" },
-  { id: "soft_grunge", label: "Soft grunge" },
-  { id: "classic_luxe", label: "Classic luxe" },
-  { id: "color_pop", label: "Color pop" },
-];
-
-const PRICE_POSITIONS = [
-  { id: "acessivel", label: "Acessível" },
-  { id: "intermediario", label: "Intermediário" },
-  { id: "premium", label: "Premium" },
-  { id: "mix", label: "Mix" },
-];
+type ProPageState = "loading" | "results" | "error";
 
 const ProPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fromResultId = searchParams.get("from");
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Form state
-  const [brandName, setBrandName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-  const [objective, setObjective] = useState("consistencia");
-  const [platforms, setPlatforms] = useState<string[]>(["instagram"]);
-  const [contentContext, setContentContext] = useState("");
-  const [tone, setTone] = useState("minimal_chic");
-  const [pricePosition, setPricePosition] = useState("intermediario");
-  const [admiredBrands, setAdmiredBrands] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, setState] = useState<ProPageState>("loading");
+  const [result, setResult] = useState<ProEditorialResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isExporting, setIsExporting] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Reference URLs from B2C session
-  const [referenceUrls, setReferenceUrls] = useState<string[]>([]);
-  const [hasB2CSession, setHasB2CSession] = useState(false);
-
-  useEffect(() => {
-    if (fromResultId) {
-      const savedResult = getResultById(fromResultId);
-      if (savedResult) {
-        setHasB2CSession(true);
-        // Note: In practice, we'd need to store the original image URLs
-        // For now, we'll indicate session exists but URLs need re-entry
+  // Get stored images from the B2C session (if available)
+  const getStoredImages = (): string[] | null => {
+    // Try to get from sessionStorage (set during InputPage)
+    const storedImages = sessionStorage.getItem("editorial_images");
+    if (storedImages) {
+      try {
+        const parsed = JSON.parse(storedImages);
+        if (Array.isArray(parsed) && parsed.length === 3) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse stored images:", e);
       }
     }
-  }, [fromResultId]);
-
-  const togglePlatform = (platformId: string) => {
-    setPlatforms((prev) =>
-      prev.includes(platformId)
-        ? prev.filter((p) => p !== platformId)
-        : [...prev, platformId]
-    );
+    return null;
   };
 
-  const generateOrderCode = () => {
-    const date = new Date();
-    const dateStr = date.toISOString().slice(2, 10).replace(/-/g, "");
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `PRO-${dateStr}-${random}`;
-  };
+  const generateProEditorial = async () => {
+    setState("loading");
+    setErrorMessage("");
 
-  const isFormValid = brandName.trim() && whatsapp.trim() && platforms.length > 0;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
-
-    setIsSubmitting(true);
+    const images = getStoredImages();
+    if (!images) {
+      // No images available, redirect to input
+      navigate("/input?mode=upload&pro=true");
+      return;
+    }
 
     try {
-      const orderCode = generateOrderCode();
-      
-      const { error } = await supabase.from("pro_requests").insert({
-        order_code: orderCode,
-        name: brandName.trim(),
-        whatsapp: whatsapp.trim(),
-        email: email.trim() || null,
-        objective,
-        platform: platforms.join(", "),
-        occasion: contentContext.trim() || null,
-        tone,
-        budget: pricePosition,
-        reference_urls: referenceUrls.length > 0 ? referenceUrls : [],
-        status: "pending",
+      const isUrls = images[0]?.startsWith("http");
+
+      const response = await supabase.functions.invoke("generate-pro-editorial", {
+        body: { images, isUrls },
       });
 
-      if (error) throw error;
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to generate");
+      }
 
-      navigate(`/pro/confirmacao?code=${orderCode}`);
+      const data = response.data;
+
+      if (data.error) {
+        setErrorMessage(data.message || "Não foi possível gerar o editorial.");
+        setState("error");
+        return;
+      }
+
+      setResult(data as ProEditorialResult);
+      setState("results");
+      setHasGenerated(true);
     } catch (err) {
-      console.error("Pro request error:", err);
+      console.error("Pro generation error:", err);
+      setErrorMessage("Erro ao gerar. Tente novamente.");
+      setState("error");
+    }
+  };
+
+  useEffect(() => {
+    if (!hasGenerated) {
+      generateProEditorial();
+    }
+  }, []);
+
+  const handleRetry = () => {
+    generateProEditorial();
+  };
+
+  const handleExportPDF = async () => {
+    if (!contentRef.current || isExporting) return;
+
+    setIsExporting(true);
+    toast({
+      title: "Gerando PDF...",
+      description: "Aguarde um momento.",
+    });
+
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const element = contentRef.current;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#FAFAF8",
+        logging: false,
+      });
+
+      const a4Width = 210;
+      const a4Height = 297;
+      const margin = 12;
+      const contentWidth = a4Width - margin * 2;
+      const contentHeight = a4Height - margin * 2;
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
+
+        const sourceY = (page * contentHeight * canvas.width) / contentWidth;
+        const sourceHeight = Math.min(
+          (contentHeight * canvas.width) / contentWidth,
+          canvas.height - sourceY
+        );
+
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+
+        const ctx = pageCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0, sourceY,
+            canvas.width, sourceHeight,
+            0, 0,
+            canvas.width, sourceHeight
+          );
+
+          const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
+
+          pdf.addImage(
+            pageImgData,
+            "JPEG",
+            margin,
+            margin,
+            imgWidth,
+            pageImgHeight
+          );
+        }
+      }
+
+      pdf.save("brand-editorial-kit.pdf");
+
       toast({
-        title: "Erro ao enviar",
-        description: "Não foi possível enviar o pedido. Tente novamente.",
+        title: "PDF exportado!",
+        description: "O arquivo foi salvo.",
+      });
+    } catch (err) {
+      console.error("PDF export error:", err);
+      toast({
+        title: "Erro ao exportar",
+        description: "Não foi possível gerar o PDF.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsExporting(false);
     }
   };
 
+  // Loading state
+  if (state === "loading") {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
+          <div className="container-results py-4 flex items-center justify-between">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="editorial-caption">DROP Pro</span>
+            </div>
+            <div className="w-5" />
+          </div>
+        </header>
+        <ProLoadingEditorial />
+      </div>
+    );
+  }
+
+  // Error state
+  if (state === "error") {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
+          <div className="container-results py-4 flex items-center justify-between">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="editorial-caption">DROP Pro</span>
+            </div>
+            <div className="w-5" />
+          </div>
+        </header>
+        <ProLoadingEditorial hasError errorMessage={errorMessage} onRetry={handleRetry} />
+      </div>
+    );
+  }
+
+  // Results state
+  const displayResult = result || DEFAULT_PRO_RESULT;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container-editorial py-8 max-w-lg">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 print-hide">
+        <div className="container-results py-4 flex items-center justify-between">
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="editorial-caption">DROP Pro (24h)</span>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="editorial-caption">Brand Editorial Kit</span>
+          </div>
+          <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
+            <Download className="w-4 h-4" />
+          </EditorialButton>
         </div>
+      </header>
 
-        <motion.div
+      {/* Content */}
+      <div ref={contentRef} className="container-results py-10">
+        {/* Hero */}
+        <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-8"
+          className="text-center space-y-4 mb-12"
         >
-          {/* Hero */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-full">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium tracking-wide uppercase">Editorial Completo</span>
-            </div>
-            
-            <h1 className="editorial-title text-2xl md:text-3xl">
-              Fechamento editorial<br />para creators e marcas
-            </h1>
-            
-            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-              Direção completa + shotlist + copy kit.<br />
-              Entrega em até 24h. Sem call.
-            </p>
-          </div>
+          <span className="editorial-caption">DROP Pro</span>
+          <h1 className="editorial-headline text-3xl md:text-4xl">
+            Brand Editorial Kit
+          </h1>
+          <p className="editorial-subhead text-muted-foreground max-w-md mx-auto">
+            Sua direção criativa completa. Pronta para aplicar.
+          </p>
+        </motion.header>
 
-          <div className="editorial-divider" />
+        <div className="editorial-divider mb-12" />
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Brand/Project */}
-            <div className="space-y-2">
-              <Label htmlFor="brandName" className="editorial-caption">
-                Marca / Projeto
-              </Label>
-              <Input
-                id="brandName"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                placeholder="Nome da marca ou @"
-                className="bg-muted/30 border-border/50"
-              />
-            </div>
+        <ProResultsView result={displayResult} />
+      </div>
 
-            {/* Contact */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp" className="editorial-caption">
-                  WhatsApp *
-                </Label>
-                <Input
-                  id="whatsapp"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+55 11 99999-9999"
-                  className="bg-muted/30 border-border/50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="editorial-caption">
-                  E-mail
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@marca.com"
-                  className="bg-muted/30 border-border/50"
-                />
-              </div>
-            </div>
-
-            {/* Objective */}
-            <div className="space-y-3">
-              <span className="editorial-caption block">Objetivo</span>
-              <div className="flex flex-wrap gap-2">
-                {OBJECTIVES.map((o) => (
-                  <PreferenceChip
-                    key={o.id}
-                    label={o.label}
-                    selected={objective === o.id}
-                    onClick={() => setObjective(o.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Platforms */}
-            <div className="space-y-3">
-              <span className="editorial-caption block">Plataforma(s)</span>
-              <div className="flex flex-wrap gap-2">
-                {PLATFORMS.map((p) => (
-                  <PreferenceChip
-                    key={p.id}
-                    label={p.label}
-                    selected={platforms.includes(p.id)}
-                    onClick={() => togglePlatform(p.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Content Context */}
-            <div className="space-y-2">
-              <Label htmlFor="contentContext" className="editorial-caption">
-                Contexto do conteúdo
-              </Label>
-              <Textarea
-                id="contentContext"
-                value={contentContext}
-                onChange={(e) => setContentContext(e.target.value)}
-                placeholder="Ex: Coleção outono, campanha de lançamento, conteúdo do dia a dia..."
-                className="bg-muted/30 border-border/50 min-h-[80px]"
-              />
-            </div>
-
-            {/* Tone */}
-            <div className="space-y-3">
-              <span className="editorial-caption block">Tom / Estética</span>
-              <div className="flex flex-wrap gap-2">
-                {TONES.map((t) => (
-                  <PreferenceChip
-                    key={t.id}
-                    label={t.label}
-                    selected={tone === t.id}
-                    onClick={() => setTone(t.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Price Position */}
-            <div className="space-y-3">
-              <span className="editorial-caption block">Posicionamento de preço</span>
-              <div className="flex flex-wrap gap-2">
-                {PRICE_POSITIONS.map((p) => (
-                  <PreferenceChip
-                    key={p.id}
-                    label={p.label}
-                    selected={pricePosition === p.id}
-                    onClick={() => setPricePosition(p.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Admired Brands */}
-            <div className="space-y-2">
-              <Label htmlFor="admiredBrands" className="editorial-caption">
-                Marcas admiradas (3–5)
-              </Label>
-              <Textarea
-                id="admiredBrands"
-                value={admiredBrands}
-                onChange={(e) => setAdmiredBrands(e.target.value)}
-                placeholder="Ex: Jacquemus, The Row, Ganni, Nanushka..."
-                className="bg-muted/30 border-border/50 min-h-[60px]"
-              />
-            </div>
-
-            {/* References note */}
-            {hasB2CSession && (
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
-                <p className="text-sm text-muted-foreground">
-                  <Sparkles className="w-4 h-4 inline mr-2 text-primary" />
-                  As referências do seu editorial serão incluídas automaticamente.
-                </p>
-              </div>
-            )}
-
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="editorial-caption">
-                Notas extras (opcional)
-              </Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Detalhes rápidos que ajudem (ex: evitar muito preto, preferir alfaiataria…)"
-                className="bg-muted/30 border-border/50 min-h-[80px]"
-              />
-            </div>
-
-            {/* Submit */}
-            <div className="pt-4 border-t border-border/30">
-              <EditorialButton
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-                disabled={!isFormValid || isSubmitting}
-              >
-                <Send className="w-4 h-4 mr-2" />
-                {isSubmitting ? "Enviando..." : "Enviar Briefing"}
-              </EditorialButton>
-              
-              <p className="text-xs text-muted-foreground text-center mt-3">
-                Entrega em até 24h • Muitas vezes no mesmo dia
-              </p>
-            </div>
-          </form>
-        </motion.div>
+      {/* Actions */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border/30 py-4 print-hide">
+        <div className="container-results flex items-center gap-4">
+          <EditorialButton
+            variant="secondary"
+            className="flex-1"
+            onClick={() => navigate("/input?mode=upload")}
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Novo Editorial
+          </EditorialButton>
+          <EditorialButton
+            variant="primary"
+            className="flex-1"
+            onClick={handleExportPDF}
+            disabled={isExporting}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {isExporting ? "Gerando..." : "Exportar PDF"}
+          </EditorialButton>
+        </div>
       </div>
     </div>
   );
