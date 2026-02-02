@@ -30,8 +30,8 @@ const ERROR_MESSAGES: Record<string, { title: string; text: string }> = {
     text: "Envie apenas referências de moda/beleza (sem nudez e sem menores).",
   },
   rate_limited: {
-    title: "Muitas requisições.",
-    text: "Aguarde um momento antes de tentar novamente.",
+    title: "Um instante — estamos em fechamento.",
+    text: "Recebemos muitas tentativas em sequência. Tente novamente em 1 minuto para finalizar seu editorial.",
   },
   unauthorized: {
     title: "Acesso não autorizado.",
