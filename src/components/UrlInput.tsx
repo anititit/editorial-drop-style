@@ -19,10 +19,33 @@ const VALID_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 
 // Allowed CDN domains for direct images
 const ALLOWED_CDN_DOMAINS = [
+  // Pinterest
   "i.pinimg.com",
+  // Stock photo sites
   "images.unsplash.com",
   "images.pexels.com",
   "cdn.pixabay.com",
+  // Image hosting services
+  "i.imgur.com",
+  "imgur.com",
+  // Cloudinary
+  "res.cloudinary.com",
+  // AWS/Cloud storage
+  "s3.amazonaws.com",
+  // Google/Firebase
+  "storage.googleapis.com",
+  "firebasestorage.googleapis.com",
+  // Tumblr
+  "64.media.tumblr.com",
+  // Flickr
+  "live.staticflickr.com",
+  "farm66.staticflickr.com",
+  // DeviantArt
+  "images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com",
+  // Behance
+  "mir-s3-cdn-cf.behance.net",
+  // Dribbble
+  "cdn.dribbble.com",
 ];
 
 // Invalid page URLs (not direct images)
