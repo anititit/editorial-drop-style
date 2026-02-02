@@ -83,18 +83,6 @@ function errorResponse(error: string, message: string, debugId: string, status =
 // INPUT VALIDATION
 // ============================================================================
 
-const ALLOWED_CATEGORIES = ["moda", "beleza", "joias", "food", "wellness", "design", "lifestyle", "tech"];
-
-function sanitizeBrandInfo(brandInfo: any): {
-  name: string;
-  category: string;
-} {
-  return {
-    name: typeof brandInfo?.name === "string" ? brandInfo.name.trim().slice(0, 100) : "Marca",
-    category: ALLOWED_CATEGORIES.includes(brandInfo?.category) ? brandInfo.category : "lifestyle",
-  };
-}
-
 function isDirectImageUrl(url: string): boolean {
   const trimmed = url.trim();
   const trustedImageCdns = [
@@ -170,7 +158,7 @@ function validateBase64Image(data: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: boolean; brandInfo: any } | { ok: false; error: string; message: string } {
+function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: boolean } | { ok: false; error: string; message: string } {
   if (!body || !Array.isArray(body.images) || body.images.length !== 3) {
     return { ok: false, error: "invalid_input", message: "Envie exatamente 3 imagens." };
   }
@@ -190,7 +178,7 @@ function validateRequestBody(body: any): { ok: true; images: string[]; isUrls: b
     }
   }
 
-  return { ok: true, images: body.images, isUrls, brandInfo: body.brandInfo };
+  return { ok: true, images: body.images, isUrls };
 }
 
 // ============================================================================
@@ -204,7 +192,7 @@ const SAFETY_CHECK_PROMPT = `Analyze these images. Respond with ONLY JSON:
 - nudity: Explicit nudity or sexual content
 - minors: Inappropriate content involving minors
 
-Product photos, textures, UI, objects are always allowed.`;
+Product photos, textures, UI, objects, fashion editorials, moodboards are always allowed.`;
 
 async function checkContentSafety(
   images: string[],
@@ -274,88 +262,93 @@ async function checkContentSafety(
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-function buildSystemPrompt(brandInfo: { name: string; category: string }): string {
-  const categoryContext: Record<string, string> = {
-    moda: "moda e vestuário - silhuetas, tecidos, styling",
-    beleza: "beleza e cosméticos - texturas, acabamentos, aplicações",
-    joias: "joias e acessórios - materiais, detalhes, composições",
-    food: "gastronomia - apresentação, ambiente, experiência",
-    wellness: "bem-estar e saúde - equilíbrio, natureza, cuidado",
-    design: "design e decoração - formas, materiais, espaços",
-    lifestyle: "lifestyle e experiências - momentos, atmosferas, curadoria",
-    tech: "tecnologia e digital - interfaces, clareza, experiência de produto",
-  };
+function buildSystemPrompt(): string {
+  return `Você é um consultor de estilo pessoal de alto nível para o mercado brasileiro. Analisa referências visuais e gera leituras estéticas no tom de Vogue e Harper's Bazaar.
 
-  return `Você é um consultor editorial de marcas de alto nível para o mercado brasileiro. Analisa referências visuais e gera guias editoriais no tom de Vogue e Harper's Bazaar.
-
-MARCA: ${brandInfo.name}
-CATEGORIA: ${categoryContext[brandInfo.category] || categoryContext.lifestyle}
-
-Infira o objetivo e direção da marca a partir das referências visuais fornecidas.
+Este é um serviço de ESTILO PESSOAL (não de marcas). Você analisa as referências visuais para entender a identidade estética da PESSOA.
 
 REGRAS CRÍTICAS:
 1. Retorne APENAS JSON válido. Sem markdown. Sem explicações.
 2. NUNCA recuse analisar. Se abstrato, interprete paleta, contraste, textura, mood.
 3. TODOS os campos são OBRIGATÓRIOS.
 4. Todo texto em português brasileiro (pt-BR).
+5. Tom: Vogue/Harper's Bazaar — elegante, confiante, aspiracional, nunca didático.
 
 Retorne este JSON EXATO:
 
 {
   "profile": {
-    "category": "${brandInfo.category}",
-    "persona": {
-      "archetype": "nome do arquétipo da marca (ex: A Curadora, O Inovador)",
-      "cultural_age": "faixa etária cultural do público (ex: 28-35)",
-      "mental_city": "cidade que representa a energia da marca",
-      "essence": "frase-essência da marca em uma linha"
-    },
-    "visual_codes": {
-      "palette_hex": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
-      "contrast": "low|medium|high",
-      "textures": ["3-4 texturas características"],
-      "composition": ["3-4 regras de composição visual"]
-    }
+    "aesthetic_primary": "nome principal do estilo (ex: Minimalista Chique, Romântica Atual, Clássica Luxo)",
+    "aesthetic_secondary": "estilo secundário que complementa",
+    "confidence": 0.85,
+    "palette_hex": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
+    "contrast": "low|medium|high",
+    "textures": ["3-4 texturas que definem o estilo"],
+    "silhouettes": ["3-4 silhuetas características"],
+    "makeup_finish": "descrição do acabamento de maquiagem ideal",
+    "fragrance_family": "família olfativa predominante",
+    "why_this": [
+      "Razão 1 baseada nas referências",
+      "Razão 2 baseada nas referências",
+      "Razão 3 baseada nas referências"
+    ]
   },
   "editorial": {
-    "headline": "título editorial impactante",
-    "positioning": "frase de posicionamento da marca",
-    "directions": [
+    "headline": "título editorial impactante sobre o estilo pessoal",
+    "dek": "frase que complementa o headline (1-2 linhas)",
+    "looks": [
       {
-        "type": "signature",
-        "title": "nome da direção",
-        "description": "descrição curta",
-        "visual_cues": ["3 dicas visuais"]
+        "title": "Look Dia",
+        "hero_piece": "peça principal do look",
+        "supporting": ["item de apoio 1", "item de apoio 2"],
+        "accessory": "acessório chave",
+        "caption": "legenda editorial curta"
       },
       {
-        "type": "aspirational",
-        "title": "nome da direção",
-        "description": "descrição curta",
-        "visual_cues": ["3 dicas visuais"]
+        "title": "Look Transição",
+        "hero_piece": "peça principal",
+        "supporting": ["item 1", "item 2"],
+        "accessory": "acessório",
+        "caption": "legenda editorial"
       },
       {
-        "type": "conversion",
-        "title": "nome da direção",
-        "description": "descrição curta",
-        "visual_cues": ["3 dicas visuais"]
+        "title": "Look Noite",
+        "hero_piece": "peça principal",
+        "supporting": ["item 1", "item 2"],
+        "accessory": "acessório",
+        "caption": "legenda editorial"
       }
     ],
-    "content_system": {
-      "pillars": ["3 pilares de conteúdo"],
-      "cadence": "sugestão de frequência",
-      "quick_wins": ["3-5 ideias de conteúdo rápido"]
+    "makeup_day": {
+      "base": "recomendação de base/pele dia",
+      "cheeks": "bochechas dia",
+      "eyes": "olhos dia",
+      "lips": "lábios dia"
     },
-    "footer_note": "nota editorial de fechamento"
+    "makeup_night": {
+      "base": "base/pele noite",
+      "cheeks": "bochechas noite",
+      "eyes": "olhos noite",
+      "lips": "lábios noite"
+    },
+    "fragrances": [
+      { "name": "Nome do perfume (Marca)", "notes": "notas principais", "tier": "accessible" },
+      { "name": "Nome do perfume (Marca)", "notes": "notas", "tier": "mid" },
+      { "name": "Nome do perfume (Marca)", "notes": "notas", "tier": "premium" }
+    ],
+    "footer_note": "nota de fechamento editorial elegante"
   }
 }
 
 INSTRUÇÕES:
-- persona.archetype: Use arquétipos elegantes e aspiracionais
-- persona.essence: Uma frase que a marca diria
-- directions: signature=identidade core, aspirational=elevação, conversion=venda
-- content_system.quick_wins: Ideias executáveis imediatamente
+- aesthetic_primary/secondary: Use nomes evocativos em português
+- confidence: 0.85 padrão, 0.45-0.65 se imagens são muito abstratas
+- looks: Cada look deve ter peças específicas, não genéricas
+- makeup: Produtos e técnicas específicas, não vagas
+- fragrances: Perfumes reais com notas reais
+- why_this: Justificativas baseadas nas cores, texturas e mood das referências
 
-Tom: Premium, confiante, nunca arrogante. Editorial, nunca corporativo.`;
+Tom: Premium, confiante, nunca arrogante. Editorial de moda, não consultoria genérica.`;
 }
 
 function normalizeModelContent(content: any): string {
@@ -394,12 +387,16 @@ function extractJson(text: string): any {
 function validateEditorialStructure(obj: any): { valid: boolean; missing: string[] } {
   const requiredPaths = [
     "profile",
-    "profile.persona",
-    "profile.visual_codes",
+    "profile.aesthetic_primary",
+    "profile.aesthetic_secondary",
+    "profile.palette_hex",
+    "profile.why_this",
     "editorial",
     "editorial.headline",
-    "editorial.directions",
-    "editorial.content_system",
+    "editorial.looks",
+    "editorial.makeup_day",
+    "editorial.makeup_night",
+    "editorial.fragrances",
   ];
 
   const missing: string[] = [];
@@ -422,7 +419,6 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
 async function callAI(
   images: string[],
   isUrls: boolean,
-  brandInfo: { name: string; category: string },
   apiKey: string,
   debugId: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
@@ -430,21 +426,21 @@ async function callAI(
     ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
     : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
 
-  const systemPrompt = buildSystemPrompt(brandInfo);
+  const systemPrompt = buildSystemPrompt();
 
   const messages = [
     { role: "system", content: systemPrompt },
     {
       role: "user",
       content: [
-        { type: "text", text: `Analise estas 3 referências visuais para a marca "${brandInfo.name}" e gere o Brand Editorial. Retorne APENAS o JSON.` },
+        { type: "text", text: "Analise estas 3 referências visuais e gere uma leitura estética pessoal completa. Retorne APENAS o JSON." },
         ...imageContent,
       ],
     },
   ];
 
   try {
-    console.log(`[${debugId}] Calling AI for brand: ${brandInfo.name}, category: ${brandInfo.category}`);
+    console.log(`[${debugId}] Calling AI for personal aesthetic reading`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -455,7 +451,7 @@ async function callAI(
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages,
-        max_tokens: 3000,
+        max_tokens: 3500,
         temperature: 0.7,
       }),
     });
@@ -463,7 +459,7 @@ async function callAI(
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[${debugId}] AI API error: ${response.status} - ${errorText}`);
-      return { success: false, error: "gateway_error", message: "Erro ao gerar editorial. Tente novamente." };
+      return { success: false, error: "gateway_error", message: "Erro ao gerar leitura. Tente novamente." };
     }
 
     const data = await response.json();
@@ -536,8 +532,7 @@ serve(async (req) => {
       return errorResponse(validation.error, validation.message, debugId);
     }
 
-    const { images, isUrls, brandInfo: rawBrandInfo } = validation;
-    const brandInfo = sanitizeBrandInfo(rawBrandInfo);
+    const { images, isUrls } = validation;
 
     // Get API key
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -558,19 +553,19 @@ serve(async (req) => {
       );
     }
 
-    // Generate editorial with retry
-    let result = await callAI(images, isUrls, brandInfo, apiKey, debugId);
+    // Generate personal aesthetic reading with retry
+    let result = await callAI(images, isUrls, apiKey, debugId);
     
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, brandInfo, apiKey, debugId);
+      result = await callAI(images, isUrls, apiKey, debugId);
     }
 
     if (!result.success) {
       return errorResponse(result.error, result.message, debugId);
     }
 
-    console.log(`[${debugId}] Editorial generated successfully`);
+    console.log(`[${debugId}] Personal aesthetic reading generated successfully`);
 
     return new Response(JSON.stringify(result.data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

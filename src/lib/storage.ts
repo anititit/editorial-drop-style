@@ -1,15 +1,14 @@
-import { SavedResult, EditorialResult, UserPreferences } from "./types";
+import { SavedResult, EditorialResult } from "./types";
 
 const STORAGE_KEY = "editorial_drop_history";
 const MAX_ITEMS = 5;
 
-export function saveResult(result: EditorialResult, preferences: UserPreferences): string {
+export function saveResult(result: EditorialResult): string {
   const id = crypto.randomUUID();
   const savedResult: SavedResult = {
     id,
     timestamp: Date.now(),
     result,
-    preferences,
   };
 
   const existing = getHistory();

@@ -6,24 +6,16 @@ import { Link } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ImageUploader } from "@/components/ImageUploader";
 import { UrlInput } from "@/components/UrlInput";
-import { PreferenceChip } from "@/components/PreferenceChip";
 import { LoadingEditorial } from "@/components/LoadingEditorial";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { saveResult } from "@/lib/storage";
-import { EditorialResult, DEFAULT_RESULT, UserPreferences, BRAND_CATEGORIES } from "@/lib/types";
+import { EditorialResult, DEFAULT_RESULT } from "@/lib/types";
 
 const InputPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const initialMode = searchParams.get("mode") === "url" ? "url" : "upload";
-  const isProMode = searchParams.get("pro") === "true";
   const [mode, setMode] = useState<"upload" | "url">(initialMode);
-
-  // Brand inputs
-  const [brandName, setBrandName] = useState("");
-  const [category, setCategory] = useState("lifestyle");
 
   // Image states
   const [images, setImages] = useState<string[]>([]);
@@ -39,8 +31,6 @@ const InputPage = () => {
     : urls.filter((u) => {
         try { new URL(u); return true; } catch { return false; }
       }).length === 3;
-
-  const hasValidBrand = brandName.trim().length >= 2;
 
   // Retryable error codes
   const RETRYABLE_ERRORS = [
@@ -76,10 +66,6 @@ const InputPage = () => {
       body: JSON.stringify({
         images: imageData,
         isUrls: mode === "url",
-        brandInfo: {
-          name: brandName.trim(),
-          category,
-        },
       }),
     });
 
@@ -110,7 +96,7 @@ const InputPage = () => {
   };
 
   const handleGenerate = async () => {
-    if (!hasValidInput || !hasValidBrand) return;
+    if (!hasValidInput) return;
 
     setIsLoading(true);
     setHasError(false);
@@ -125,23 +111,15 @@ const InputPage = () => {
         
         const result = await callGenerateEditorial();
 
-        // Store images in sessionStorage for Pro flow
+        // Store images in sessionStorage for reference
         const imageData = mode === "upload" ? images : urls;
         sessionStorage.setItem("editorial_images", JSON.stringify(imageData));
 
         // Save to history
-        const preferences: UserPreferences = {
-          brandName: brandName.trim(),
-          category,
-        };
-        const id = saveResult(result, preferences);
+        const id = saveResult(result);
 
-        // Navigate to results (or Pro if in pro mode)
-        if (isProMode) {
-          navigate(`/pro?from=${id}`);
-        } else {
-          navigate(`/resultado/${id}`);
-        }
+        // Navigate to results
+        navigate(`/resultado/${id}`);
         return;
       } catch (err: any) {
         lastError = err;
@@ -179,8 +157,6 @@ const InputPage = () => {
     return <LoadingEditorial hasError={hasError} errorType={errorType} onRetry={handleRetry} />;
   }
 
-  const canSubmit = hasValidInput && hasValidBrand;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container-editorial py-8">
@@ -189,47 +165,21 @@ const InputPage = () => {
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="editorial-caption">
-            {isProMode ? "DROP Pro" : "Criar Editorial"}
-          </span>
+          <span className="editorial-caption">Leitura Estética</span>
         </div>
 
-        {/* Brand Name */}
+        {/* Intro */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 text-center"
         >
-          <Label htmlFor="brandName" className="editorial-caption block mb-3">
-            Marca / Projeto
-          </Label>
-          <Input
-            id="brandName"
-            value={brandName}
-            onChange={(e) => setBrandName(e.target.value)}
-            placeholder="Nome da marca ou projeto"
-            className="bg-muted/30 border-border/50 text-lg"
-          />
-        </motion.div>
-
-        {/* Category */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <span className="editorial-caption block mb-3">Categoria</span>
-          <div className="flex flex-wrap gap-2">
-            {BRAND_CATEGORIES.map((c) => (
-              <PreferenceChip
-                key={c.id}
-                label={c.label}
-                selected={category === c.id}
-                onClick={() => setCategory(c.id)}
-              />
-            ))}
-          </div>
+          <h1 className="editorial-headline text-2xl md:text-3xl mb-3">
+            Suas referências, sua identidade
+          </h1>
+          <p className="editorial-body text-muted-foreground">
+            Envie 3 imagens que representam seu estilo ideal.
+          </p>
         </motion.div>
 
         <div className="editorial-divider mb-8" />
@@ -279,7 +229,7 @@ const InputPage = () => {
         </AnimatePresence>
 
         <p className="text-xs text-muted-foreground mb-8">
-          Use referências visuais da marca: moodboard, produto, editorial, UI.
+          Use moodboards, looks, beleza ou editoriais. Para estilo pessoal.
         </p>
 
         {/* Generate Button */}
@@ -293,17 +243,14 @@ const InputPage = () => {
             variant="primary"
             size="lg"
             className="w-full"
-            disabled={!canSubmit}
+            disabled={!hasValidInput}
             onClick={handleGenerate}
           >
-            {isProMode ? "Gerar Editorial Pro" : "Gerar Editorial"}
+            Gerar Leitura Estética
           </EditorialButton>
-          {!canSubmit && (
+          {!hasValidInput && (
             <p className="text-xs text-muted-foreground text-center mt-3">
-              {!hasValidBrand 
-                ? "Digite o nome da marca" 
-                : `Selecione exatamente 3 ${mode === "upload" ? "imagens" : "URLs válidas"}`
-              }
+              Selecione exatamente 3 {mode === "upload" ? "imagens" : "URLs válidas"}
             </p>
           )}
         </motion.div>

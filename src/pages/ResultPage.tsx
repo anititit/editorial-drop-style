@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
-import { DEFAULT_RESULT } from "@/lib/types";
+import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 
@@ -22,8 +22,12 @@ const ResultPage = () => {
 
   const savedResult = id ? getResultById(id) : null;
   const result = savedResult?.result || DEFAULT_RESULT;
-  const preferences = savedResult?.preferences;
   const { profile, editorial } = result;
+
+  // Get aesthetic display names
+  const primaryName = AESTHETIC_NAMES[profile.aesthetic_primary] || profile.aesthetic_primary;
+  const secondaryName = AESTHETIC_NAMES[profile.aesthetic_secondary] || profile.aesthetic_secondary;
+  const isConceptualReading = profile.confidence < 0.7;
 
   const handleExportPDF = async () => {
     if (!contentRef.current || isExporting) return;
@@ -102,10 +106,7 @@ const ResultPage = () => {
         }
       }
 
-      const fileName = preferences?.brandName 
-        ? `${preferences.brandName.toLowerCase().replace(/\s+/g, "-")}-editorial.pdf`
-        : `editorial-${id || "resultado"}.pdf`;
-      
+      const fileName = `leitura-estetica-${id || "resultado"}.pdf`;
       pdf.save(fileName);
 
       toast({
@@ -132,7 +133,7 @@ const ResultPage = () => {
           <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="editorial-caption">Brand Editorial</span>
+          <span className="editorial-caption">Leitura Estética</span>
           <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
             <Download className="w-4 h-4" />
           </EditorialButton>
@@ -141,173 +142,256 @@ const ResultPage = () => {
 
       {/* Content */}
       <div ref={contentRef} className="container-results py-10 space-y-12">
-        {/* Hero */}
+        {/* Hero - Aesthetic Profile */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          {preferences?.brandName && (
-            <span className="editorial-caption">{preferences.brandName}</span>
+          <span className="editorial-caption">Seu Perfil Estético</span>
+          {isConceptualReading && (
+            <p className="text-xs text-muted-foreground/70 italic">
+              Leitura mais conceitual — baseada em paleta, contraste e textura.
+            </p>
           )}
           <h1 className="editorial-headline text-3xl md:text-4xl">
-            {editorial.headline || "Seu Editorial"}
+            {primaryName}
           </h1>
-          <p className="editorial-subhead text-lg text-muted-foreground max-w-md mx-auto">
-            {editorial.positioning}
+          <p className="editorial-subhead text-lg text-muted-foreground">
+            com toques de {secondaryName}
           </p>
         </motion.header>
 
-        <div className="editorial-divider" />
-
-        {/* Brand Persona */}
-        <motion.section
+        {/* Palette */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-6"
+          className="flex items-center justify-center gap-3"
         >
-          <SectionTitle>Brand Persona</SectionTitle>
-          
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Arquétipo</span>
-              <p className="text-lg font-medium">{profile.persona.archetype}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Idade Cultural</span>
-              <p className="text-lg font-medium">{profile.persona.cultural_age}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Cidade Mental</span>
-              <p className="text-lg font-medium">{profile.persona.mental_city}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Essência</span>
-              <p className="text-lg font-medium italic">"{profile.persona.essence}"</p>
-            </div>
-          </div>
-        </motion.section>
+          {profile.palette_hex.map((color, i) => (
+            <motion.div
+              key={color + i}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+              className="w-12 h-12 rounded-lg shadow-sm"
+              style={{ backgroundColor: color }}
+              title={color}
+            />
+          ))}
+        </motion.div>
 
         <div className="editorial-divider" />
 
-        {/* Visual Codes */}
+        {/* Why This */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="space-y-6"
+          className="space-y-4"
         >
-          <SectionTitle>Códigos Visuais</SectionTitle>
-          
-          {/* Palette */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            {profile.visual_codes.palette_hex.map((color, i) => (
-              <motion.div
-                key={color + i}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="w-12 h-12 rounded-lg shadow-sm"
-                style={{ backgroundColor: color }}
-                title={color}
-              />
+          <SectionTitle>Por que esse estilo?</SectionTitle>
+          <ul className="space-y-3">
+            {profile.why_this.map((reason, i) => (
+              <li
+                key={i}
+                className="text-sm text-muted-foreground editorial-body flex items-start gap-3"
+              >
+                <span className="text-foreground/50">•</span>
+                {reason}
+              </li>
             ))}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Contraste</span>
-              <p className="capitalize">{profile.visual_codes.contrast}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Texturas</span>
-              <p>{profile.visual_codes.textures.join(" · ")}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <span className="editorial-caption block mb-2">Composição</span>
-              <ul className="text-sm space-y-1">
-                {profile.visual_codes.composition.map((rule, i) => (
-                  <li key={i}>• {rule}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          </ul>
         </motion.section>
 
         <div className="editorial-divider" />
 
-        {/* Editorial Directions */}
+        {/* Visual Identity */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="space-y-6"
         >
-          <SectionTitle>Direções Editoriais</SectionTitle>
+          <SectionTitle>Identidade Visual</SectionTitle>
           
-          <div className="grid gap-6 md:grid-cols-3">
-            {editorial.directions.map((direction, i) => (
-              <motion.div
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="p-4 bg-muted/30 rounded-lg">
+              <span className="editorial-caption block mb-2">Contraste</span>
+              <p className="capitalize">{profile.contrast}</p>
+            </div>
+            <div className="p-4 bg-muted/30 rounded-lg">
+              <span className="editorial-caption block mb-2">Texturas</span>
+              <p>{profile.textures.join(" · ")}</p>
+            </div>
+            <div className="p-4 bg-muted/30 rounded-lg">
+              <span className="editorial-caption block mb-2">Silhuetas</span>
+              <p>{profile.silhouettes.join(" · ")}</p>
+            </div>
+            <div className="p-4 bg-muted/30 rounded-lg">
+              <span className="editorial-caption block mb-2">Acabamento de Make</span>
+              <p>{profile.makeup_finish}</p>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-muted/30 rounded-lg">
+            <span className="editorial-caption block mb-2">Família Olfativa</span>
+            <p className="text-lg font-medium">{profile.fragrance_family}</p>
+          </div>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
+        {/* Editorial Headline */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="text-center space-y-3"
+        >
+          <h2 className="editorial-headline text-2xl md:text-3xl">
+            {editorial.headline}
+          </h2>
+          <p className="editorial-subhead text-muted-foreground max-w-md mx-auto">
+            {editorial.dek}
+          </p>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
+        {/* Conceptual Looks */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-8"
+        >
+          <SectionTitle>3 Looks Conceituais</SectionTitle>
+          
+          <div className="space-y-8">
+            {editorial.looks.map((look, i) => (
+              <motion.article
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
                 className="p-5 bg-muted/30 rounded-lg space-y-4"
               >
-                <div>
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
-                    {direction.type === "signature" && "Assinatura"}
-                    {direction.type === "aspirational" && "Aspiracional"}
-                    {direction.type === "conversion" && "Conversão"}
-                  </span>
-                  <h3 className="font-medium text-lg mt-1">{direction.title}</h3>
+                <div className="flex items-center gap-3">
+                  <span className="editorial-caption">{look.title}</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
-                <p className="text-sm text-muted-foreground">{direction.description}</p>
-                <ul className="text-sm space-y-1">
-                  {direction.visual_cues.map((cue, j) => (
-                    <li key={j}>• {cue}</li>
+                
+                <h3 className="font-medium text-lg">{look.hero_piece}</h3>
+                
+                <ul className="space-y-1">
+                  {look.supporting.map((item, j) => (
+                    <li key={j} className="text-sm text-muted-foreground">
+                      + {item}
+                    </li>
                   ))}
                 </ul>
-              </motion.div>
+                
+                <p className="text-sm">
+                  <span className="text-muted-foreground">Acessório:</span>{" "}
+                  <span className="font-medium">{look.accessory}</span>
+                </p>
+                
+                <p className="editorial-subhead text-sm text-muted-foreground pt-2 border-t border-border/30 italic">
+                  "{look.caption}"
+                </p>
+              </motion.article>
             ))}
           </div>
         </motion.section>
 
         <div className="editorial-divider" />
 
-        {/* Content System */}
+        {/* Makeup */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
           className="space-y-6"
         >
-          <SectionTitle>Sistema de Conteúdo</SectionTitle>
+          <SectionTitle>Maquiagem</SectionTitle>
           
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
-            {editorial.content_system.pillars.map((pillar, i) => (
-              <div key={i} className="p-4 bg-muted/30 rounded-lg text-center">
-                <span className="text-xs text-muted-foreground">Pilar {i + 1}</span>
-                <p className="font-medium mt-1">{pillar}</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Day */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="editorial-caption">Dia</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Base", value: editorial.makeup_day.base },
+                  { label: "Bochechas", value: editorial.makeup_day.cheeks },
+                  { label: "Olhos", value: editorial.makeup_day.eyes },
+                  { label: "Lábios", value: editorial.makeup_day.lips },
+                ].map((step) => (
+                  <div key={step.label} className="flex items-start gap-3">
+                    <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                      {step.label}
+                    </span>
+                    <span className="text-sm editorial-body">{step.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Night */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="editorial-caption">Noite</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Base", value: editorial.makeup_night.base },
+                  { label: "Bochechas", value: editorial.makeup_night.cheeks },
+                  { label: "Olhos", value: editorial.makeup_night.eyes },
+                  { label: "Lábios", value: editorial.makeup_night.lips },
+                ].map((step) => (
+                  <div key={step.label} className="flex items-start gap-3">
+                    <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                      {step.label}
+                    </span>
+                    <span className="text-sm editorial-body">{step.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
+        {/* Fragrance */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-6"
+        >
+          <SectionTitle>Fragrâncias</SectionTitle>
+          
+          <div className="space-y-4">
+            {editorial.fragrances.map((fragrance, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0"
+              >
+                <span className="text-xs text-muted-foreground w-24 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                  {fragrance.tier === "accessible" && "Acessível"}
+                  {fragrance.tier === "mid" && "Intermediário"}
+                  {fragrance.tier === "premium" && "Premium"}
+                </span>
+                <div>
+                  <p className="font-medium">{fragrance.name}</p>
+                  <p className="text-sm text-muted-foreground">{fragrance.notes}</p>
+                </div>
               </div>
             ))}
-          </div>
-
-          <div className="p-4 bg-muted/30 rounded-lg mb-4">
-            <span className="editorial-caption block mb-2">Cadência</span>
-            <p>{editorial.content_system.cadence}</p>
-          </div>
-
-          <div className="p-4 bg-muted/30 rounded-lg">
-            <span className="editorial-caption block mb-3">Quick Wins</span>
-            <div className="flex flex-wrap gap-2">
-              {editorial.content_system.quick_wins.map((win, i) => (
-                <span key={i} className="px-3 py-1.5 bg-background rounded-full text-sm">
-                  {win}
-                </span>
-              ))}
-            </div>
           </div>
         </motion.section>
 
@@ -316,7 +400,7 @@ const ResultPage = () => {
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.7 }}
             className="text-center pt-8 border-t border-border/30"
           >
             <p className="editorial-subhead text-sm text-muted-foreground">
@@ -336,7 +420,7 @@ const ResultPage = () => {
               onClick={() => navigate("/input?mode=upload")}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Novo Editorial
+              Nova Leitura
             </EditorialButton>
             <EditorialButton 
               variant="primary" 
@@ -353,11 +437,11 @@ const ResultPage = () => {
           <Link to="/pro/brief" className="block">
             <EditorialButton variant="ghost" className="w-full text-sm">
               <Sparkles className="w-4 h-4 mr-2" />
-              Versão Pro (beta)
+              DROP Pro
             </EditorialButton>
           </Link>
           <p className="text-xs text-muted-foreground text-center">
-            Persona completa + Brand Codes + Shotlist + Copy Kit
+            Versão profissional para marcas e projetos.
           </p>
         </div>
       </div>
