@@ -92,16 +92,14 @@ const InputPage = () => {
     // Get the Supabase URL and key from environment
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    const appToken = import.meta.env.VITE_APP_TOKEN;
     
-    // Use fetch with custom headers for app token support
+    // Call edge function - protected by IP-based rate limiting
     const response = await fetch(`${supabaseUrl}/functions/v1/generate-editorial`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "apikey": supabaseKey,
         "Authorization": `Bearer ${supabaseKey}`,
-        ...(appToken && { "x-app-token": appToken }),
       },
       body: JSON.stringify({
         images: imageData,
