@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { HistorySection } from "@/components/HistorySection";
-import { ImageIcon, Link as LinkIcon, Sparkles } from "lucide-react";
+import { ImageIcon, Link as LinkIcon, Sparkles, BookOpen } from "lucide-react";
 
 const HomePage = () => {
   return (
@@ -71,6 +71,22 @@ const HomePage = () => {
             <p className="text-xs text-muted-foreground mt-3">
               Versão profissional do DROP.
             </p>
+          </div>
+
+          {/* Editorial */}
+          <div className="pt-6">
+            <Link to="/editorial">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-block"
+              >
+                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <BookOpen className="w-4 h-4" />
+                  Editorial
+                </span>
+              </motion.div>
+            </Link>
           </div>
         </motion.div>
 
