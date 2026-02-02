@@ -3,8 +3,70 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-app-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// ============================================================================
+// RATE LIMITING (in-memory, per IP)
+// ============================================================================
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+
+function cleanupExpiredEntries() {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitStore.entries()) {
+    if (now > entry.resetAt) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  // Cleanup old entries periodically
+  if (Math.random() < 0.1) cleanupExpiredEntries();
+
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    // New window
+    rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  entry.count++;
+  return { allowed: true };
+}
+
+function getClientIp(req: Request): string {
+  // Check common proxy headers
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+  // Fallback
+  return "unknown";
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 // Generate a short unique debug ID for correlating logs
 function generateDebugId(): string {
@@ -416,10 +478,54 @@ serve(async (req) => {
   }
 
   const debugId = generateDebugId();
+  const clientIp = getClientIp(req);
+
+  // ========================================
+  // RATE LIMITING
+  // ========================================
+  const rateCheck = checkRateLimit(clientIp);
+  if (!rateCheck.allowed) {
+    console.log(`[${debugId}] Rate limited IP: ${clientIp}`);
+    return new Response(
+      JSON.stringify({
+        error: "rate_limited",
+        message: "Muitas requisições. Aguarde um momento antes de tentar novamente.",
+        retry_after: rateCheck.retryAfter,
+        debug_id: debugId,
+      }),
+      {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Retry-After": String(rateCheck.retryAfter),
+        },
+      }
+    );
+  }
+
+  // ========================================
+  // APP TOKEN VALIDATION
+  // ========================================
+  const APP_TOKEN = Deno.env.get("APP_TOKEN");
+  if (APP_TOKEN) {
+    const providedToken = req.headers.get("x-app-token");
+    if (!providedToken || providedToken !== APP_TOKEN) {
+      console.log(`[${debugId}] Invalid or missing app token from IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({
+          error: "unauthorized",
+          message: "Acesso não autorizado.",
+          debug_id: debugId,
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }
 
   try {
     const body = await req.json();
-    console.log(`[${debugId}] Request received`);
+    console.log(`[${debugId}] Request received from IP: ${clientIp}`);
 
     // Validate request body structure
     const validation = validateRequestBody(body);
