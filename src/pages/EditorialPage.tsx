@@ -2,6 +2,11 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
+import editorialLuxoSilencioso from "@/assets/editorial-luxo-silencioso.jpg";
+import editorialEsteticaVazio from "@/assets/editorial-estetica-vazio.jpg";
+import editorialCoresComunicam from "@/assets/editorial-cores-comunicam.jpg";
+import editorialRetornoClassico from "@/assets/editorial-retorno-classico.jpg";
+
 const EditorialPage = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -69,7 +74,11 @@ const EditorialPage = () => {
             <article className="group">
               <Link to="/editorial/o-codigo-do-luxo-silencioso" className="block space-y-4">
                 <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-muted/50 to-muted/20 group-hover:scale-105 transition-transform duration-500" />
+                  <img 
+                    src={editorialLuxoSilencioso} 
+                    alt="O Código do Luxo Silencioso" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="space-y-2">
                   <span className="editorial-caption text-muted-foreground/60">
@@ -88,7 +97,11 @@ const EditorialPage = () => {
             <article className="group">
               <Link to="/editorial/a-estetica-do-vazio" className="block space-y-4">
                 <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 group-hover:scale-105 transition-transform duration-500" />
+                  <img 
+                    src={editorialEsteticaVazio} 
+                    alt="A Estética do Vazio" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="space-y-2">
                   <span className="editorial-caption text-muted-foreground/60">
@@ -107,7 +120,11 @@ const EditorialPage = () => {
             <article className="group">
               <Link to="/editorial/cores-que-comunicam" className="block space-y-4">
                 <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-muted/60 to-muted/20 group-hover:scale-105 transition-transform duration-500" />
+                  <img 
+                    src={editorialCoresComunicam} 
+                    alt="Cores que Comunicam" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="space-y-2">
                   <span className="editorial-caption text-muted-foreground/60">
@@ -126,7 +143,11 @@ const EditorialPage = () => {
             <article className="group">
               <Link to="/editorial/o-retorno-do-classico" className="block space-y-4">
                 <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-muted/30 to-muted/10 group-hover:scale-105 transition-transform duration-500" />
+                  <img 
+                    src={editorialRetornoClassico} 
+                    alt="O Retorno do Clássico" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="space-y-2">
                   <span className="editorial-caption text-muted-foreground/60">
