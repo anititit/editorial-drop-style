@@ -238,3 +238,150 @@
     @apply max-w-2xl mx-auto px-6;
   }
 }
+
+/* ========================================
+   PRINT STYLES - A4 Multi-page Export
+   ======================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  /* Reset background and ensure high contrast */
+  html, body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide UI-only elements */
+  .print-hide,
+  header.sticky,
+  .sticky.bottom-0,
+  button,
+  nav,
+  [data-radix-popper-content-wrapper] {
+    display: none !important;
+  }
+
+  /* Print container - full width for A4 */
+  .print-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .container-results {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* Page break utilities */
+  .print-page-break {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Section styling for print */
+  .print-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 8mm !important;
+  }
+
+  /* Typography adjustments for print */
+  .editorial-headline {
+    font-size: 24pt !important;
+    line-height: 1.2 !important;
+    margin-bottom: 4mm !important;
+  }
+
+  .editorial-subhead {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+
+  .editorial-caption {
+    font-size: 8pt !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .editorial-body {
+    font-size: 10pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Dividers for print */
+  .editorial-divider {
+    background: #ccc !important;
+    margin: 6mm auto !important;
+  }
+
+  /* Card styling for print */
+  .editorial-card {
+    border: 1px solid #e5e5e5 !important;
+    padding: 4mm !important;
+    margin-bottom: 4mm !important;
+  }
+
+  /* Palette chips - ensure colors print */
+  .palette-chip {
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+  }
+
+  /* Grid adjustments */
+  .editorial-grid {
+    gap: 4mm !important;
+  }
+
+  /* Outfit cards */
+  .outfit-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1px solid #ddd !important;
+    padding: 3mm !important;
+    margin-bottom: 3mm !important;
+  }
+
+  /* Product items */
+  .product-item {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Links - show URL */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+  }
+
+  a[href^="#"]:after,
+  a[href^="javascript"]:after {
+    content: "";
+  }
+
+  /* Ensure footer note prints */
+  .print-footer {
+    margin-top: 8mm !important;
+    padding-top: 4mm !important;
+    border-top: 1px solid #ddd !important;
+  }
+}
