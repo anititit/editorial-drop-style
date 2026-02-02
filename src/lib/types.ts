@@ -74,7 +74,7 @@ export const BRAND_CATEGORIES = [
 
 export const BRAND_OBJECTIVES = [
   { id: "consistencia", label: "Consistência" },
-  { id: "premium", label: "Premium" },
+  { id: "reposicionamento", label: "Reposicionamento" },
   { id: "conversao", label: "Conversão" },
   { id: "lancamento", label: "Lançamento" },
 ] as const;
