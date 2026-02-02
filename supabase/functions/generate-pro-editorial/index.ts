@@ -96,7 +96,7 @@ Use estas informações para contextualizar todo o editorial. O nome da marca de
 1. Imagens de moodboard/referência visual (informam paleta, texturas, composição)
 2. Marcas admiradas: ${brandNames.join(", ")} (informam posicionamento, tom, linguagem visual)
 
-Sua tarefa é MESCLAR essas referências de forma editorial, encontrando a conexão entre a estética visual e o universo das marcas citadas. Explique essa conexão de forma sutil no positioning.`;
+Sua tarefa é MESCLAR essas referências de forma editorial, encontrando a conexão entre a estética visual e o universo das marcas citadas.`;
   } else if (hasVisual) {
     inputContext = `Você receberá imagens de moodboard/referência visual que informam paleta, texturas, composição e direção estética.`;
   } else if (hasBrands) {
@@ -111,38 +111,45 @@ Analise o universo dessas marcas para extrair:
 IMPORTANTE: Nunca sugira copiar essas marcas. Use-as como norte criativo para desenvolver uma identidade ORIGINAL.`;
   }
 
-  return `Você é um consultor de direção criativa e branding de alto nível para marcas brasileiras. Você gera um Brand Editorial Kit completo no tom de revistas como Vogue e Harper's Bazaar.
+  return `Você é um diretor criativo de branding de alto nível. Você gera documentos de marca no tom editorial de Vogue e Harper's Bazaar.
+
 ${brandContext}
 
 ${inputContext}
 
-REGRAS CRÍTICAS:
-1. Retorne APENAS JSON válido. Sem markdown. Sem explicações. Sem texto fora do JSON.
-2. NUNCA mencione copiar ou imitar marcas. Use referências como inspiração para criar algo original.
-3. Se receber imagens abstratas, interprete paleta, contraste, textura e mood.
-4. Todos os campos são OBRIGATÓRIOS.
-5. Todo conteúdo textual DEVE ser em português brasileiro (pt-BR).
-6. Se um nome de marca foi fornecido, use-o para personalizar o tom e a direção criativa.
+REGRAS CRÍTICAS DE TOM:
+1. Este é um DOCUMENTO DE MARCA, não um guia de redes sociais.
+2. NUNCA use linguagem operacional: "postar", "engajamento", "calendário", "roteiro", "conteúdo".
+3. NUNCA inclua frequência de postagem, calendários, shotlists ou sistemas de conteúdo.
+4. Tom: polido, contido, editorial. Vogue, não consultoria.
+5. Cada direção editorial é conceitual, não executiva.
 
-Retorne este JSON EXATO com TODOS os campos preenchidos:
+REGRAS TÉCNICAS:
+1. Retorne APENAS JSON válido. Sem markdown. Sem texto fora do JSON.
+2. NUNCA mencione copiar ou imitar marcas.
+3. Todos os campos são OBRIGATÓRIOS.
+4. Todo texto DEVE ser em português brasileiro (pt-BR).
+
+Retorne este JSON EXATO:
 
 {
   "persona": {
-    "archetype": "nome do arquétipo (ex: A Curadora, A Visionária, A Anfitriã)",
-    "cultural_age": "faixa etária cultural, não cronológica (ex: 28-35)",
-    "mental_city": "cidade que representa a energia da marca (ex: Paris, Copenhagen, São Paulo)",
+    "archetype": "nome do arquétipo (ex: A Curadora, A Visionária)",
+    "cultural_age": "faixa etária cultural (ex: 28-35)",
+    "mental_city": "cidade que representa a energia (ex: Paris, Copenhagen)",
     "ambition": "o que ela quer ser/representar",
     "avoidances": ["3 coisas que ela evita"],
     "would_say": "uma frase que ela diria",
     "would_never_say": "uma frase que ela nunca diria"
   },
-  "positioning": "frase única de posicionamento da marca",
+  "positioning": "frase única de posicionamento editorial (1 frase elegante)",
   "brand_codes": {
     "visual": {
       "palette": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
       "contrast": "low|medium|high",
       "textures": ["3-4 texturas características"],
-      "composition_rules": ["3-4 regras de composição visual"]
+      "composition": ["3-4 regras de composição visual"],
+      "light": "descrição da direção de luz característica"
     },
     "verbal": {
       "tone": "descrição do tom de voz",
@@ -151,59 +158,47 @@ Retorne este JSON EXATO com TODOS os campos preenchidos:
       "forbidden_words": ["5-6 palavras proibidas"]
     }
   },
-  "creative_directions": [
+  "editorial_directions": [
     {
       "type": "signature",
-      "title": "nome da direção criativa",
-      "lighting": "descrição da luz",
-      "framing": "descrição do enquadramento",
-      "styling": "descrição do styling",
-      "post_ideas": ["3 ideias de post"]
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual",
+      "composition": "direção de enquadramento e composição",
+      "styling_environment": "styling e ambiente",
+      "usage_context": "contexto conceitual de uso (sem passos táticos)"
     },
     {
       "type": "aspirational",
-      "title": "nome da direção criativa",
-      "lighting": "descrição da luz",
-      "framing": "descrição do enquadramento",
-      "styling": "descrição do styling",
-      "post_ideas": ["3 ideias de post"]
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual",
+      "composition": "direção de enquadramento e composição",
+      "styling_environment": "styling e ambiente",
+      "usage_context": "contexto conceitual de uso"
     },
     {
       "type": "conversion",
-      "title": "nome da direção criativa",
-      "lighting": "descrição da luz",
-      "framing": "descrição do enquadramento",
-      "styling": "descrição do styling",
-      "post_ideas": ["3 ideias de post"]
+      "title": "nome poético da direção",
+      "visual_mood": "descrição do mood visual",
+      "composition": "direção de enquadramento e composição",
+      "styling_environment": "styling e ambiente",
+      "usage_context": "contexto conceitual de uso"
     }
   ],
-  "content_system": {
-    "pillars": ["3 pilares de conteúdo"],
-    "cadence": "sugestão de cadência semanal",
-    "shotlist": ["12 tipos de shot para o mês"]
+  "editorial_example": {
+    "title": "título de uma campanha ou momento editorial hipotético",
+    "description": "descrição poética de uma aplicação editorial (3-4 frases, sem checklist)"
   },
-  "copy_kit": {
-    "tagline": "tagline da marca",
-    "claims": ["3 claims de marca"],
-    "hooks": ["10 hooks para Reels/Stories"],
-    "captions": ["5 legendas modelo"],
-    "ctas": ["5 CTAs para usar"]
-  },
-  "dos_donts": {
-    "dos": ["5 coisas para fazer"],
-    "donts": ["5 coisas para não fazer"]
-  }
+  "editorial_closing": "parágrafo curto, poético, alinhado à marca. Encerramento editorial, não instrucional."
 }
 
 INSTRUÇÕES DE CONTEÚDO:
-- persona.archetype: Use arquétipos elegantes e aspiracionais
-- positioning: Uma frase poderosa que define o diferencial${hasBrands ? " (conecte sutilmente às referências de marca)" : ""}
-- creative_directions: signature=identidade visual core, aspirational=elevação da marca, conversion=foco em vendas
-- content_system.shotlist: 12 shots práticos e executáveis
-- copy_kit.hooks: Ganchos que funcionam em Reels/TikTok, curtos e impactantes
-- dos_donts: Regras claras e específicas, não genéricas
+- persona.archetype: Arquétipos elegantes e aspiracionais
+- positioning: Uma frase que define o diferencial de forma editorial
+- editorial_directions: Conceituais, não táticas. Sem "ideias de post" ou "o que postar"
+- editorial_example: UM exemplo apenas. Campanha, imagem, ou momento de marca. Descritivo, não prescritivo.
+- editorial_closing: Reflexão de encerramento. Poético, alinhado ao tom da marca.
 
-Tom geral: Premium, confiante, nunca arrogante. Útil, nunca óbvio.`;
+Tom geral: Premium, confiante, nunca arrogante. Editorial, nunca operacional.`;
 }
 
 async function callAI(
@@ -225,17 +220,17 @@ async function callAI(
   if (hasVisual && hasBrands) {
     userContent.push({
       type: "text",
-      text: `Analise estas referências visuais junto com as marcas admiradas (${brandRefs.join(", ")}) e gere o Brand Editorial Kit completo. Mescle as duas fontes de inspiração de forma editorial. Retorne APENAS o JSON.`,
+      text: `Analise estas referências visuais junto com as marcas admiradas (${brandRefs.join(", ")}) e gere o documento de marca completo. Mescle as duas fontes de inspiração de forma editorial. Retorne APENAS o JSON.`,
     });
   } else if (hasVisual) {
     userContent.push({
       type: "text",
-      text: "Analise estas imagens de referência e gere o Brand Editorial Kit completo. Retorne APENAS o JSON.",
+      text: "Analise estas imagens de referência e gere o documento de marca completo. Retorne APENAS o JSON.",
     });
   } else if (hasBrands) {
     userContent.push({
       type: "text",
-      text: `Analise o universo das marcas ${brandRefs.join(", ")} e gere um Brand Editorial Kit original inspirado nelas. Retorne APENAS o JSON.`,
+      text: `Analise o universo das marcas ${brandRefs.join(", ")} e gere um documento de marca original inspirado nelas. Retorne APENAS o JSON.`,
     });
   }
   
@@ -264,7 +259,7 @@ async function callAI(
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages,
-        max_tokens: 4000,
+        max_tokens: 3000,
         temperature: 0.7,
       }),
     });
@@ -295,7 +290,7 @@ async function callAI(
     }
 
     // Basic structure validation
-    if (!parsed.persona || !parsed.positioning || !parsed.brand_codes || !parsed.creative_directions) {
+    if (!parsed.persona || !parsed.positioning || !parsed.brand_codes || !parsed.editorial_directions) {
       console.error(`[${debugId}] Incomplete structure`);
       return { success: false, error: "incomplete_structure", message: "Resposta incompleta. Tente novamente." };
     }

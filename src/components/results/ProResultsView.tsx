@@ -1,358 +1,242 @@
-import { motion } from "framer-motion";
 import { ProEditorialResult } from "@/lib/pro-types";
 
 interface ProResultsViewProps {
   result: ProEditorialResult;
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ number, children }: { number: string; children: React.ReactNode }) {
   return (
-    <h2 className="editorial-headline text-xl md:text-2xl mb-6">{children}</h2>
+    <h2 className="text-lg md:text-xl font-semibold tracking-tight mb-6 page-break-before">
+      <span className="text-muted-foreground mr-3">{number}</span>
+      {children}
+    </h2>
   );
 }
 
 function SubsectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="editorial-caption mb-3">{children}</h3>
+    <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{children}</h3>
+  );
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`p-5 bg-muted/30 rounded-lg ${className}`}>
+      {children}
+    </div>
   );
 }
 
 export function ProResultsView({ result }: ProResultsViewProps) {
-  const { persona, positioning, brand_codes, creative_directions, content_system, copy_kit, dos_donts } = result;
+  const { persona, positioning, brand_codes, editorial_directions, editorial_example, editorial_closing } = result;
 
   return (
-    <div className="space-y-12">
-      {/* 1. Brand Persona */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-6"
-      >
-        <SectionTitle>01 — Brand Persona</SectionTitle>
+    <div className="pro-editorial-content space-y-16 leading-relaxed">
+      {/* 01 — Brand Persona */}
+      <section className="space-y-6 page-break-after">
+        <SectionTitle number="01">Brand Persona</SectionTitle>
         
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="p-4 bg-muted/30 rounded-lg">
+        <div className="grid gap-5 md:grid-cols-2">
+          <Card>
             <SubsectionTitle>Arquétipo</SubsectionTitle>
-            <p className="editorial-body text-lg">{persona.archetype}</p>
-          </div>
+            <p className="text-lg font-medium">{persona.archetype}</p>
+          </Card>
           
-          <div className="p-4 bg-muted/30 rounded-lg">
+          <Card>
             <SubsectionTitle>Idade Cultural</SubsectionTitle>
-            <p className="editorial-body text-lg">{persona.cultural_age}</p>
-          </div>
+            <p className="text-lg font-medium">{persona.cultural_age}</p>
+          </Card>
           
-          <div className="p-4 bg-muted/30 rounded-lg">
+          <Card>
             <SubsectionTitle>Cidade Mental</SubsectionTitle>
-            <p className="editorial-body text-lg">{persona.mental_city}</p>
-          </div>
+            <p className="text-lg font-medium">{persona.mental_city}</p>
+          </Card>
           
-          <div className="p-4 bg-muted/30 rounded-lg">
+          <Card>
             <SubsectionTitle>Ambição</SubsectionTitle>
-            <p className="editorial-body">{persona.ambition}</p>
-          </div>
+            <p className="text-base">{persona.ambition}</p>
+          </Card>
         </div>
 
-        <div className="p-4 bg-muted/30 rounded-lg">
+        <Card>
           <SubsectionTitle>Evita</SubsectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {persona.avoidances.map((item, i) => (
-              <span key={i} className="px-3 py-1 bg-background rounded-full text-sm">
+              <span key={i} className="px-3 py-1.5 bg-background rounded-full text-sm">
                 {item}
               </span>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="p-4 border-l-2 border-primary/30">
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="p-5 border-l-2 border-primary/40 bg-primary/5 rounded-r-lg">
             <SubsectionTitle>Ela diria</SubsectionTitle>
-            <p className="editorial-body italic">"{persona.would_say}"</p>
+            <p className="text-base italic leading-relaxed">"{persona.would_say}"</p>
           </div>
           
-          <div className="p-4 border-l-2 border-destructive/30">
+          <div className="p-5 border-l-2 border-muted-foreground/30 bg-muted/20 rounded-r-lg">
             <SubsectionTitle>Ela nunca diria</SubsectionTitle>
-            <p className="editorial-body italic text-muted-foreground">"{persona.would_never_say}"</p>
+            <p className="text-base italic text-muted-foreground leading-relaxed">"{persona.would_never_say}"</p>
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <div className="editorial-divider" />
-
-      {/* 2. Positioning */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-center py-8"
-      >
-        <SectionTitle>02 — Posicionamento</SectionTitle>
-        <p className="editorial-subhead text-lg md:text-xl max-w-2xl mx-auto">
+      {/* 02 — Positioning */}
+      <section className="text-center py-10 page-break-after">
+        <SectionTitle number="02">Posicionamento</SectionTitle>
+        <p className="text-xl md:text-2xl font-light leading-relaxed max-w-2xl mx-auto mt-6">
           {positioning}
         </p>
-      </motion.section>
+      </section>
 
-      <div className="editorial-divider" />
-
-      {/* 3. Brand Codes */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="space-y-8"
-      >
-        <SectionTitle>03 — Códigos de Marca</SectionTitle>
+      {/* 03 — Brand Codes */}
+      <section className="space-y-8 page-break-after">
+        <SectionTitle number="03">Códigos de Marca</SectionTitle>
         
         {/* Visual Codes */}
-        <div className="space-y-4">
-          <h3 className="text-sm uppercase tracking-widest text-muted-foreground">Visual</h3>
+        <div className="space-y-5">
+          <h3 className="text-sm uppercase tracking-[0.15em] text-muted-foreground border-b border-border pb-2">
+            Códigos Visuais
+          </h3>
           
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3">
             {brand_codes.visual.palette.map((color, i) => (
-              <div
-                key={i}
-                className="w-12 h-12 rounded-lg shadow-sm"
-                style={{ backgroundColor: color }}
-                title={color}
-              />
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div
+                  className="w-12 h-12 rounded-lg shadow-sm border border-border/30"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-[10px] text-muted-foreground font-mono">{color}</span>
+              </div>
             ))}
-            <span className="text-xs text-muted-foreground ml-2">
-              Contraste: {brand_codes.visual.contrast}
+            <span className="text-xs text-muted-foreground ml-4">
+              Contraste: <strong>{brand_codes.visual.contrast}</strong>
             </span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 bg-muted/30 rounded-lg">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Card>
               <SubsectionTitle>Texturas</SubsectionTitle>
-              <p className="text-sm">{brand_codes.visual.textures.join(" · ")}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
+              <p className="text-sm leading-relaxed">{brand_codes.visual.textures.join(" · ")}</p>
+            </Card>
+            <Card>
               <SubsectionTitle>Composição</SubsectionTitle>
-              <ul className="text-sm space-y-1">
-                {brand_codes.visual.composition_rules.map((rule, i) => (
+              <ul className="text-sm space-y-1.5 leading-relaxed">
+                {brand_codes.visual.composition.map((rule, i) => (
                   <li key={i}>• {rule}</li>
                 ))}
               </ul>
-            </div>
+            </Card>
           </div>
+
+          <Card>
+            <SubsectionTitle>Luz</SubsectionTitle>
+            <p className="text-sm leading-relaxed">{brand_codes.visual.light}</p>
+          </Card>
         </div>
 
         {/* Verbal Codes */}
-        <div className="space-y-4">
-          <h3 className="text-sm uppercase tracking-widest text-muted-foreground">Verbal</h3>
+        <div className="space-y-5">
+          <h3 className="text-sm uppercase tracking-[0.15em] text-muted-foreground border-b border-border pb-2">
+            Códigos Verbais
+          </h3>
           
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 bg-muted/30 rounded-lg">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Card>
               <SubsectionTitle>Tom</SubsectionTitle>
-              <p className="text-sm">{brand_codes.verbal.tone}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg">
+              <p className="text-sm leading-relaxed">{brand_codes.verbal.tone}</p>
+            </Card>
+            <Card>
               <SubsectionTitle>Ritmo</SubsectionTitle>
-              <p className="text-sm">{brand_codes.verbal.rhythm}</p>
-            </div>
+              <p className="text-sm leading-relaxed">{brand_codes.verbal.rhythm}</p>
+            </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 bg-primary/5 rounded-lg border border-primary/10">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Card className="border border-primary/10">
               <SubsectionTitle>Palavras Permitidas</SubsectionTitle>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {brand_codes.verbal.allowed_words.map((word, i) => (
-                  <span key={i} className="px-2 py-1 bg-primary/10 rounded text-xs">
+                  <span key={i} className="px-2.5 py-1 bg-primary/10 rounded text-xs">
                     {word}
                   </span>
                 ))}
               </div>
-            </div>
-            <div className="p-4 bg-destructive/5 rounded-lg border border-destructive/10">
+            </Card>
+            <Card className="border border-destructive/10">
               <SubsectionTitle>Palavras Proibidas</SubsectionTitle>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {brand_codes.verbal.forbidden_words.map((word, i) => (
-                  <span key={i} className="px-2 py-1 bg-destructive/10 rounded text-xs line-through">
+                  <span key={i} className="px-2.5 py-1 bg-destructive/10 rounded text-xs line-through">
                     {word}
                   </span>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      <div className="editorial-divider" />
-
-      {/* 4. Creative Directions */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="space-y-6"
-      >
-        <SectionTitle>04 — Direções Criativas</SectionTitle>
+      {/* 04 — Editorial Directions */}
+      <section className="space-y-8 page-break-after">
+        <SectionTitle number="04">Direções Editoriais</SectionTitle>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          {creative_directions.map((direction, i) => (
-            <div key={i} className="p-5 bg-muted/30 rounded-lg space-y-4">
-              <div>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="space-y-6">
+          {editorial_directions.map((direction, i) => (
+            <Card key={i} className="space-y-4">
+              <div className="flex items-baseline gap-3">
+                <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   {direction.type === "signature" && "Assinatura"}
                   {direction.type === "aspirational" && "Aspiracional"}
                   {direction.type === "conversion" && "Conversão"}
                 </span>
-                <h4 className="font-medium mt-1">{direction.title}</h4>
+                <h4 className="text-lg font-medium">{direction.title}</h4>
               </div>
               
-              <div className="space-y-2 text-sm">
-                <p><span className="text-muted-foreground">Luz:</span> {direction.lighting}</p>
-                <p><span className="text-muted-foreground">Enquadramento:</span> {direction.framing}</p>
-                <p><span className="text-muted-foreground">Styling:</span> {direction.styling}</p>
+              <div className="grid gap-4 md:grid-cols-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Mood Visual:</span>
+                  <p className="mt-1 leading-relaxed">{direction.visual_mood}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Composição:</span>
+                  <p className="mt-1 leading-relaxed">{direction.composition}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Styling / Ambiente:</span>
+                  <p className="mt-1 leading-relaxed">{direction.styling_environment}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Contexto de Uso:</span>
+                  <p className="mt-1 leading-relaxed">{direction.usage_context}</p>
+                </div>
               </div>
-
-              <div>
-                <span className="text-xs text-muted-foreground">Ideias de post:</span>
-                <ul className="mt-1 space-y-1 text-sm">
-                  {direction.post_ideas.map((idea, j) => (
-                    <li key={j}>• {idea}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </motion.section>
+      </section>
 
-      <div className="editorial-divider" />
-
-      {/* 5. Content System */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-6"
-      >
-        <SectionTitle>05 — Sistema de Conteúdo</SectionTitle>
+      {/* 05 — Editorial Example */}
+      <section className="space-y-6 page-break-after">
+        <SectionTitle number="05">Aplicação Editorial — Exemplo</SectionTitle>
         
-        <div className="grid gap-4 md:grid-cols-3">
-          {content_system.pillars.map((pillar, i) => (
-            <div key={i} className="p-4 bg-muted/30 rounded-lg text-center">
-              <span className="text-xs text-muted-foreground">Pilar {i + 1}</span>
-              <p className="font-medium mt-1">{pillar}</p>
-            </div>
-          ))}
-        </div>
+        <Card className="bg-muted/50 border border-border/50">
+          <h4 className="text-lg font-medium mb-4">{editorial_example.title}</h4>
+          <p className="text-base leading-relaxed text-muted-foreground">
+            {editorial_example.description}
+          </p>
+        </Card>
+      </section>
 
-        <div className="p-4 bg-muted/30 rounded-lg">
-          <SubsectionTitle>Cadência</SubsectionTitle>
-          <p className="text-sm">{content_system.cadence}</p>
-        </div>
-
-        <div>
-          <SubsectionTitle>Shotlist (12 shots)</SubsectionTitle>
-          <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
-            {content_system.shotlist.map((shot, i) => (
-              <div key={i} className="p-3 bg-muted/30 rounded-lg text-sm">
-                <span className="text-muted-foreground mr-2">{String(i + 1).padStart(2, "0")}</span>
-                {shot}
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
-      <div className="editorial-divider" />
-
-      {/* 6. Copy Kit */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="space-y-6"
-      >
-        <SectionTitle>06 — Copy Kit</SectionTitle>
-        
-        <div className="text-center p-6 bg-muted/30 rounded-lg">
-          <SubsectionTitle>Tagline</SubsectionTitle>
-          <p className="editorial-subhead text-lg">{copy_kit.tagline}</p>
-        </div>
-
-        <div className="p-4 bg-muted/30 rounded-lg">
-          <SubsectionTitle>Claims</SubsectionTitle>
-          <ul className="space-y-2">
-            {copy_kit.claims.map((claim, i) => (
-              <li key={i} className="text-sm">• {claim}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="p-4 bg-muted/30 rounded-lg">
-          <SubsectionTitle>Hooks (10)</SubsectionTitle>
-          <div className="grid gap-2 md:grid-cols-2">
-            {copy_kit.hooks.map((hook, i) => (
-              <p key={i} className="text-sm p-2 bg-background rounded">
-                "{hook}"
-              </p>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="p-4 bg-muted/30 rounded-lg">
-            <SubsectionTitle>Legendas modelo</SubsectionTitle>
-            <ul className="space-y-3">
-              {copy_kit.captions.map((caption, i) => (
-                <li key={i} className="text-sm italic border-l-2 border-border pl-3">
-                  {caption}
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="p-4 bg-muted/30 rounded-lg">
-            <SubsectionTitle>CTAs</SubsectionTitle>
-            <ul className="space-y-2">
-              {copy_kit.ctas.map((cta, i) => (
-                <li key={i} className="text-sm">→ {cta}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </motion.section>
-
-      <div className="editorial-divider" />
-
-      {/* 7. Do/Don't */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="space-y-6"
-      >
-        <SectionTitle>07 — Do / Don't</SectionTitle>
-        
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="p-5 bg-primary/5 rounded-lg border border-primary/10">
-            <h4 className="font-medium text-primary mb-4">✓ DO</h4>
-            <ul className="space-y-2">
-              {dos_donts.dos.map((item, i) => (
-                <li key={i} className="text-sm flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="p-5 bg-destructive/5 rounded-lg border border-destructive/10">
-            <h4 className="font-medium text-destructive mb-4">✗ DON'T</h4>
-            <ul className="space-y-2">
-              {dos_donts.donts.map((item, i) => (
-                <li key={i} className="text-sm flex items-start gap-2">
-                  <span className="text-destructive">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </motion.section>
+      {/* 06 — Editorial Closing */}
+      <section className="py-10 text-center max-w-xl mx-auto">
+        <div className="w-16 h-px bg-border mx-auto mb-8" />
+        <p className="text-base leading-relaxed italic text-muted-foreground">
+          {editorial_closing}
+        </p>
+        <div className="w-16 h-px bg-border mx-auto mt-8" />
+      </section>
     </div>
   );
 }
