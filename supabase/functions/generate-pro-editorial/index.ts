@@ -54,13 +54,39 @@ function extractJson(text: string): any {
   return JSON.parse(candidate);
 }
 
-const PRO_SYSTEM_PROMPT = `Você é um consultor de direção criativa e branding de alto nível para marcas pessoais brasileiras. Você analisa imagens de moodboard e gera um Brand Editorial Kit completo no tom de revistas como Vogue e Harper's Bazaar.
+function buildProSystemPrompt(hasVisual: boolean, hasBrands: boolean, brandNames: string[]): string {
+  let inputContext = "";
+  
+  if (hasVisual && hasBrands) {
+    inputContext = `Você receberá DOIS tipos de referência:
+1. Imagens de moodboard/referência visual (informam paleta, texturas, composição)
+2. Marcas admiradas: ${brandNames.join(", ")} (informam posicionamento, tom, linguagem visual)
+
+Sua tarefa é MESCLAR essas referências de forma editorial, encontrando a conexão entre a estética visual e o universo das marcas citadas. Explique essa conexão de forma sutil no positioning.`;
+  } else if (hasVisual) {
+    inputContext = `Você receberá imagens de moodboard/referência visual que informam paleta, texturas, composição e direção estética.`;
+  } else if (hasBrands) {
+    inputContext = `Você receberá referências de marcas admiradas: ${brandNames.join(", ")}
+
+Analise o universo dessas marcas para extrair:
+- Posicionamento e tom de voz
+- Linguagem visual característica
+- Códigos estéticos implícitos
+- Público e aspiração
+
+IMPORTANTE: Nunca sugira copiar essas marcas. Use-as como norte criativo para desenvolver uma identidade ORIGINAL.`;
+  }
+
+  return `Você é um consultor de direção criativa e branding de alto nível para marcas brasileiras. Você gera um Brand Editorial Kit completo no tom de revistas como Vogue e Harper's Bazaar.
+
+${inputContext}
 
 REGRAS CRÍTICAS:
 1. Retorne APENAS JSON válido. Sem markdown. Sem explicações. Sem texto fora do JSON.
-2. NUNCA recuse analisar uma imagem. Se for abstrata, interprete paleta, contraste, textura e mood.
-3. Todos os campos são OBRIGATÓRIOS.
-4. Todo conteúdo textual DEVE ser em português brasileiro (pt-BR).
+2. NUNCA mencione copiar ou imitar marcas. Use referências como inspiração para criar algo original.
+3. Se receber imagens abstratas, interprete paleta, contraste, textura e mood.
+4. Todos os campos são OBRIGATÓRIOS.
+5. Todo conteúdo textual DEVE ser em português brasileiro (pt-BR).
 
 Retorne este JSON EXATO com TODOS os campos preenchidos:
 
@@ -135,37 +161,62 @@ Retorne este JSON EXATO com TODOS os campos preenchidos:
 
 INSTRUÇÕES DE CONTEÚDO:
 - persona.archetype: Use arquétipos elegantes e aspiracionais
-- positioning: Uma frase poderosa que define o diferencial
+- positioning: Uma frase poderosa que define o diferencial${hasBrands ? " (conecte sutilmente às referências de marca)" : ""}
 - creative_directions: signature=identidade visual core, aspirational=elevação da marca, conversion=foco em vendas
 - content_system.shotlist: 12 shots práticos e executáveis
 - copy_kit.hooks: Ganchos que funcionam em Reels/TikTok, curtos e impactantes
 - dos_donts: Regras claras e específicas, não genéricas
 
 Tom geral: Premium, confiante, nunca arrogante. Útil, nunca óbvio.`;
+}
 
 async function callAI(
   images: string[],
   isUrls: boolean,
+  brandRefs: string[],
   apiKey: string,
   debugId: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
-  const imageContent = isUrls
-    ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
-    : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
+  const hasVisual = images.length > 0;
+  const hasBrands = brandRefs.length > 0;
+  
+  const systemPrompt = buildProSystemPrompt(hasVisual, hasBrands, brandRefs);
+  
+  const userContent: any[] = [];
+  
+  // Build user message based on input type
+  if (hasVisual && hasBrands) {
+    userContent.push({
+      type: "text",
+      text: `Analise estas referências visuais junto com as marcas admiradas (${brandRefs.join(", ")}) e gere o Brand Editorial Kit completo. Mescle as duas fontes de inspiração de forma editorial. Retorne APENAS o JSON.`,
+    });
+  } else if (hasVisual) {
+    userContent.push({
+      type: "text",
+      text: "Analise estas imagens de referência e gere o Brand Editorial Kit completo. Retorne APENAS o JSON.",
+    });
+  } else if (hasBrands) {
+    userContent.push({
+      type: "text",
+      text: `Analise o universo das marcas ${brandRefs.join(", ")} e gere um Brand Editorial Kit original inspirado nelas. Retorne APENAS o JSON.`,
+    });
+  }
+  
+  // Add images if present
+  if (hasVisual) {
+    const imageContent = isUrls
+      ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
+      : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
+    userContent.push(...imageContent);
+  }
 
   const messages = [
-    { role: "system", content: PRO_SYSTEM_PROMPT },
-    {
-      role: "user",
-      content: [
-        { type: "text", text: "Analise estas 3 imagens de referência e gere o Brand Editorial Kit completo. Retorne APENAS o JSON, sem explicações." },
-        ...imageContent,
-      ],
-    },
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userContent },
   ];
 
   try {
-    console.log(`[${debugId}] Calling AI for Pro editorial...`);
+    console.log(`[${debugId}] Calling AI for Pro editorial (visual: ${hasVisual}, brands: ${hasBrands})...`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -230,11 +281,24 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { images, isUrls } = body;
+    const { images = [], isUrls = false, brandRefs = [] } = body;
 
-    // Validate input
-    if (!Array.isArray(images) || images.length !== 3) {
-      return errorResponse("invalid_input", "Envie exatamente 3 imagens.", debugId);
+    // Validate input - at least one type of reference must be provided
+    const hasVisual = Array.isArray(images) && images.length > 0;
+    const hasBrands = Array.isArray(brandRefs) && brandRefs.length >= 2;
+
+    if (!hasVisual && !hasBrands) {
+      return errorResponse("invalid_input", "Envie referências visuais ou pelo menos 2 marcas.", debugId);
+    }
+
+    // If visual references provided, must be exactly 3
+    if (hasVisual && images.length !== 3) {
+      return errorResponse("invalid_input", "Envie exatamente 3 referências visuais.", debugId);
+    }
+
+    // If brand references provided, must be 2-3
+    if (hasBrands && (brandRefs.length < 2 || brandRefs.length > 3)) {
+      return errorResponse("invalid_input", "Envie 2 a 3 marcas de referência.", debugId);
     }
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -244,12 +308,12 @@ serve(async (req) => {
     }
 
     // Call AI with retry
-    let result = await callAI(images, isUrls, apiKey, debugId);
+    let result = await callAI(images, isUrls, brandRefs, apiKey, debugId);
 
     // Retry once on failure
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, apiKey, debugId);
+      result = await callAI(images, isUrls, brandRefs, apiKey, debugId);
     }
 
     if (!result.success) {

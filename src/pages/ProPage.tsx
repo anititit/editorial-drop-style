@@ -25,20 +25,34 @@ const ProPage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Get stored images from the B2C session (if available)
-  const getStoredImages = (): string[] | null => {
-    // Try to get from sessionStorage (set during InputPage)
+  // Get stored data from the Pro brief
+  const getProBriefData = (): { images: string[]; brandRefs: string[] } | null => {
+    const storedBrief = sessionStorage.getItem("pro_brief");
+    if (storedBrief) {
+      try {
+        const parsed = JSON.parse(storedBrief);
+        return {
+          images: parsed.visualRefs || [],
+          brandRefs: parsed.brandRefs || [],
+        };
+      } catch (e) {
+        console.error("Failed to parse pro brief:", e);
+      }
+    }
+
+    // Fallback to legacy storage (from B2C upgrade flow)
     const storedImages = sessionStorage.getItem("editorial_images");
     if (storedImages) {
       try {
         const parsed = JSON.parse(storedImages);
         if (Array.isArray(parsed) && parsed.length === 3) {
-          return parsed;
+          return { images: parsed, brandRefs: [] };
         }
       } catch (e) {
         console.error("Failed to parse stored images:", e);
       }
     }
+
     return null;
   };
 
@@ -46,18 +60,22 @@ const ProPage = () => {
     setState("loading");
     setErrorMessage("");
 
-    const images = getStoredImages();
-    if (!images) {
-      // No images available, redirect to input
-      navigate("/input?mode=upload&pro=true");
+    const briefData = getProBriefData();
+    if (!briefData || (briefData.images.length === 0 && briefData.brandRefs.length === 0)) {
+      // No data available, redirect to Pro brief
+      navigate("/pro/brief");
       return;
     }
 
     try {
-      const isUrls = images[0]?.startsWith("http");
+      const isUrls = briefData.images.length > 0 && briefData.images[0]?.startsWith("http");
 
       const response = await supabase.functions.invoke("generate-pro-editorial", {
-        body: { images, isUrls },
+        body: {
+          images: briefData.images,
+          isUrls,
+          brandRefs: briefData.brandRefs,
+        },
       });
 
       if (response.error) {

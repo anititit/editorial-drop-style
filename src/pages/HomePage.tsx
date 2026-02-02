@@ -57,7 +57,7 @@ const HomePage = () => {
 
           {/* Pro CTA */}
           <div className="pt-8 mt-8 border-t border-border/40">
-            <Link to="/input?mode=upload&pro=true">
+            <Link to="/pro/brief">
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
