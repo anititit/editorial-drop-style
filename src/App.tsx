@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
 import ProPage from "./pages/ProPage";
+import ProConfirmationPage from "./pages/ProConfirmationPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/input" element={<InputPage />} />
           <Route path="/resultado/:id" element={<ResultPage />} />
           <Route path="/pro" element={<ProPage />} />
+          <Route path="/pro/confirmacao" element={<ProConfirmationPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

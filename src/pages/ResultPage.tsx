@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, RotateCcw } from "lucide-react";
+import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ProfileSection } from "@/components/results/ProfileSection";
 import { OutfitsSection } from "@/components/results/OutfitsSection";
@@ -207,24 +207,37 @@ const ResultPage = () => {
 
       {/* Actions - hidden on print */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border/30 py-4 print-hide">
-        <div className="container-results flex items-center gap-4">
-          <EditorialButton
-            variant="secondary"
-            className="flex-1"
-            onClick={() => navigate("/input?mode=upload")}
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Novo Editorial
-          </EditorialButton>
-          <EditorialButton 
-            variant="primary" 
-            className="flex-1" 
-            onClick={handleExportPDF}
-            disabled={isExporting}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {isExporting ? "Gerando..." : "Exportar PDF"}
-          </EditorialButton>
+        <div className="container-results space-y-3">
+          <div className="flex items-center gap-4">
+            <EditorialButton
+              variant="secondary"
+              className="flex-1"
+              onClick={() => navigate("/input?mode=upload")}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Novo Editorial
+            </EditorialButton>
+            <EditorialButton 
+              variant="primary" 
+              className="flex-1" 
+              onClick={handleExportPDF}
+              disabled={isExporting}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {isExporting ? "Gerando..." : "Exportar PDF"}
+            </EditorialButton>
+          </div>
+          
+          {/* Pro Upgrade CTA */}
+          <Link to={`/pro?from=${id}`} className="block">
+            <EditorialButton variant="ghost" className="w-full text-sm">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Fechar a edição (Pro — 24h)
+            </EditorialButton>
+          </Link>
+          <p className="text-xs text-muted-foreground text-center">
+            Direção completa + shotlist + copy kit, entregue em até 24h.
+          </p>
         </div>
       </div>
     </div>
