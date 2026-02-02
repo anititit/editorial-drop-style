@@ -200,12 +200,14 @@
 
   /* Chip/tag styles for preferences */
   .preference-chip {
-    @apply px-4 py-2 text-sm border border-border rounded-none transition-all duration-200;
+    @apply px-4 py-2 text-sm border border-border rounded-none transition-all duration-200 ease-out;
     @apply hover:bg-foreground hover:text-background hover:border-foreground;
+    @apply hover:scale-[1.02] hover:shadow-sm;
+    @apply active:scale-[0.98];
   }
 
   .preference-chip.active {
-    @apply bg-foreground text-background border-foreground;
+    @apply bg-foreground text-background border-foreground shadow-sm;
   }
 
   /* Upload area */
