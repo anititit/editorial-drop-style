@@ -79,6 +79,48 @@ const EditorialPage = () => {
                 </p>
               </Link>
             </article>
+
+            <article className="group py-8">
+              <Link to="/editorial/a-estetica-do-vazio" className="block space-y-3">
+                <span className="editorial-caption text-muted-foreground/60">
+                  Tendências · Dezembro 2025
+                </span>
+                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
+                  A Estética do Vazio
+                </h3>
+                <p className="editorial-body text-muted-foreground line-clamp-2">
+                  Como o minimalismo deixou de ser uma escolha estética para se tornar uma linguagem de poder.
+                </p>
+              </Link>
+            </article>
+
+            <article className="group py-8">
+              <Link to="/editorial/cores-que-comunicam" className="block space-y-3">
+                <span className="editorial-caption text-muted-foreground/60">
+                  Paletas · Novembro 2025
+                </span>
+                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
+                  Cores que Comunicam
+                </h3>
+                <p className="editorial-body text-muted-foreground line-clamp-2">
+                  O papel da cor na construção de uma imagem memorável. Da psicologia à prática.
+                </p>
+              </Link>
+            </article>
+
+            <article className="group py-8">
+              <Link to="/editorial/o-retorno-do-classico" className="block space-y-3">
+                <span className="editorial-caption text-muted-foreground/60">
+                  Arquivo · Outubro 2025
+                </span>
+                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
+                  O Retorno do Clássico
+                </h3>
+                <p className="editorial-body text-muted-foreground line-clamp-2">
+                  Em tempos de excesso visual, a elegância atemporal volta ao centro da conversa.
+                </p>
+              </Link>
+            </article>
           </div>
         </motion.section>
       </div>
