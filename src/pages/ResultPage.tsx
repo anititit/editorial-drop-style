@@ -49,6 +49,17 @@ const ResultPage = () => {
         useCORS: true,
         backgroundColor: "#FAFAF8",
         logging: false,
+        onclone: (clonedDoc) => {
+          // Hide elements marked as print-hide in the PDF
+          clonedDoc.querySelectorAll('.print-hide').forEach((el) => {
+            (el as HTMLElement).style.display = 'none';
+          });
+          // Force opacity for animations
+          clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
+            (el as HTMLElement).style.opacity = '1';
+            (el as HTMLElement).style.transform = 'none';
+          });
+        },
       });
 
       const a4Width = 210;
@@ -404,13 +415,15 @@ const ResultPage = () => {
           </>
         )}
 
-        {/* Footer Note */}
+        {/* Footer Note - hidden in PDF if it's the partial result message */}
         {editorial.footer_note && (
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-center pt-8 border-t border-border/30"
+            className={`text-center pt-8 border-t border-border/30 ${
+              editorial.footer_note.includes("resultado parcial") ? "print-hide" : ""
+            }`}
           >
             <p className="editorial-subhead text-sm text-muted-foreground">
               {editorial.footer_note}
