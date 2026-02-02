@@ -145,12 +145,35 @@ const ProPage = () => {
 
       const element = contentRef.current;
 
+      // Wait for any animations to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: "#FAFAF8",
         logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        onclone: (clonedDoc) => {
+          // Ensure all elements are visible in the cloned document
+          const clonedElement = clonedDoc.body.querySelector('[data-pdf-content]');
+          if (clonedElement) {
+            (clonedElement as HTMLElement).style.transform = 'none';
+            (clonedElement as HTMLElement).style.opacity = '1';
+          }
+          // Make all motion elements visible
+          clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
+            (el as HTMLElement).style.opacity = '1';
+            (el as HTMLElement).style.transform = 'none';
+          });
+        },
       });
+
+      if (canvas.width === 0 || canvas.height === 0) {
+        throw new Error("Canvas is empty");
+      }
 
       const a4Width = 210;
       const a4Height = 297;
@@ -173,11 +196,13 @@ const ProPage = () => {
           pdf.addPage();
         }
 
-        const sourceY = (page * contentHeight * canvas.width) / contentWidth;
+        const sourceY = Math.floor((page * contentHeight * canvas.width) / contentWidth);
         const sourceHeight = Math.min(
-          (contentHeight * canvas.width) / contentWidth,
+          Math.floor((contentHeight * canvas.width) / contentWidth),
           canvas.height - sourceY
         );
+
+        if (sourceHeight <= 0) continue;
 
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
@@ -185,6 +210,10 @@ const ProPage = () => {
 
         const ctx = pageCanvas.getContext("2d");
         if (ctx) {
+          // Fill with background color first
+          ctx.fillStyle = "#FAFAF8";
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
           ctx.drawImage(
             canvas,
             0, sourceY,
@@ -193,12 +222,12 @@ const ProPage = () => {
             canvas.width, sourceHeight
           );
 
-          const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const pageImgData = pageCanvas.toDataURL("image/png");
           const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
 
           pdf.addImage(
             pageImgData,
-            "JPEG",
+            "PNG",
             margin,
             margin,
             imgWidth,
@@ -217,7 +246,7 @@ const ProPage = () => {
       console.error("PDF export error:", err);
       toast({
         title: "Erro ao exportar",
-        description: "Não foi possível gerar o PDF.",
+        description: "Não foi possível gerar o PDF. Tente novamente.",
         variant: "destructive",
       });
     } finally {
