@@ -53,7 +53,7 @@ const EditorialPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
-          className="max-w-md mx-auto"
+          className="max-w-md mx-auto mb-24"
         >
           <p className="editorial-body text-muted-foreground leading-relaxed">
             Neste espaço, observamos marcas, cultura visual e os códigos que moldam o jeito como vemos, e como somos vistos.
@@ -65,7 +65,7 @@ const EditorialPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="space-y-8"
+          className="space-y-12"
         >
           <h2 className="editorial-caption text-muted-foreground mb-8">Artigos</h2>
           
