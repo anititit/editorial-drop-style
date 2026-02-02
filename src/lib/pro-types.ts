@@ -40,6 +40,26 @@ export interface EditorialExample {
   description: string;
 }
 
+// Commerce-bridge types for Pro
+export type PriceLane = "Acessível" | "Intermediário" | "Premium";
+
+export interface ShortlistItem {
+  category: "Hero" | "Supporting" | "Beauty" | "Scent" | "Wildcard";
+  item_name: string;
+  price_lane: PriceLane;
+  rationale: string;
+}
+
+export interface LookRecipe {
+  formula: string;
+}
+
+export interface ProEditorialCommerce {
+  shortlist: ShortlistItem[];
+  look_recipes: LookRecipe[];
+  search_terms: string[];
+}
+
 export interface ProEditorialResult {
   persona: BrandPersona;
   positioning: string;
@@ -47,6 +67,7 @@ export interface ProEditorialResult {
   editorial_directions?: EditorialDirection[]; // Optional for "essencial" mode
   editorial_example: EditorialExample;
   editorial_closing: string;
+  commerce?: ProEditorialCommerce;
 }
 
 // Default fallback for errors
@@ -107,4 +128,19 @@ export const DEFAULT_PRO_RESULT: ProEditorialResult = {
     description: "Uma série de três imagens capturando o ritual matinal: o café que esfria na xícara enquanto ela escolhe o casaco. Luz de janela. Paleta restrita aos neutros da marca. Nenhum rosto visível — apenas mãos, tecido, e a promessa do dia.",
   },
   editorial_closing: "Marcas não se constroem com palavras demais. Constroem-se com escolhas consistentes, silêncios intencionais, e a coragem de repetir o que funciona. Este editorial não é um manual — é um espelho. Use-o para reconhecer, não para copiar.",
+  commerce: {
+    shortlist: [
+      { category: "Hero", item_name: "Casaco estruturado em lã fria", price_lane: "Premium", rationale: "Símbolo do investimento em qualidade sobre quantidade" },
+      { category: "Supporting", item_name: "Camisa de algodão orgânico oversized", price_lane: "Intermediário", rationale: "Versatilidade com intenção" },
+      { category: "Beauty", item_name: "Creme hidratante com textura veludo", price_lane: "Premium", rationale: "Ritual tátil que traduz a essência" },
+      { category: "Scent", item_name: "Fragrância amadeirada com notas de íris", price_lane: "Premium", rationale: "Assinatura olfativa alinhada aos códigos" },
+      { category: "Wildcard", item_name: "Caderno de capa em couro natural", price_lane: "Acessível", rationale: "O detalhe que conta a história" },
+    ],
+    look_recipes: [
+      { formula: "Casaco estruturado + tricot gola alta + calça wide leg" },
+      { formula: "Camisa oversized + slip skirt + sandália minimal" },
+      { formula: "Blazer neutro + jeans vintage + mocassim de couro" },
+    ],
+    search_terms: ["quiet luxury", "minimalismo editorial", "textura natural", "alfaiataria relaxada", "paleta neutra", "couro macio"],
+  },
 };

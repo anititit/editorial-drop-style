@@ -6,7 +6,7 @@ import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
-
+import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="editorial-headline text-xl md:text-2xl mb-4">{children}</h2>
@@ -395,6 +395,14 @@ const ResultPage = () => {
             ))}
           </div>
         </motion.section>
+
+        {/* Commerce Section - O Edit */}
+        {editorial.commerce && (
+          <>
+            <div className="editorial-divider" />
+            <EditorialCommerceSection commerce={editorial.commerce} delay={0.65} />
+          </>
+        )}
 
         {/* Footer Note */}
         {editorial.footer_note && (

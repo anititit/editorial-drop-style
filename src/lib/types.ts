@@ -37,6 +37,26 @@ export interface FragranceSuggestion {
   why_it_matches: string;
 }
 
+// Commerce-bridge types
+export type PriceLane = "Acessível" | "Intermediário" | "Premium";
+
+export interface ShortlistItem {
+  category: "Hero" | "Supporting" | "Beauty" | "Scent" | "Wildcard";
+  item_name: string;
+  price_lane: PriceLane;
+  rationale: string;
+}
+
+export interface LookRecipe {
+  formula: string;
+}
+
+export interface EditorialCommerce {
+  shortlist: ShortlistItem[];
+  look_recipes: LookRecipe[];
+  search_terms: string[];
+}
+
 export interface PersonalEditorial {
   headline: string;
   dek: string;
@@ -45,6 +65,7 @@ export interface PersonalEditorial {
   makeup_night: MakeupRecommendation;
   fragrances: FragranceSuggestion[];
   footer_note: string;
+  commerce?: EditorialCommerce;
 }
 
 export interface EditorialResult {
@@ -120,6 +141,21 @@ export const DEFAULT_RESULT: EditorialResult = {
       { name: "Santal 33", brand: "Le Labo", notes: "Sândalo, íris, couro", price_tier: "premium", approximate_price_brl: 1800, why_it_matches: "Minimalismo olfativo para uma assinatura única" },
     ],
     footer_note: "Este é um resultado parcial. Tente novamente com outras referências.",
+    commerce: {
+      shortlist: [
+        { category: "Hero", item_name: "Blazer estruturado neutro", price_lane: "Intermediário", rationale: "Ancora o guarda-roupa com elegância versátil" },
+        { category: "Supporting", item_name: "Calça wide leg em linho", price_lane: "Acessível", rationale: "Fluidez que equilibra peças estruturadas" },
+        { category: "Beauty", item_name: "Sérum iluminador com ácido hialurônico", price_lane: "Intermediário", rationale: "Pele luminosa sem esforço" },
+        { category: "Scent", item_name: "Vela aromática amadeirada", price_lane: "Premium", rationale: "Atmosfera que traduz a identidade" },
+        { category: "Wildcard", item_name: "Caderno de capa de couro", price_lane: "Acessível", rationale: "Intenção em cada detalhe do dia" },
+      ],
+      look_recipes: [
+        { formula: "Blazer oversized + slip dress midi + mocassim de couro" },
+        { formula: "Tricot texturizado + jeans wide leg + sandália de tiras" },
+        { formula: "Camisa de linho + calça alfaiataria + tênis minimalista" },
+      ],
+      search_terms: ["minimalismo sofisticado", "quiet luxury", "linho oversized", "paleta terrosa", "textura natural", "alfaiataria relaxada"],
+    },
   },
 };
 
