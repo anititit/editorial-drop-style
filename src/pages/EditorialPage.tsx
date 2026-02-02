@@ -64,61 +64,81 @@ const EditorialPage = () => {
         >
           <h2 className="editorial-caption text-muted-foreground mb-8">Artigos</h2>
           
-          {/* Article list */}
-          <div className="divide-y divide-border/30">
-            <article className="group py-8 first:pt-0">
-              <Link to="/editorial/o-codigo-do-luxo-silencioso" className="block space-y-3">
-                <span className="editorial-caption text-muted-foreground/60">
-                  Códigos Visuais · Janeiro 2026
-                </span>
-                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
-                  O Código do Luxo Silencioso
-                </h3>
-                <p className="editorial-body text-muted-foreground line-clamp-2">
-                  Por que as marcas mais desejadas abandonaram os logos? Uma leitura sobre o novo vocabulário do prestígio.
-                </p>
+          {/* Article grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+            <article className="group">
+              <Link to="/editorial/o-codigo-do-luxo-silencioso" className="block space-y-4">
+                <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-muted/50 to-muted/20 group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="space-y-2">
+                  <span className="editorial-caption text-muted-foreground/60">
+                    Códigos Visuais · Janeiro 2026
+                  </span>
+                  <h3 className="editorial-headline text-lg md:text-xl group-hover:text-muted-foreground transition-colors duration-300">
+                    O Código do Luxo Silencioso
+                  </h3>
+                  <p className="editorial-body text-sm text-muted-foreground line-clamp-2">
+                    Por que as marcas mais desejadas abandonaram os logos? Uma leitura sobre o novo vocabulário do prestígio.
+                  </p>
+                </div>
               </Link>
             </article>
 
-            <article className="group py-8">
-              <Link to="/editorial/a-estetica-do-vazio" className="block space-y-3">
-                <span className="editorial-caption text-muted-foreground/60">
-                  Tendências · Dezembro 2025
-                </span>
-                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
-                  A Estética do Vazio
-                </h3>
-                <p className="editorial-body text-muted-foreground line-clamp-2">
-                  Como o minimalismo deixou de ser uma escolha estética para se tornar uma linguagem de poder.
-                </p>
+            <article className="group">
+              <Link to="/editorial/a-estetica-do-vazio" className="block space-y-4">
+                <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="space-y-2">
+                  <span className="editorial-caption text-muted-foreground/60">
+                    Tendências · Dezembro 2025
+                  </span>
+                  <h3 className="editorial-headline text-lg md:text-xl group-hover:text-muted-foreground transition-colors duration-300">
+                    A Estética do Vazio
+                  </h3>
+                  <p className="editorial-body text-sm text-muted-foreground line-clamp-2">
+                    Como o minimalismo deixou de ser uma escolha estética para se tornar uma linguagem de poder.
+                  </p>
+                </div>
               </Link>
             </article>
 
-            <article className="group py-8">
-              <Link to="/editorial/cores-que-comunicam" className="block space-y-3">
-                <span className="editorial-caption text-muted-foreground/60">
-                  Paletas · Novembro 2025
-                </span>
-                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
-                  Cores que Comunicam
-                </h3>
-                <p className="editorial-body text-muted-foreground line-clamp-2">
-                  O papel da cor na construção de uma imagem memorável. Da psicologia à prática.
-                </p>
+            <article className="group">
+              <Link to="/editorial/cores-que-comunicam" className="block space-y-4">
+                <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-muted/60 to-muted/20 group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="space-y-2">
+                  <span className="editorial-caption text-muted-foreground/60">
+                    Paletas · Novembro 2025
+                  </span>
+                  <h3 className="editorial-headline text-lg md:text-xl group-hover:text-muted-foreground transition-colors duration-300">
+                    Cores que Comunicam
+                  </h3>
+                  <p className="editorial-body text-sm text-muted-foreground line-clamp-2">
+                    O papel da cor na construção de uma imagem memorável. Da psicologia à prática.
+                  </p>
+                </div>
               </Link>
             </article>
 
-            <article className="group py-8">
-              <Link to="/editorial/o-retorno-do-classico" className="block space-y-3">
-                <span className="editorial-caption text-muted-foreground/60">
-                  Arquivo · Outubro 2025
-                </span>
-                <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors duration-300">
-                  O Retorno do Clássico
-                </h3>
-                <p className="editorial-body text-muted-foreground line-clamp-2">
-                  Em tempos de excesso visual, a elegância atemporal volta ao centro da conversa.
-                </p>
+            <article className="group">
+              <Link to="/editorial/o-retorno-do-classico" className="block space-y-4">
+                <div className="aspect-[4/3] bg-muted/30 overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-muted/30 to-muted/10 group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="space-y-2">
+                  <span className="editorial-caption text-muted-foreground/60">
+                    Arquivo · Outubro 2025
+                  </span>
+                  <h3 className="editorial-headline text-lg md:text-xl group-hover:text-muted-foreground transition-colors duration-300">
+                    O Retorno do Clássico
+                  </h3>
+                  <p className="editorial-body text-sm text-muted-foreground line-clamp-2">
+                    Em tempos de excesso visual, a elegância atemporal volta ao centro da conversa.
+                  </p>
+                </div>
               </Link>
             </article>
           </div>
