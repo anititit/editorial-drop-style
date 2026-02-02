@@ -32,7 +32,7 @@ export function HistorySection() {
           >
             <div className="space-y-1">
               <p className="text-sm font-medium">
-                {item.result.editorial?.headline || "Editorial"}
+                {item.preferences?.brandName || item.result.editorial?.headline || "Editorial"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(item.timestamp)}

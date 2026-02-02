@@ -19,7 +19,7 @@ const HomePage = () => {
           <div className="space-y-2">
             <span className="editorial-caption">Editorial Drop</span>
             <h1 className="editorial-headline text-4xl md:text-5xl lg:text-6xl">
-              Seu estilo, editado.
+              Sua marca, editada.
             </h1>
           </div>
 
@@ -28,8 +28,8 @@ const HomePage = () => {
 
           {/* Description */}
           <p className="editorial-body text-muted-foreground max-w-sm mx-auto">
-            Envie 3 imagens de referência e receba um guia editorial de moda,
-            beleza e fragrância — no estilo das grandes revistas.
+            Envie 3 referências visuais e receba um guia editorial de marca
+            — no estilo das grandes revistas.
           </p>
 
           {/* CTAs */}
@@ -50,9 +50,9 @@ const HomePage = () => {
 
           {/* Helper text */}
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-            Use referências de moodboard, Pinterest ou editoriais.
+            Use referências de moodboard, produto ou editoriais.
             <br />
-            <span className="italic">Sem selfies.</span>
+            <span className="italic">Para marcas e projetos.</span>
           </p>
 
           {/* Pro CTA */}
@@ -65,12 +65,12 @@ const HomePage = () => {
               >
                 <EditorialButton variant="secondary" className="gap-2">
                   <Sparkles className="w-4 h-4" />
-                  DROP Pro
+                  DROP Pro (beta)
                 </EditorialButton>
               </motion.div>
             </Link>
             <p className="text-xs text-muted-foreground mt-3">
-              Persona + Brand Codes + Shotlist + Copy Kit
+              Persona completa + Brand Codes + Shotlist + Copy Kit
             </p>
           </div>
         </motion.div>
