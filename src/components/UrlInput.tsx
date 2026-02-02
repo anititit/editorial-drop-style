@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Check, X, AlertCircle, ImageOff } from "lucide-react";
 
 interface UrlInputProps {
   urls: string[];
@@ -103,6 +103,9 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
   const [text, setText] = useState(urls.join("\n"));
   const [validations, setValidations] = useState<UrlValidation[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const validUrls = validations.filter(v => v.isValid).map(v => v.url);
 
   useEffect(() => {
     // Parse URLs from text
@@ -221,6 +224,35 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
                   {v.error}
                 </span>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Image previews */}
+      {validUrls.length > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          {validUrls.map((url, idx) => (
+            <div 
+              key={url}
+              className="relative aspect-square bg-muted/30 rounded-sm overflow-hidden border border-border"
+            >
+              {imageErrors[url] ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-2">
+                  <ImageOff className="w-6 h-6 mb-1" />
+                  <span className="text-[10px] text-center">Erro ao carregar</span>
+                </div>
+              ) : (
+                <img
+                  src={url}
+                  alt={`Preview ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageErrors(prev => ({ ...prev, [url]: true }))}
+                />
+              )}
+              <div className="absolute top-1 left-1 bg-background/80 backdrop-blur-sm text-[10px] px-1.5 py-0.5 rounded-sm font-medium">
+                {idx + 1}
+              </div>
             </div>
           ))}
         </div>
