@@ -145,52 +145,95 @@ const ProPage = () => {
 
       const element = contentRef.current;
 
-      // Wait for any animations to complete
+      // Wait for animations to complete
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#FAFAF8",
-        logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        onclone: (clonedDoc) => {
-          // Make all motion elements visible
-          clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
-            (el as HTMLElement).style.opacity = '1';
-            (el as HTMLElement).style.transform = 'none';
-          });
-        },
-      });
-
-      if (canvas.width === 0 || canvas.height === 0) {
-        throw new Error("Canvas is empty");
-      }
-
-      // Create a single continuous PDF (no page breaks = no cutting)
-      const pdfWidth = 210; // A4 width in mm
-      const margin = 12;
-      const contentWidth = pdfWidth - margin * 2;
-      const aspectRatio = canvas.height / canvas.width;
-      const contentHeight = contentWidth * aspectRatio;
-      const pdfHeight = contentHeight + margin * 2;
+      // Find all sections to capture separately (prevents text cuts)
+      const sections = element.querySelectorAll('section, .pro-editorial-content > *:not(section)');
+      
+      // A4 dimensions
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const marginX = 15;
+      const marginY = 20;
+      const contentWidth = pdfWidth - marginX * 2;
+      const maxContentHeight = pdfHeight - marginY * 2;
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [pdfWidth, pdfHeight], // Custom height to fit all content
+        format: "a4",
       });
 
-      const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", margin, margin, contentWidth, contentHeight);
+      let currentY = marginY;
+      let isFirstPage = true;
+
+      // Capture the header first
+      const headerElement = element.querySelector('.pro-editorial-header') as HTMLElement;
+      if (headerElement) {
+        const headerCanvas = await html2canvas(headerElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#FAFAF8",
+          logging: false,
+          onclone: (clonedDoc) => {
+            clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
+              (el as HTMLElement).style.opacity = '1';
+              (el as HTMLElement).style.transform = 'none';
+            });
+          },
+        });
+
+        const headerImgWidth = contentWidth;
+        const headerImgHeight = (headerCanvas.height * contentWidth) / headerCanvas.width;
+        
+        const headerImgData = headerCanvas.toDataURL("image/png");
+        pdf.addImage(headerImgData, "PNG", marginX, currentY, headerImgWidth, headerImgHeight);
+        currentY += headerImgHeight + 8;
+      }
+
+      // Capture each section
+      for (const section of Array.from(sections)) {
+        const sectionElement = section as HTMLElement;
+        
+        const sectionCanvas = await html2canvas(sectionElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#FAFAF8",
+          logging: false,
+          onclone: (clonedDoc) => {
+            clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
+              (el as HTMLElement).style.opacity = '1';
+              (el as HTMLElement).style.transform = 'none';
+            });
+          },
+        });
+
+        if (sectionCanvas.width === 0 || sectionCanvas.height === 0) continue;
+
+        const sectionImgWidth = contentWidth;
+        const sectionImgHeight = (sectionCanvas.height * contentWidth) / sectionCanvas.width;
+
+        // Check if section fits on current page
+        if (currentY + sectionImgHeight > pdfHeight - marginY) {
+          // Add new page
+          pdf.addPage();
+          currentY = marginY;
+          isFirstPage = false;
+        }
+
+        const sectionImgData = sectionCanvas.toDataURL("image/png");
+        pdf.addImage(sectionImgData, "PNG", marginX, currentY, sectionImgWidth, sectionImgHeight);
+        currentY += sectionImgHeight + 6;
+      }
 
       pdf.save("brand-editorial-kit.pdf");
 
       toast({
         title: "PDF exportado!",
-        description: "O arquivo foi salvo.",
+        description: "Documento A4 salvo com sucesso.",
       });
     } catch (err) {
       console.error("PDF export error:", err);
@@ -270,21 +313,18 @@ const ProPage = () => {
       {/* Content */}
       <div ref={contentRef} className="container-results py-10">
         {/* Hero */}
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4 mb-12"
+        <header
+          className="pro-editorial-header text-center space-y-4 mb-12"
         >
           <span className="editorial-caption">DROP Pro</span>
           <h1 className="editorial-headline text-3xl md:text-4xl">
             Brand Editorial Kit
           </h1>
           <p className="editorial-subhead text-muted-foreground max-w-md mx-auto">
-            Sua direção criativa completa. Pronta para aplicar.
+            Sua direção de marca. Completa e pronta para aplicar.
           </p>
-        </motion.header>
-
-        <div className="editorial-divider mb-12" />
+          <div className="editorial-divider mt-8" />
+        </header>
 
         <ProResultsView result={displayResult} />
       </div>

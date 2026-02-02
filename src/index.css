@@ -386,4 +386,21 @@
     padding-top: 4mm !important;
     border-top: 1px solid #ddd !important;
   }
+
+  /* Pro Editorial sections - prevent breaks */
+  .pro-editorial-content section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 6mm !important;
+  }
+
+  .pro-editorial-content .page-break-after {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .pro-editorial-header {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
 }

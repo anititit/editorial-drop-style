@@ -1,4 +1,4 @@
-// Pro Editorial Types - Brand Editorial Kit
+// Pro Editorial Types - Brand Editorial Kit (Branding-First)
 
 export interface BrandPersona {
   archetype: string;
@@ -15,7 +15,8 @@ export interface BrandCodes {
     palette: string[];
     contrast: "low" | "medium" | "high";
     textures: string[];
-    composition_rules: string[];
+    composition: string[];
+    light: string;
   };
   verbal: {
     tone: string;
@@ -25,42 +26,27 @@ export interface BrandCodes {
   };
 }
 
-export interface CreativeDirection {
+export interface EditorialDirection {
   type: "signature" | "aspirational" | "conversion";
   title: string;
-  lighting: string;
-  framing: string;
-  styling: string;
-  post_ideas: string[];
+  visual_mood: string;
+  composition: string;
+  styling_environment: string;
+  usage_context: string;
 }
 
-export interface ContentSystem {
-  pillars: string[];
-  cadence: string;
-  shotlist: string[];
-}
-
-export interface CopyKit {
-  tagline: string;
-  claims: string[];
-  hooks: string[];
-  captions: string[];
-  ctas: string[];
-}
-
-export interface DosDonts {
-  dos: string[];
-  donts: string[];
+export interface EditorialExample {
+  title: string;
+  description: string;
 }
 
 export interface ProEditorialResult {
   persona: BrandPersona;
   positioning: string;
   brand_codes: BrandCodes;
-  creative_directions: CreativeDirection[];
-  content_system: ContentSystem;
-  copy_kit: CopyKit;
-  dos_donts: DosDonts;
+  editorial_directions: EditorialDirection[];
+  editorial_example: EditorialExample;
+  editorial_closing: string;
 }
 
 // Default fallback for errors
@@ -68,7 +54,7 @@ export const DEFAULT_PRO_RESULT: ProEditorialResult = {
   persona: {
     archetype: "A Curadora",
     cultural_age: "28-35",
-    mental_city: "São Paulo",
+    mental_city: "Paris",
     ambition: "Referência em bom gosto dentro do seu nicho",
     avoidances: ["Exagero", "Ostentação vazia", "Seguir tendências sem critério"],
     would_say: "Menos, mas melhor.",
@@ -77,110 +63,48 @@ export const DEFAULT_PRO_RESULT: ProEditorialResult = {
   positioning: "Para mulheres que preferem investir em peças que contam histórias a seguir o que está na vitrine.",
   brand_codes: {
     visual: {
-      palette: ["#F5F5F5", "#2C2C2C", "#D4C4B0"],
+      palette: ["#F5F5F5", "#2C2C2C", "#D4C4B0", "#8B7355", "#E8E4DF"],
       contrast: "medium",
-      textures: ["linho", "algodão orgânico", "couro macio"],
-      composition_rules: ["Espaço negativo generoso", "Simetria sutil", "Luz natural"],
+      textures: ["linho", "algodão orgânico", "couro macio", "seda natural"],
+      composition: ["Espaço negativo generoso", "Simetria sutil", "Enquadramento central"],
+      light: "Luz natural difusa, golden hour suave, sem flash direto",
     },
     verbal: {
-      tone: "Confiante, nunca arrogante",
-      rhythm: "Frases curtas, respiros longos",
-      allowed_words: ["essencial", "atemporal", "curadoria", "intenção"],
-      forbidden_words: ["exclusivo", "imperdível", "corre", "última chance"],
+      tone: "Confiante, nunca arrogante. Íntimo sem ser casual.",
+      rhythm: "Frases curtas, respiros longos. Pontuação precisa.",
+      allowed_words: ["essencial", "atemporal", "curadoria", "intenção", "presença", "silêncio"],
+      forbidden_words: ["exclusivo", "imperdível", "corre", "última chance", "promoção", "arrasa"],
     },
   },
-  creative_directions: [
+  editorial_directions: [
     {
       type: "signature",
       title: "O Uniforme Editado",
-      lighting: "Luz natural, golden hour suave",
-      framing: "Plano médio, fundo neutro",
-      styling: "Monocromático com textura",
-      post_ideas: ["Flat lay do look completo", "Detalhe de textura close", "Transição dia-noite"],
+      visual_mood: "Minimalismo sofisticado com calor humano",
+      composition: "Plano médio, fundo neutro, produto protagonista",
+      styling_environment: "Monocromático com textura, ambiente limpo",
+      usage_context: "Identidade visual core da marca, comunicações institucionais",
     },
     {
       type: "aspirational",
       title: "A Cidade Mental",
-      lighting: "Sombras dramáticas, contraste alto",
-      framing: "Grande angular, arquitetura presente",
-      styling: "Oversized com acessório statement",
-      post_ideas: ["Walking shot urbano", "Reflexo em vitrine", "Silhueta editorial"],
+      visual_mood: "Arquitetônico, cinematográfico, aspiracional",
+      composition: "Grande angular, linhas de fuga, luz dramática",
+      styling_environment: "Oversized com acessório statement, cenário urbano",
+      usage_context: "Campanhas sazonais, momentos de elevação da marca",
     },
     {
       type: "conversion",
-      title: "O Close que Vende",
-      lighting: "Ring light difuso, sem sombras duras",
-      framing: "Close no produto, mãos visíveis",
-      styling: "Peça-herói isolada",
-      post_ideas: ["Unboxing elegante", "Antes/depois sutil", "3 formas de usar"],
+      title: "O Detalhe Decisivo",
+      visual_mood: "Intimista, tátil, focado",
+      composition: "Close nos detalhes, mãos presentes, textura visível",
+      styling_environment: "Peça-herói isolada, fundo íntimo",
+      usage_context: "Lançamentos de produto, momentos de decisão de compra",
     },
   ],
-  content_system: {
-    pillars: ["Estilo Pessoal", "Processo Criativo", "Lifestyle Editado"],
-    cadence: "4-5 posts/semana: 2 Reels, 2 Stories séries, 1 carrossel",
-    shotlist: [
-      "Hero look frontal",
-      "Detalhe textura",
-      "Transição",
-      "Flat lay minimalista",
-      "POV espelho",
-      "Walking urbano",
-      "Close acessório",
-      "Behind the scenes",
-      "Moodboard vivo",
-      "Produto isolado",
-      "Lifestyle moment",
-      "Quote card",
-    ],
+  editorial_example: {
+    title: "Campanha Primavera — O Silêncio que Veste",
+    description: "Uma série de três imagens capturando o ritual matinal: o café que esfria na xícara enquanto ela escolhe o casaco. Luz de janela. Paleta restrita aos neutros da marca. Nenhum rosto visível — apenas mãos, tecido, e a promessa do dia.",
   },
-  copy_kit: {
-    tagline: "Estilo editado. Intenção clara.",
-    claims: [
-      "Menos peças, mais presença.",
-      "Curadoria > Quantidade.",
-      "O uniforme que você não precisa pensar.",
-    ],
-    hooks: [
-      "O segredo não é ter mais...",
-      "Isso muda tudo no seu armário",
-      "Por que as francesas acertam sempre?",
-      "O detalhe que ninguém nota, mas todo mundo sente",
-      "Pare de comprar isso",
-      "A peça que salvou meu look",
-      "Você não precisa de tendência",
-      "Menos scroll, mais intenção",
-      "O que eu uso todo dia",
-      "Por que isso funciona",
-    ],
-    captions: [
-      "Não é sobre o que está na moda. É sobre o que faz sentido pra você.",
-      "Armário editado: menos decisões, mais clareza.",
-      "A melhor versão do básico.",
-      "Invisto em peças que trabalham por mim.",
-      "Estilo é repetição consciente.",
-    ],
-    ctas: [
-      "Salva pra quando for montar o look",
-      "Qual peça você editaria primeiro?",
-      "Comenta a sua versão",
-      "Link na bio pra quem quer começar",
-      "Envia pra quem precisa ver isso",
-    ],
-  },
-  dos_donts: {
-    dos: [
-      "Mostrar processo, não só resultado",
-      "Luz natural sempre que possível",
-      "Repetir cores da paleta",
-      "Pausas visuais entre elementos",
-      "Falar como uma amiga bem-vestida",
-    ],
-    donts: [
-      "Filtros que alteram cor de pele",
-      "Texto demais no Reel",
-      "Trend audio sem fit estético",
-      "Fundo poluído ou desordenado",
-      "Urgência artificial (corre, últimas!)",
-    ],
-  },
+  editorial_closing: "Marcas não se constroem com palavras demais. Constroem-se com escolhas consistentes, silêncios intencionais, e a coragem de repetir o que funciona. Este editorial não é um manual — é um espelho. Use-o para reconhecer, não para copiar.",
 };
