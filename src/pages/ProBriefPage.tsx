@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Sparkles, Image as ImageIcon, Building2, Layers } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, Image as ImageIcon, Building2, Layers, FileText, Layers3 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ProImageUploader } from "@/components/ProImageUploader";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { BRAND_CATEGORIES, BRAND_OBJECTIVES } from "@/lib/types";
 
 type GuidanceType = "visual" | "brands" | "both";
+type DepthType = "essencial" | "completo";
 
 const GUIDANCE_OPTIONS = [
   {
@@ -34,6 +35,19 @@ const GUIDANCE_OPTIONS = [
   },
 ];
 
+const DEPTH_OPTIONS = [
+  {
+    value: "essencial" as const,
+    label: "Essencial — mais enxuto, mais incisivo",
+    icon: FileText,
+  },
+  {
+    value: "completo" as const,
+    label: "Completo — inclui 3 direções editoriais",
+    icon: Layers3,
+  },
+];
+
 const ProBriefPage = () => {
   const navigate = useNavigate();
   
@@ -46,6 +60,9 @@ const ProBriefPage = () => {
   const [guidanceType, setGuidanceType] = useState<GuidanceType | null>(null);
   const [visualRefs, setVisualRefs] = useState<string[]>([]);
   const [brandRefs, setBrandRefs] = useState<string[]>(["", "", ""]);
+  
+  // Depth preference
+  const [depth, setDepth] = useState<DepthType | null>(null);
   
   const needsVisual = guidanceType === "visual" || guidanceType === "both";
   const hasValidBrand = brandName.trim().length >= 2;
@@ -62,6 +79,7 @@ const ProBriefPage = () => {
   const isValid = () => {
     if (!hasValidBrand) return false;
     if (!guidanceType) return false;
+    if (!depth) return false;
     
     if (needsVisual && visualRefs.length !== 3) return false;
     if (needsBrands && filledBrandRefs.length < 2) return false;
@@ -80,6 +98,7 @@ const ProBriefPage = () => {
       guidanceType,
       visualRefs: needsVisual ? visualRefs : [],
       brandRefs: needsBrands ? filledBrandRefs : [],
+      depth,
     };
     
     sessionStorage.setItem("pro_brief", JSON.stringify(proData));
@@ -283,6 +302,57 @@ const ProBriefPage = () => {
             </div>
           </motion.section>
         )}
+
+        <div className="editorial-divider" />
+
+        {/* Depth Selection */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="space-y-4"
+        >
+          <div className="space-y-2">
+            <span className="editorial-caption block">Profundidade do editorial *</span>
+            <p className="text-sm text-muted-foreground">
+              Prefere uma leitura mais direta ou quer explorar variações de direção?
+            </p>
+          </div>
+          <RadioGroup
+            value={depth || ""}
+            onValueChange={(v) => setDepth(v as DepthType)}
+            className="grid gap-3"
+          >
+            {DEPTH_OPTIONS.map((option) => {
+              const Icon = option.icon;
+              const isSelected = depth === option.value;
+              
+              return (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-sm border-2 cursor-pointer transition-all",
+                    isSelected
+                      ? "border-foreground bg-foreground/5"
+                      : "border-border/60 hover:border-foreground/40"
+                  )}
+                >
+                  <RadioGroupItem value={option.value} className="sr-only" />
+                  <Icon className={cn(
+                    "w-5 h-5",
+                    isSelected ? "text-foreground" : "text-muted-foreground"
+                  )} />
+                  <span className={cn(
+                    "font-medium",
+                    isSelected ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {option.label}
+                  </span>
+                </label>
+              );
+            })}
+          </RadioGroup>
+        </motion.section>
       </main>
 
       {/* Footer */}
@@ -302,7 +372,8 @@ const ProBriefPage = () => {
               {!hasValidBrand && "Digite o nome da marca. "}
               {hasValidBrand && !guidanceType && "Selecione um tipo de referência. "}
               {hasValidBrand && guidanceType && needsVisual && visualRefs.length !== 3 && "Envie exatamente 3 referências visuais. "}
-              {hasValidBrand && guidanceType && needsBrands && filledBrandRefs.length < 2 && "Cite pelo menos 2 marcas."}
+              {hasValidBrand && guidanceType && needsBrands && filledBrandRefs.length < 2 && "Cite pelo menos 2 marcas. "}
+              {hasValidBrand && guidanceType && !depth && "Selecione a profundidade do editorial."}
             </p>
           )}
         </div>
