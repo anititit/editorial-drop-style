@@ -390,12 +390,6 @@ const ResultPage = () => {
                   <p className="font-medium">{fragrance.name}</p>
                   <p className="text-sm text-muted-foreground">{fragrance.brand}</p>
                   <p className="text-xs text-muted-foreground mt-1">{fragrance.notes}</p>
-                  {fragrance.why_it_matches && (
-                    <p className="text-xs text-muted-foreground/80 italic mt-1">"{fragrance.why_it_matches}"</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    ~R$ {fragrance.approximate_price_brl?.toLocaleString('pt-BR')}
-                  </p>
                 </div>
               </div>
             ))}
