@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getHistory, formatDate } from "@/lib/storage";
 import { Clock, ChevronRight } from "lucide-react";
 
@@ -32,7 +31,7 @@ export function HistorySection() {
           >
             <div className="space-y-1">
               <p className="text-sm font-medium">
-                {item.preferences?.brandName || item.result.editorial?.headline || "Editorial"}
+                {item.result.editorial?.headline || item.result.profile?.aesthetic_primary || "Leitura Estética"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(item.timestamp)}

@@ -1,130 +1,126 @@
-// B2C Brand Editorial Types (for founders/small businesses)
+// B2C Personal Aesthetic Identity Types (people-focused)
 
-export interface BrandPersonaLight {
-  archetype: string;
-  cultural_age: string;
-  mental_city: string;
-  essence: string;
-}
-
-export interface VisualBrandCodes {
+export interface AestheticProfile {
+  aesthetic_primary: string;
+  aesthetic_secondary: string;
+  confidence: number;
   palette_hex: string[];
   contrast: "low" | "medium" | "high";
   textures: string[];
-  composition: string[];
+  silhouettes: string[];
+  makeup_finish: string;
+  fragrance_family: string;
+  why_this: string[];
 }
 
-export interface EditorialDirection {
-  type: "signature" | "aspirational" | "conversion";
+export interface ConceptualLook {
   title: string;
-  description: string;
-  visual_cues: string[];
+  hero_piece: string;
+  supporting: string[];
+  accessory: string;
+  caption: string;
 }
 
-export interface MiniContentSystem {
-  pillars: string[];
-  cadence: string;
-  quick_wins: string[];
+export interface MakeupRecommendation {
+  base: string;
+  cheeks: string;
+  eyes: string;
+  lips: string;
 }
 
-export interface BrandProfile {
-  category: string;
-  persona: BrandPersonaLight;
-  visual_codes: VisualBrandCodes;
+export interface FragranceSuggestion {
+  name: string;
+  notes: string;
+  tier: "accessible" | "mid" | "premium";
 }
 
-export interface BrandEditorial {
+export interface PersonalEditorial {
   headline: string;
-  positioning: string;
-  directions: EditorialDirection[];
-  content_system: MiniContentSystem;
+  dek: string;
+  looks: ConceptualLook[];
+  makeup_day: MakeupRecommendation;
+  makeup_night: MakeupRecommendation;
+  fragrances: FragranceSuggestion[];
   footer_note: string;
 }
 
 export interface EditorialResult {
-  profile: BrandProfile;
-  editorial: BrandEditorial;
+  profile: AestheticProfile;
+  editorial: PersonalEditorial;
 }
 
 export interface SavedResult {
   id: string;
   timestamp: number;
   result: EditorialResult;
-  preferences: UserPreferences;
 }
-
-export interface UserPreferences {
-  brandName: string;
-  category: string;
-}
-
-// Brand categories
-export const BRAND_CATEGORIES = [
-  { id: "moda", label: "Moda" },
-  { id: "beleza", label: "Beleza" },
-  { id: "joias", label: "Joias" },
-  { id: "food", label: "Food & Drink" },
-  { id: "wellness", label: "Wellness" },
-  { id: "design", label: "Design" },
-  { id: "lifestyle", label: "Lifestyle" },
-  { id: "tech", label: "Tech" },
-] as const;
-
 
 // Default/fallback result
 export const DEFAULT_RESULT: EditorialResult = {
   profile: {
-    category: "lifestyle",
-    persona: {
-      archetype: "A Curadora",
-      cultural_age: "28-35",
-      mental_city: "São Paulo",
-      essence: "Menos, mas melhor.",
-    },
-    visual_codes: {
-      palette_hex: ["#F5F5F5", "#2C2C2C", "#D4C4B0", "#8B7355", "#E8E4DF"],
-      contrast: "medium",
-      textures: ["linho", "algodão", "couro macio"],
-      composition: ["Espaço negativo generoso", "Simetria sutil", "Luz natural"],
-    },
+    aesthetic_primary: "Minimalista Chique",
+    aesthetic_secondary: "Romântica Atual",
+    confidence: 0.85,
+    palette_hex: ["#F5F5F5", "#2C2C2C", "#D4C4B0", "#8B7355", "#E8E4DF"],
+    contrast: "medium",
+    textures: ["linho", "algodão orgânico", "couro macio"],
+    silhouettes: ["oversized estruturado", "midi fluido", "cropped equilibrado"],
+    makeup_finish: "pele natural com brilho sutil",
+    fragrance_family: "amadeirado floral",
+    why_this: [
+      "Paleta neutra com toques terrosos indica sofisticação discreta",
+      "Texturas orgânicas sugerem conforto com elegância",
+      "Contraste médio revela equilíbrio entre statement e sutileza",
+    ],
   },
   editorial: {
-    headline: "Editorial em Construção",
-    positioning: "Para quem prefere investir em clareza a seguir tendências.",
-    directions: [
+    headline: "Seu Estilo, Editado",
+    dek: "Uma leitura estética que traduz suas referências em linguagem de moda.",
+    looks: [
       {
-        type: "signature",
-        title: "O Essencial",
-        description: "Identidade visual core da marca.",
-        visual_cues: ["Luz natural", "Fundo neutro", "Produto isolado"],
+        title: "Look Dia",
+        hero_piece: "Blazer oversized em linho cru",
+        supporting: ["T-shirt branca básica", "Calça wide leg creme"],
+        accessory: "Bolsa estruturada em couro tan",
+        caption: "Elegância descomplicada para o cotidiano.",
       },
       {
-        type: "aspirational",
-        title: "A Referência",
-        description: "Elevação e desejo.",
-        visual_cues: ["Composição editorial", "Contraste dramático", "Contexto aspiracional"],
+        title: "Look Transição",
+        hero_piece: "Vestido midi em crepe com fenda lateral",
+        supporting: ["Sandália de tiras finas", "Brincos dourados discretos"],
+        accessory: "Clutch em palha natural",
+        caption: "Do escritório ao jantar sem esforço.",
       },
       {
-        type: "conversion",
-        title: "O Detalhe",
-        description: "Foco em venda e ação.",
-        visual_cues: ["Close no produto", "Clareza máxima", "CTA visual"],
+        title: "Look Noite",
+        hero_piece: "Conjunto de alfaiataria em tom terra",
+        supporting: ["Camiseta de seda", "Salto bloco nude"],
+        accessory: "Ear cuff dourado",
+        caption: "Sofisticação com personalidade.",
       },
     ],
-    content_system: {
-      pillars: ["Produto", "Processo", "Lifestyle"],
-      cadence: "3-4 posts/semana",
-      quick_wins: [
-        "Flat lay minimalista",
-        "Behind the scenes",
-        "Detalhe de produto",
-      ],
+    makeup_day: {
+      base: "Base leve com acabamento natural",
+      cheeks: "Blush pêssego em creme",
+      eyes: "Máscara preta + sobrancelhas penteadas",
+      lips: "Lip oil rosado",
     },
+    makeup_night: {
+      base: "Base média com iluminador nos pontos altos",
+      cheeks: "Contorno suave + blush terracota",
+      eyes: "Delineado gatinho fino + sombra bronze",
+      lips: "Batom nude rosado matte",
+    },
+    fragrances: [
+      { name: "Santal 33 (Le Labo)", notes: "Sândalo, íris, couro", tier: "premium" },
+      { name: "Flowerbomb Nectar (Viktor&Rolf)", notes: "Floral intenso", tier: "mid" },
+      { name: "Natura Essencial (Natura)", notes: "Amadeirado fresco", tier: "accessible" },
+    ],
     footer_note: "Este é um resultado parcial. Tente novamente com outras referências.",
   },
 };
 
-// Legacy type mappings for backwards compatibility
+// Legacy type mappings for backwards compatibility (PRO flow)
 export interface MakeupStep {
   base: string;
   cheeks: string;
@@ -147,7 +143,7 @@ export interface Fragrance {
   premium: string;
 }
 
-// Aesthetic display name mapping (kept for Pro)
+// Aesthetic display name mapping
 export const AESTHETIC_NAMES: Record<string, string> = {
   clean_glow: "Brilho Limpo",
   minimal_chic: "Minimalista Chique",
@@ -162,3 +158,15 @@ export const AESTHETIC_NAMES: Record<string, string> = {
   soft_glam: "Glam Polido",
   artsy_eclectic: "Artística Mix",
 };
+
+// PRO-only: Brand categories (kept separate from B2C)
+export const BRAND_CATEGORIES = [
+  { id: "moda", label: "Moda" },
+  { id: "beleza", label: "Beleza" },
+  { id: "joias", label: "Joias" },
+  { id: "food", label: "Food & Drink" },
+  { id: "wellness", label: "Wellness" },
+  { id: "design", label: "Design" },
+  { id: "lifestyle", label: "Lifestyle" },
+  { id: "tech", label: "Tech" },
+] as const;

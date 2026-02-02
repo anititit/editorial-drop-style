@@ -83,10 +83,7 @@ export function LoadingEditorial({ hasError = false, errorType, onRetry }: Loadi
 
   const handleViewExample = () => {
     // Save default result as example
-    const id = saveResult(DEFAULT_RESULT, {
-      brandName: "Exemplo",
-      category: "lifestyle",
-    });
+    const id = saveResult(DEFAULT_RESULT);
     navigate(`/resultado/${id}`);
   };
 
