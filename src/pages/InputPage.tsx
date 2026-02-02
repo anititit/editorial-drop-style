@@ -11,7 +11,7 @@ import { LoadingEditorial } from "@/components/LoadingEditorial";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { saveResult } from "@/lib/storage";
-import { EditorialResult, DEFAULT_RESULT, UserPreferences, BRAND_CATEGORIES, BRAND_OBJECTIVES } from "@/lib/types";
+import { EditorialResult, DEFAULT_RESULT, UserPreferences, BRAND_CATEGORIES } from "@/lib/types";
 
 const InputPage = () => {
   const [searchParams] = useSearchParams();
@@ -24,7 +24,6 @@ const InputPage = () => {
   // Brand inputs
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("lifestyle");
-  const [objective, setObjective] = useState("consistencia");
 
   // Image states
   const [images, setImages] = useState<string[]>([]);
@@ -80,7 +79,6 @@ const InputPage = () => {
         brandInfo: {
           name: brandName.trim(),
           category,
-          objective,
         },
       }),
     });
@@ -135,7 +133,6 @@ const InputPage = () => {
         const preferences: UserPreferences = {
           brandName: brandName.trim(),
           category,
-          objective,
         };
         const id = saveResult(result, preferences);
 
@@ -230,26 +227,6 @@ const InputPage = () => {
                 label={c.label}
                 selected={category === c.id}
                 onClick={() => setCategory(c.id)}
-              />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Objective */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-8"
-        >
-          <span className="editorial-caption block mb-3">Objetivo</span>
-          <div className="flex flex-wrap gap-2">
-            {BRAND_OBJECTIVES.map((o) => (
-              <PreferenceChip
-                key={o.id}
-                label={o.label}
-                selected={objective === o.id}
-                onClick={() => setObjective(o.id)}
               />
             ))}
           </div>

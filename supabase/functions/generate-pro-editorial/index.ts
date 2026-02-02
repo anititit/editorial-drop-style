@@ -58,7 +58,7 @@ function buildProSystemPrompt(
   hasVisual: boolean, 
   hasBrands: boolean, 
   brandNames: string[],
-  brandInfo?: { name: string; category: string; objective: string },
+  brandInfo?: { name: string; category: string },
   depth: "essencial" | "completo" = "completo"
 ): string {
   let inputContext = "";
@@ -76,20 +76,13 @@ function buildProSystemPrompt(
       lifestyle: "Lifestyle",
       tech: "Tech",
     };
-    const objectiveLabels: Record<string, string> = {
-      consistencia: "Consistência visual",
-      reposicionamento: "Reposicionamento de marca",
-      conversao: "Conversão e vendas",
-      lancamento: "Lançamento de marca/produto",
-    };
     
     brandContext = `
 CONTEXTO DA MARCA:
 - Nome: ${brandInfo.name}
 - Categoria: ${categoryLabels[brandInfo.category] || brandInfo.category}
-- Objetivo principal: ${objectiveLabels[brandInfo.objective] || brandInfo.objective}
 
-Use estas informações para contextualizar todo o editorial. O nome da marca deve influenciar o tom e a personalidade.`;
+Infira a direção e posicionamento da marca a partir das referências visuais e/ou marcas admiradas fornecidas. Use estas informações para contextualizar todo o editorial. O nome da marca deve influenciar o tom e a personalidade.`;
   }
   
   if (hasVisual && hasBrands) {
@@ -222,7 +215,7 @@ async function callAI(
   images: string[],
   isUrls: boolean,
   brandRefs: string[],
-  brandInfo: { name: string; category: string; objective: string } | undefined,
+  brandInfo: { name: string; category: string } | undefined,
   depth: "essencial" | "completo",
   apiKey: string,
   debugId: string

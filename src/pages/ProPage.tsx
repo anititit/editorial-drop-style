@@ -29,7 +29,6 @@ const ProPage = () => {
   const getProBriefData = (): { 
     brandName: string; 
     category: string; 
-    objective: string;
     images: string[]; 
     brandRefs: string[];
     depth: "essencial" | "completo";
@@ -41,7 +40,6 @@ const ProPage = () => {
         return {
           brandName: parsed.brandName || "",
           category: parsed.category || "lifestyle",
-          objective: parsed.objective || "consistencia",
           images: parsed.visualRefs || [],
           brandRefs: parsed.brandRefs || [],
           depth: parsed.depth === "essencial" ? "essencial" : "completo",
@@ -60,7 +58,6 @@ const ProPage = () => {
           return { 
             brandName: "", 
             category: "lifestyle", 
-            objective: "consistencia",
             images: parsed, 
             brandRefs: [],
             depth: "completo", // legacy defaults to completo
@@ -96,7 +93,6 @@ const ProPage = () => {
           brandInfo: {
             name: briefData.brandName,
             category: briefData.category,
-            objective: briefData.objective,
           },
           depth: briefData.depth,
         },
