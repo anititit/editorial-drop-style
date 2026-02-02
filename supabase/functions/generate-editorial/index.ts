@@ -503,24 +503,27 @@ serve(async (req) => {
   const clientIp = getClientIp(req);
 
   // ========================================
-  // APP TOKEN VALIDATION (FIRST - before any processing)
+  // APP TOKEN VALIDATION (MANDATORY - before any processing)
   // ========================================
   const APP_TOKEN = Deno.env.get("APP_TOKEN");
-  if (APP_TOKEN) {
-    const providedToken = req.headers.get("x-app-token") || req.headers.get("X-App-Token");
-    if (!providedToken || providedToken !== APP_TOKEN) {
-      console.log(`[${debugId}] Invalid or missing app token from IP: ${clientIp}`);
-      return new Response(
-        JSON.stringify({
-          error: "unauthorized",
-          message: "Acesso não autorizado.",
-          debug_id: debugId,
-        }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    console.log(`[${debugId}] App token validated successfully`);
+  if (!APP_TOKEN) {
+    console.error(`[${debugId}] CRITICAL: APP_TOKEN not configured in environment`);
+    return errorResponse("config_error", "Serviço não configurado corretamente.", debugId, 500);
   }
+  
+  const providedToken = req.headers.get("x-app-token") || req.headers.get("X-App-Token");
+  if (!providedToken || providedToken !== APP_TOKEN) {
+    console.log(`[${debugId}] Invalid or missing app token from IP: ${clientIp}`);
+    return new Response(
+      JSON.stringify({
+        error: "unauthorized",
+        message: "Acesso não autorizado.",
+        debug_id: debugId,
+      }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+  console.log(`[${debugId}] App token validated successfully`);
 
   // ========================================
   // RATE LIMITING (database-backed)
