@@ -48,14 +48,8 @@ const EditorialPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
-          className="max-w-md mx-auto space-y-6"
+          className="max-w-md mx-auto"
         >
-          <p className="editorial-body text-foreground/90 leading-relaxed">
-            Imagem é linguagem.
-          </p>
-          <p className="editorial-body text-foreground/90 leading-relaxed">
-            Imagem não é detalhe, é construção.
-          </p>
           <p className="editorial-body text-muted-foreground leading-relaxed">
             Neste espaço, observamos marcas, cultura visual e os códigos que moldam o jeito como vemos, e como somos vistos.
           </p>
