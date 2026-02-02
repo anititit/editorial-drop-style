@@ -5,7 +5,6 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ProLoadingEditorial } from "@/components/ProLoadingEditorial";
 import { ProResultsView } from "@/components/results/ProResultsView";
-import { ProPDFExportLayout } from "@/components/pdf/ProPDFExportLayout";
 import { getResultById } from "@/lib/storage";
 import { ProEditorialResult, DEFAULT_PRO_RESULT } from "@/lib/pro-types";
 import { useToast } from "@/hooks/use-toast";
@@ -18,14 +17,13 @@ const ProPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fromResultId = searchParams.get("from");
-  const pdfRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [state, setState] = useState<ProPageState>("loading");
   const [result, setResult] = useState<ProEditorialResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isExporting, setIsExporting] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
-  const [showOptionalLayer, setShowOptionalLayer] = useState(true); // Pro gets full content
 
   // Get stored data from the Pro brief
   const getProBriefData = (): { 
@@ -133,7 +131,7 @@ const ProPage = () => {
   };
 
   const handleExportPDF = async () => {
-    if (!pdfRef.current || isExporting) return;
+    if (!contentRef.current || isExporting) return;
 
     setIsExporting(true);
     toast({
@@ -145,11 +143,21 @@ const ProPage = () => {
       const html2canvas = (await import("html2canvas")).default;
       const jsPDF = (await import("jspdf")).default;
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const element = contentRef.current;
 
-      const pages = pdfRef.current.querySelectorAll(".pdf-page");
+      // Wait for animations to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Find all sections to capture separately (prevents text cuts)
+      const sections = element.querySelectorAll('section, .pro-editorial-content > *:not(section)');
+      
+      // A4 dimensions
       const pdfWidth = 210;
       const pdfHeight = 297;
+      const marginX = 15;
+      const marginY = 20;
+      const contentWidth = pdfWidth - marginX * 2;
+      const maxContentHeight = pdfHeight - marginY * 2;
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -157,12 +165,13 @@ const ProPage = () => {
         format: "a4",
       });
 
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-        
-        if (i > 0) pdf.addPage();
+      let currentY = marginY;
+      let isFirstPage = true;
 
-        const pageCanvas = await html2canvas(page, {
+      // Capture the header first
+      const headerElement = element.querySelector('.pro-editorial-header') as HTMLElement;
+      if (headerElement) {
+        const headerCanvas = await html2canvas(headerElement, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
@@ -170,26 +179,61 @@ const ProPage = () => {
           logging: false,
           onclone: (clonedDoc) => {
             clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
-              (el as HTMLElement).style.opacity = "1";
-              (el as HTMLElement).style.transform = "none";
+              (el as HTMLElement).style.opacity = '1';
+              (el as HTMLElement).style.transform = 'none';
             });
           },
         });
 
-        if (pageCanvas.width === 0 || pageCanvas.height === 0) continue;
+        const headerImgWidth = contentWidth;
+        const headerImgHeight = (headerCanvas.height * contentWidth) / headerCanvas.width;
+        
+        const headerImgData = headerCanvas.toDataURL("image/png");
+        pdf.addImage(headerImgData, "PNG", marginX, currentY, headerImgWidth, headerImgHeight);
+        currentY += headerImgHeight + 8;
+      }
 
-        const imgData = pageCanvas.toDataURL("image/png");
-        const imgWidth = pdfWidth;
-        const imgHeight = (pageCanvas.height * pdfWidth) / pageCanvas.width;
+      // Capture each section
+      for (const section of Array.from(sections)) {
+        const sectionElement = section as HTMLElement;
+        
+        const sectionCanvas = await html2canvas(sectionElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#FAFAF8",
+          logging: false,
+          onclone: (clonedDoc) => {
+            clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
+              (el as HTMLElement).style.opacity = '1';
+              (el as HTMLElement).style.transform = 'none';
+            });
+          },
+        });
 
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+        if (sectionCanvas.width === 0 || sectionCanvas.height === 0) continue;
+
+        const sectionImgWidth = contentWidth;
+        const sectionImgHeight = (sectionCanvas.height * contentWidth) / sectionCanvas.width;
+
+        // Check if section fits on current page
+        if (currentY + sectionImgHeight > pdfHeight - marginY) {
+          // Add new page
+          pdf.addPage();
+          currentY = marginY;
+          isFirstPage = false;
+        }
+
+        const sectionImgData = sectionCanvas.toDataURL("image/png");
+        pdf.addImage(sectionImgData, "PNG", marginX, currentY, sectionImgWidth, sectionImgHeight);
+        currentY += sectionImgHeight + 6;
       }
 
       pdf.save("brand-editorial-kit.pdf");
 
       toast({
         title: "PDF exportado!",
-        description: "Documento salvo com sucesso.",
+        description: "Documento A4 salvo com sucesso.",
       });
     } catch (err) {
       console.error("PDF export error:", err);
@@ -266,13 +310,8 @@ const ProPage = () => {
         </div>
       </header>
 
-      {/* Hidden PDF Layout */}
-      <div className="fixed -left-[9999px] -top-[9999px]">
-        <ProPDFExportLayout ref={pdfRef} result={displayResult} showOptionalLayer={showOptionalLayer} />
-      </div>
-
       {/* Content */}
-      <div className="container-results py-10">
+      <div ref={contentRef} className="container-results py-10">
         {/* Hero */}
         <header
           className="pro-editorial-header text-center space-y-4 mb-12"

@@ -1,14 +1,12 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
-import { PDFExportLayout } from "@/components/pdf/PDFExportLayout";
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="editorial-headline text-xl md:text-2xl mb-4">{children}</h2>
@@ -19,9 +17,8 @@ const ResultPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const pdfRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [showOptionalLayer, setShowOptionalLayer] = useState(false);
 
   const savedResult = id ? getResultById(id) : null;
   const result = savedResult?.result || DEFAULT_RESULT;
@@ -33,7 +30,7 @@ const ResultPage = () => {
   const isConceptualReading = profile.confidence < 0.7;
 
   const handleExportPDF = async () => {
-    if (!pdfRef.current || isExporting) return;
+    if (!contentRef.current || isExporting) return;
 
     setIsExporting(true);
     toast({
@@ -45,12 +42,22 @@ const ResultPage = () => {
       const html2canvas = (await import("html2canvas")).default;
       const jsPDF = (await import("jspdf")).default;
 
-      // Wait for layout
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const element = contentRef.current;
 
-      const pages = pdfRef.current.querySelectorAll(".pdf-page");
-      const pdfWidth = 210;
-      const pdfHeight = 297;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#FAFAF8",
+        logging: false,
+      });
+
+      const a4Width = 210;
+      const a4Height = 297;
+      const margin = 12;
+      const contentWidth = a4Width - margin * 2;
+      const contentHeight = a4Height - margin * 2;
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -58,39 +65,53 @@ const ResultPage = () => {
         format: "a4",
       });
 
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i] as HTMLElement;
-        
-        if (i > 0) pdf.addPage();
+      const totalPages = Math.ceil(imgHeight / contentHeight);
 
-        const pageCanvas = await html2canvas(page, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: "#FAFAF8",
-          logging: false,
-          onclone: (clonedDoc) => {
-            clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
-              (el as HTMLElement).style.opacity = "1";
-              (el as HTMLElement).style.transform = "none";
-            });
-          },
-        });
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) {
+          pdf.addPage();
+        }
 
-        if (pageCanvas.width === 0 || pageCanvas.height === 0) continue;
+        const sourceY = (page * contentHeight * canvas.width) / contentWidth;
+        const sourceHeight = Math.min(
+          (contentHeight * canvas.width) / contentWidth,
+          canvas.height - sourceY
+        );
 
-        const imgData = pageCanvas.toDataURL("image/png");
-        const imgWidth = pdfWidth;
-        const imgHeight = (pageCanvas.height * pdfWidth) / pageCanvas.width;
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
 
-        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+        const ctx = pageCanvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(
+            canvas,
+            0, sourceY,
+            canvas.width, sourceHeight,
+            0, 0,
+            canvas.width, sourceHeight
+          );
+
+          const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
+          const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
+
+          pdf.addImage(
+            pageImgData,
+            "JPEG",
+            margin,
+            margin,
+            imgWidth,
+            pageImgHeight
+          );
+        }
       }
 
-      pdf.save(`leitura-estetica-${id || "resultado"}.pdf`);
+      const fileName = `leitura-estetica-${id || "resultado"}.pdf`;
+      pdf.save(fileName);
 
       toast({
         title: "PDF exportado!",
-        description: "Documento salvo com sucesso.",
+        description: "O arquivo foi salvo.",
       });
     } catch (err) {
       console.error("PDF export error:", err);
@@ -119,13 +140,8 @@ const ResultPage = () => {
         </div>
       </header>
 
-      {/* Hidden PDF Layout */}
-      <div className="fixed -left-[9999px] -top-[9999px]">
-        <PDFExportLayout ref={pdfRef} result={result} showOptionalLayer={showOptionalLayer} />
-      </div>
-
       {/* Content */}
-      <div className="container-results py-10 space-y-12">
+      <div ref={contentRef} className="container-results py-10 space-y-12">
         {/* Hero - Aesthetic Profile */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
