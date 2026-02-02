@@ -7,6 +7,8 @@ import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
 import ProPage from "./pages/ProPage";
+import AuthPage from "./pages/AuthPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/input" element={<InputPage />} />
           <Route path="/resultado/:id" element={<ResultPage />} />
           <Route path="/pro" element={<ProPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
