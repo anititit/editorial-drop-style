@@ -82,13 +82,28 @@ const InputPage = () => {
   const NON_RETRYABLE_ERRORS = [
     "selfie_not_allowed",
     "content_not_allowed",
+    "rate_limited",
+    "unauthorized",
   ];
 
   const callGenerateEditorial = async () => {
     const imageData = mode === "upload" ? images : urls;
     
-    const { data, error } = await supabase.functions.invoke("generate-editorial", {
-      body: {
+    // Get the Supabase URL and key from environment
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const appToken = import.meta.env.VITE_APP_TOKEN;
+    
+    // Use fetch with custom headers for app token support
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate-editorial`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        ...(appToken && { "x-app-token": appToken }),
+      },
+      body: JSON.stringify({
         images: imageData,
         isUrls: mode === "url",
         preferences: {
@@ -97,12 +112,23 @@ const InputPage = () => {
           region,
           fragranceIntensity,
         },
-      },
+      }),
     });
 
-    if (error) {
-      console.error("Edge function error:", error);
-      throw { type: "network", message: error.message || "Erro de conexão" };
+    const data = await response.json();
+
+    // Handle rate limiting
+    if (response.status === 429) {
+      const retryAfter = data.retry_after || 60;
+      throw { 
+        type: "rate_limited", 
+        message: `Muitas requisições. Tente novamente em ${retryAfter} segundos.` 
+      };
+    }
+
+    // Handle unauthorized
+    if (response.status === 401) {
+      throw { type: "unauthorized", message: data.message || "Acesso não autorizado." };
     }
 
     // Check for error responses from the edge function

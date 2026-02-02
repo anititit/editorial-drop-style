@@ -29,6 +29,14 @@ const ERROR_MESSAGES: Record<string, { title: string; text: string }> = {
     title: "Não consigo usar essas imagens.",
     text: "Envie apenas referências de moda/beleza (sem nudez e sem menores).",
   },
+  rate_limited: {
+    title: "Muitas requisições.",
+    text: "Aguarde um momento antes de tentar novamente.",
+  },
+  unauthorized: {
+    title: "Acesso não autorizado.",
+    text: "Não foi possível validar sua sessão. Tente recarregar a página.",
+  },
 };
 
 const DEFAULT_ERROR = {
