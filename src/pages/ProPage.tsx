@@ -157,12 +157,6 @@ const ProPage = () => {
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
         onclone: (clonedDoc) => {
-          // Ensure all elements are visible in the cloned document
-          const clonedElement = clonedDoc.body.querySelector('[data-pdf-content]');
-          if (clonedElement) {
-            (clonedElement as HTMLElement).style.transform = 'none';
-            (clonedElement as HTMLElement).style.opacity = '1';
-          }
           // Make all motion elements visible
           clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
             (el as HTMLElement).style.opacity = '1';
@@ -175,66 +169,22 @@ const ProPage = () => {
         throw new Error("Canvas is empty");
       }
 
-      const a4Width = 210;
-      const a4Height = 297;
+      // Create a single continuous PDF (no page breaks = no cutting)
+      const pdfWidth = 210; // A4 width in mm
       const margin = 12;
-      const contentWidth = a4Width - margin * 2;
-      const contentHeight = a4Height - margin * 2;
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+      const contentWidth = pdfWidth - margin * 2;
+      const aspectRatio = canvas.height / canvas.width;
+      const contentHeight = contentWidth * aspectRatio;
+      const pdfHeight = contentHeight + margin * 2;
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: "a4",
+        format: [pdfWidth, pdfHeight], // Custom height to fit all content
       });
 
-      const totalPages = Math.ceil(imgHeight / contentHeight);
-
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage();
-        }
-
-        const sourceY = Math.floor((page * contentHeight * canvas.width) / contentWidth);
-        const sourceHeight = Math.min(
-          Math.floor((contentHeight * canvas.width) / contentWidth),
-          canvas.height - sourceY
-        );
-
-        if (sourceHeight <= 0) continue;
-
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sourceHeight;
-
-        const ctx = pageCanvas.getContext("2d");
-        if (ctx) {
-          // Fill with background color first
-          ctx.fillStyle = "#FAFAF8";
-          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-
-          ctx.drawImage(
-            canvas,
-            0, sourceY,
-            canvas.width, sourceHeight,
-            0, 0,
-            canvas.width, sourceHeight
-          );
-
-          const pageImgData = pageCanvas.toDataURL("image/png");
-          const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
-
-          pdf.addImage(
-            pageImgData,
-            "PNG",
-            margin,
-            margin,
-            imgWidth,
-            pageImgHeight
-          );
-        }
-      }
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", margin, margin, contentWidth, contentHeight);
 
       pdf.save("brand-editorial-kit.pdf");
 
