@@ -371,52 +371,27 @@ const ResultPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="space-y-8"
+          className="space-y-6"
         >
-          <div className="text-center space-y-2">
-            <span className="editorial-caption">Olfativo</span>
-            <h2 className="editorial-headline text-2xl">Fragrâncias</h2>
-            <p className="editorial-subhead text-muted-foreground text-sm">
-              Sugestões que complementam seu estilo
-            </p>
-          </div>
+          <SectionTitle>Fragrâncias</SectionTitle>
           
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {editorial.fragrances.map((fragrance, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7 + i * 0.1 }}
-                className="group relative bg-card border border-border/40 p-5 hover:border-foreground/20 transition-all duration-300"
+                className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0"
               >
-                {/* Tier badge */}
-                <div className="absolute top-4 right-4">
-                  <span className={`
-                    text-[10px] font-medium uppercase tracking-widest px-2 py-1
-                    ${fragrance.price_tier === "affordable" && "bg-muted text-muted-foreground"}
-                    ${fragrance.price_tier === "mid" && "bg-foreground/10 text-foreground/70"}
-                    ${fragrance.price_tier === "premium" && "bg-foreground text-background"}
-                  `}>
-                    {fragrance.price_tier === "affordable" && "Acessível"}
-                    {fragrance.price_tier === "mid" && "Intermediário"}
-                    {fragrance.price_tier === "premium" && "Premium"}
-                  </span>
+                <span className="text-xs text-muted-foreground w-24 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                  {fragrance.price_tier === "affordable" && "Acessível"}
+                  {fragrance.price_tier === "mid" && "Intermediário"}
+                  {fragrance.price_tier === "premium" && "Premium"}
+                </span>
+                <div className="flex-1">
+                  <p className="font-medium">{fragrance.name}</p>
+                  <p className="text-sm text-muted-foreground">{fragrance.brand}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{fragrance.notes}</p>
                 </div>
-                
-                {/* Content */}
-                <div className="pr-24">
-                  <h3 className="editorial-headline text-lg group-hover:text-foreground/80 transition-colors">
-                    {fragrance.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1 uppercase tracking-wide">
-                    {fragrance.brand}
-                  </p>
-                  <p className="editorial-body text-sm text-muted-foreground/80 mt-3 leading-relaxed">
-                    {fragrance.notes}
-                  </p>
-                </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </motion.section>
