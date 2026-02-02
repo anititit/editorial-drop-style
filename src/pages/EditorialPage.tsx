@@ -31,7 +31,7 @@ const EditorialPage = () => {
           <span className="editorial-caption">Leitura</span>
           <h1 className="editorial-headline text-4xl md:text-5xl">Editorial</h1>
           <p className="editorial-subhead text-muted-foreground">
-            Leituras sobre estética, imagem e cultura visual.
+            Leituras sobre imagem e cultura visual.
           </p>
         </motion.header>
 
