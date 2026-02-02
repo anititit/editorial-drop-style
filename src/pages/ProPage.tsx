@@ -9,16 +9,57 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ProImageUploader } from "@/components/ProImageUploader";
+import { cn } from "@/lib/utils";
+
+// Structured options
+const OBJECTIVES = [
+  { id: "consistencia", label: "Consistência" },
+  { id: "conversao", label: "Conversão" },
+  { id: "lancamento", label: "Lançamento" },
+  { id: "reposicionamento", label: "Reposicionamento" },
+  { id: "evento", label: "Evento" },
+] as const;
+
+const PLATFORMS = [
+  { id: "instagram", label: "Instagram" },
+  { id: "tiktok", label: "TikTok" },
+  { id: "pinterest", label: "Pinterest" },
+] as const;
+
+const OCCASIONS = [
+  { id: "dia_a_dia", label: "Dia a dia" },
+  { id: "trabalho", label: "Trabalho" },
+  { id: "date", label: "Date" },
+  { id: "noite", label: "Noite" },
+  { id: "evento", label: "Evento" },
+] as const;
+
+const TONES = [
+  { id: "minimal_chic", label: "Minimalista Chique" },
+  { id: "romantic_modern", label: "Romântico Moderno" },
+  { id: "after_dark_minimal", label: "After Dark" },
+  { id: "soft_grunge", label: "Soft Grunge" },
+  { id: "classic_luxe", label: "Clássico Luxo" },
+  { id: "color_pop", label: "Color Pop" },
+] as const;
+
+const BUDGETS = [
+  { id: "acessivel", label: "Acessível" },
+  { id: "intermediario", label: "Intermediário" },
+  { id: "premium", label: "Premium" },
+  { id: "mix", label: "Mix" },
+] as const;
 
 interface FormData {
   name: string;
   email: string;
   whatsapp: string;
   objective: string;
-  platform: string;
+  platforms: string[];
   occasion: string;
   tone: string;
   budget: string;
+  notes: string;
   referenceUrls: string[];
 }
 
@@ -42,18 +83,44 @@ const ProPage = () => {
     email: "",
     whatsapp: "",
     objective: "",
-    platform: "",
+    platforms: [],
     occasion: "",
     tone: "",
     budget: "",
+    notes: "",
     referenceUrls: [],
   });
 
-  const handleChange = (
+  const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleObjectiveChange = (id: string) => {
+    setFormData((prev) => ({ ...prev, objective: id }));
+  };
+
+  const handlePlatformToggle = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      platforms: prev.platforms.includes(id)
+        ? prev.platforms.filter((p) => p !== id)
+        : [...prev.platforms, id],
+    }));
+  };
+
+  const handleOccasionChange = (id: string) => {
+    setFormData((prev) => ({ ...prev, occasion: id }));
+  };
+
+  const handleToneChange = (id: string) => {
+    setFormData((prev) => ({ ...prev, tone: id }));
+  };
+
+  const handleBudgetChange = (id: string) => {
+    setFormData((prev) => ({ ...prev, budget: id }));
   };
 
   const handleReferencesChange = (urls: string[]) => {
@@ -63,11 +130,10 @@ const ProPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
     if (!formData.name.trim() || !formData.email.trim() || !formData.whatsapp.trim()) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha nome, email e WhatsApp.",
+        description: "Preencha nome, e-mail e WhatsApp.",
         variant: "destructive",
       });
       return;
@@ -91,11 +157,11 @@ const ProPage = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         whatsapp: formData.whatsapp.trim(),
-        objective: formData.objective.trim() || null,
-        platform: formData.platform.trim() || null,
-        occasion: formData.occasion.trim() || null,
-        tone: formData.tone.trim() || null,
-        budget: formData.budget.trim() || null,
+        objective: formData.objective || null,
+        platform: formData.platforms.join(", ") || null,
+        occasion: formData.occasion || null,
+        tone: formData.tone || null,
+        budget: formData.budget || null,
         reference_urls: formData.referenceUrls,
       });
 
@@ -146,126 +212,206 @@ const ProPage = () => {
               <div className="text-center space-y-4 mb-10">
                 <span className="editorial-caption">Editorial Drop Pro</span>
                 <h1 className="editorial-headline text-3xl md:text-4xl">
-                  Briefing personalizado
+                  Seu briefing editorial
                 </h1>
                 <p className="editorial-body text-muted-foreground max-w-md mx-auto">
-                  Preencha o formulário abaixo com suas preferências. Entrega em
-                  até 24h (muitas vezes no mesmo dia).
+                  Monte seu pedido em poucos cliques. Entrega em até 24h — muitas
+                  vezes no mesmo dia.
                 </p>
               </div>
 
               <div className="editorial-divider mb-10" />
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-8">
+              <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-10">
                 {/* Contact info */}
                 <div className="space-y-4">
                   <h2 className="editorial-caption">Contato</h2>
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nome / @</Label>
+                      <Label htmlFor="name">Nome ou @</Label>
                       <Input
                         id="name"
                         name="name"
-                        placeholder="Seu nome ou @instagram"
+                        placeholder="Como prefere ser chamado"
                         value={formData.name}
-                        onChange={handleChange}
+                        onChange={handleInputChange}
                         required
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">E-mail</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="whatsapp">WhatsApp</Label>
-                      <Input
-                        id="whatsapp"
-                        name="whatsapp"
-                        placeholder="+55 11 99999-9999"
-                        value={formData.whatsapp}
-                        onChange={handleChange}
-                        required
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp">WhatsApp</Label>
+                        <Input
+                          id="whatsapp"
+                          name="whatsapp"
+                          placeholder="+55 11 99999-9999"
+                          value={formData.whatsapp}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Brief details */}
+                {/* Objective - Radio */}
                 <div className="space-y-4">
-                  <h2 className="editorial-caption">Sobre o projeto</h2>
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="objective">Objetivo</Label>
-                      <Textarea
-                        id="objective"
-                        name="objective"
-                        placeholder="O que você busca com esse editorial? Ex: renovar guarda-roupa, evento especial..."
-                        value={formData.objective}
-                        onChange={handleChange}
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="platform">Plataforma</Label>
-                        <Input
-                          id="platform"
-                          name="platform"
-                          placeholder="Instagram, TikTok..."
-                          value={formData.platform}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="occasion">Ocasião</Label>
-                        <Input
-                          id="occasion"
-                          name="occasion"
-                          placeholder="Dia a dia, trabalho..."
-                          value={formData.occasion}
-                          onChange={handleChange}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="tone">Tom / Estilo</Label>
-                        <Input
-                          id="tone"
-                          name="tone"
-                          placeholder="Minimalista, bold..."
-                          value={formData.tone}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="budget">Orçamento</Label>
-                        <Input
-                          id="budget"
-                          name="budget"
-                          placeholder="Faixa de preço"
-                          value={formData.budget}
-                          onChange={handleChange}
-                        />
-                      </div>
-                    </div>
+                  <h2 className="editorial-caption">Objetivo principal</h2>
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    O que você busca com esse editorial?
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {OBJECTIVES.map((obj) => (
+                      <button
+                        key={obj.id}
+                        type="button"
+                        onClick={() => handleObjectiveChange(obj.id)}
+                        className={cn(
+                          "px-4 py-2.5 text-sm border rounded-sm transition-all",
+                          formData.objective === obj.id
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground/50"
+                        )}
+                      >
+                        {obj.label}
+                      </button>
+                    ))}
                   </div>
+                </div>
+
+                {/* Platform - Checkboxes */}
+                <div className="space-y-4">
+                  <h2 className="editorial-caption">Plataformas</h2>
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    Onde você pretende usar? (opcional)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {PLATFORMS.map((plat) => (
+                      <button
+                        key={plat.id}
+                        type="button"
+                        onClick={() => handlePlatformToggle(plat.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm border rounded-sm transition-all",
+                          formData.platforms.includes(plat.id)
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground/50"
+                        )}
+                      >
+                        {plat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Occasion - Dropdown style as buttons */}
+                <div className="space-y-4">
+                  <h2 className="editorial-caption">Ocasião</h2>
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    Para qual momento da sua rotina?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {OCCASIONS.map((occ) => (
+                      <button
+                        key={occ.id}
+                        type="button"
+                        onClick={() => handleOccasionChange(occ.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm border rounded-sm transition-all",
+                          formData.occasion === occ.id
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground/50"
+                        )}
+                      >
+                        {occ.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tone - Selectable chips */}
+                <div className="space-y-4">
+                  <h2 className="editorial-caption">Estética</h2>
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    Qual direção visual te representa?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {TONES.map((tone) => (
+                      <button
+                        key={tone.id}
+                        type="button"
+                        onClick={() => handleToneChange(tone.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm border rounded-sm transition-all",
+                          formData.tone === tone.id
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground/50"
+                        )}
+                      >
+                        {tone.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget - Dropdown style */}
+                <div className="space-y-4">
+                  <h2 className="editorial-caption">Faixa de investimento</h2>
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    Qual range de preço para as peças?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {BUDGETS.map((bud) => (
+                      <button
+                        key={bud.id}
+                        type="button"
+                        onClick={() => handleBudgetChange(bud.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm border rounded-sm transition-all",
+                          formData.budget === bud.id
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border hover:border-foreground/50"
+                        )}
+                      >
+                        {bud.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes - Optional */}
+                <div className="space-y-4">
+                  <h2 className="editorial-caption">Notas extras</h2>
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="Detalhes rápidos que ajudem (ex: evitar muito preto, preferir alfaiataria…)"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">Opcional</p>
                 </div>
 
                 {/* References */}
                 <div className="space-y-4">
                   <h2 className="editorial-caption">Referências visuais</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Adicione exatamente 3 imagens de moodboard ou inspiração.
+                  <p className="text-sm text-muted-foreground -mt-2">
+                    3 imagens de moodboard ou inspiração — sem selfies.
                   </p>
                   <ProImageUploader
                     urls={formData.referenceUrls}
@@ -291,6 +437,9 @@ const ProPage = () => {
                       </>
                     )}
                   </EditorialButton>
+                  <p className="text-xs text-center text-muted-foreground mt-3">
+                    Entrega em até 24h • PDF A4 pronto para usar
+                  </p>
                 </div>
               </form>
             </motion.div>
@@ -316,7 +465,7 @@ const ProPage = () => {
                   Obrigado, {formData.name.split(" ")[0]}!
                 </h1>
                 <p className="editorial-body text-muted-foreground max-w-md mx-auto">
-                  Entrega em até 24h (muitas vezes no mesmo dia). Você receberá
+                  Entrega em até 24h — muitas vezes no mesmo dia. Você receberá
                   seu editorial por e-mail e WhatsApp.
                 </p>
               </div>
@@ -325,9 +474,7 @@ const ProPage = () => {
 
               {/* Order code */}
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Código do pedido
-                </p>
+                <p className="text-sm text-muted-foreground">Código do pedido</p>
                 <button
                   onClick={copyOrderCode}
                   className="inline-flex items-center gap-3 px-6 py-3 bg-muted rounded-sm hover:bg-muted/80 transition-colors"
