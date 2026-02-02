@@ -102,6 +102,7 @@ function validateImageUrl(url: string): UrlValidation {
 export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
   const [text, setText] = useState(urls.join("\n"));
   const [validations, setValidations] = useState<UrlValidation[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     // Parse URLs from text
@@ -125,6 +126,42 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
 
   const validCount = validations.filter(v => v.isValid).length;
 
+  const handleDragOver = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    // Try to get URL from various data types
+    const droppedText = e.dataTransfer.getData("text/plain") || 
+                        e.dataTransfer.getData("text/uri-list") ||
+                        e.dataTransfer.getData("text");
+    
+    if (droppedText) {
+      // Extract URLs from the dropped content (might contain multiple)
+      const urlPattern = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+      const extractedUrls = droppedText.match(urlPattern) || [droppedText.trim()];
+      
+      // Append to existing text
+      const currentLines = text.trim();
+      const newUrls = extractedUrls.join("\n");
+      const newText = currentLines ? `${currentLines}\n${newUrls}` : newUrls;
+      
+      setText(newText);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Counter */}
@@ -141,13 +178,19 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         placeholder="https://i.pinimg.com/originals/...&#10;https://images.unsplash.com/photo-...&#10;https://example.com/image.jpg"
         className={cn(
           "w-full h-32 px-4 py-3 text-sm",
-          "bg-transparent border border-border rounded-sm",
+          "bg-transparent border rounded-sm",
           "placeholder:text-muted-foreground/60",
           "focus:outline-none focus:border-foreground/40",
-          "resize-none font-mono"
+          "resize-none font-mono transition-colors",
+          isDragging 
+            ? "border-primary bg-primary/5" 
+            : "border-border"
         )}
       />
 
