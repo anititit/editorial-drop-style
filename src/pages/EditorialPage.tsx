@@ -55,25 +55,40 @@ const EditorialPage = () => {
           </p>
         </motion.div>
 
-        {/* Divider */}
-        <motion.div
+        {/* Articles Section */}
+        <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          className="editorial-divider my-16"
-        />
-
-        {/* Empty state */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="text-center"
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="space-y-8"
         >
-          <p className="editorial-caption text-muted-foreground/60">
-            Em breve
-          </p>
-        </motion.div>
+          <h2 className="editorial-caption text-muted-foreground mb-8">Artigos</h2>
+          
+          {/* Empty state - replace with article list when content is available */}
+          <div className="py-16 text-center">
+            <p className="editorial-body text-muted-foreground/60 italic">
+              Em breve
+            </p>
+          </div>
+
+          {/* 
+          Article list structure (uncomment when articles are available):
+          
+          <article className="group py-6 border-b border-border/30 last:border-0">
+            <Link to="/editorial/article-slug" className="block space-y-2">
+              <span className="editorial-caption text-muted-foreground/60">
+                Categoria · Data
+              </span>
+              <h3 className="editorial-headline text-xl md:text-2xl group-hover:text-muted-foreground transition-colors">
+                Título do Artigo
+              </h3>
+              <p className="editorial-body text-muted-foreground line-clamp-2">
+                Excerpt do artigo com no máximo duas linhas...
+              </p>
+            </Link>
+          </article>
+          */}
+        </motion.section>
       </div>
     </div>
   );
