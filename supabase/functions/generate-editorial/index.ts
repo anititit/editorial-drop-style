@@ -162,7 +162,7 @@ function validateUrlImages(images: string[]): { ok: true; cleaned: string[] } | 
 }
 
 function validateBase64Image(data: string): { valid: boolean; error?: string } {
-  const MAX_SIZE = 6 * 1024 * 1024; // 6MB (updated from 10MB)
+  const MAX_SIZE = 6 * 1024 * 1024; // 6MB
 
   if (typeof data !== "string") {
     return { valid: false, error: "Invalid image data type" };
@@ -179,10 +179,27 @@ function validateBase64Image(data: string): { valid: boolean; error?: string } {
     return { valid: false, error: "Only JPG, PNG, WebP allowed" };
   }
 
-  // Estimate size (base64 is ~4/3 of original)
-  const size = (data.length * 3) / 4;
+  // Validate base64 format structure
+  const base64Match = data.match(/^data:image\/[a-z]+;base64,(.+)$/i);
+  if (!base64Match) {
+    return { valid: false, error: "Invalid base64 format" };
+  }
+
+  // Validate base64 characters (only valid base64 alphabet)
+  const base64Data = base64Match[1];
+  if (!/^[A-Za-z0-9+/]+=*$/.test(base64Data)) {
+    return { valid: false, error: "Invalid base64 encoding" };
+  }
+
+  // Check estimated size from base64 length
+  const size = (base64Data.length * 3) / 4;
   if (size > MAX_SIZE) {
     return { valid: false, error: "Image too large (max 6MB)" };
+  }
+
+  // Sanity check: reject suspiciously small images (< 100 bytes)
+  if (size < 100) {
+    return { valid: false, error: "Image too small or invalid" };
   }
 
   return { valid: true };
