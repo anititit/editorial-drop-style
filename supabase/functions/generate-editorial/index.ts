@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,47 +8,51 @@ const corsHeaders = {
 };
 
 // ============================================================================
-// RATE LIMITING (in-memory, per IP)
+// RATE LIMITING (database-backed, persistent across instances)
 // ============================================================================
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const rateLimitStore = new Map<string, RateLimitEntry>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+const RATE_LIMIT_WINDOW_SECONDS = 60; // 1 minute window
 
-function cleanupExpiredEntries() {
-  const now = Date.now();
-  for (const [ip, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetAt) {
-      rateLimitStore.delete(ip);
+async function checkRateLimitDb(ip: string, debugId: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${debugId}] Missing Supabase credentials for rate limiting`);
+      // Fail open for availability
+      return { allowed: true };
     }
-  }
-}
 
-function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
-  // Cleanup old entries periodically
-  if (Math.random() < 0.1) cleanupExpiredEntries();
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      p_ip: ip,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+    });
 
-  const now = Date.now();
-  const entry = rateLimitStore.get(ip);
+    if (error) {
+      console.error(`[${debugId}] Rate limit check error:`, error.message);
+      // Fail open for availability
+      return { allowed: true };
+    }
 
-  if (!entry || now > entry.resetAt) {
-    // New window
-    rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    if (data && data.length > 0) {
+      const result = data[0];
+      return {
+        allowed: result.allowed,
+        retryAfter: result.retry_after || undefined,
+      };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error(`[${debugId}] Rate limit exception:`, error);
+    // Fail open for availability
     return { allowed: true };
   }
-
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
-    return { allowed: false, retryAfter };
-  }
-
-  entry.count++;
-  return { allowed: true };
 }
 
 function getClientIp(req: Request): string {
@@ -481,9 +486,9 @@ serve(async (req) => {
   const clientIp = getClientIp(req);
 
   // ========================================
-  // RATE LIMITING
+  // RATE LIMITING (database-backed)
   // ========================================
-  const rateCheck = checkRateLimit(clientIp);
+  const rateCheck = await checkRateLimitDb(clientIp, debugId);
   if (!rateCheck.allowed) {
     console.log(`[${debugId}] Rate limited IP: ${clientIp}`);
     return new Response(
@@ -498,7 +503,7 @@ serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
-          "Retry-After": String(rateCheck.retryAfter),
+          "Retry-After": String(rateCheck.retryAfter || 60),
         },
       }
     );
