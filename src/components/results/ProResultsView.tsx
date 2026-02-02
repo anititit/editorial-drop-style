@@ -1,9 +1,9 @@
 import { ProEditorialResult } from "@/lib/pro-types";
+import { EditorialCommerceSection, CommerceData } from "./EditorialCommerceSection";
 
 interface ProResultsViewProps {
   result: ProEditorialResult;
 }
-
 function SectionTitle({ number, children }: { number: string; children: React.ReactNode }) {
   return (
     <h2 className="text-lg md:text-xl font-semibold tracking-tight mb-6 page-break-before">
@@ -28,10 +28,14 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 }
 
 export function ProResultsView({ result }: ProResultsViewProps) {
-  const { persona, positioning, brand_codes, editorial_directions, editorial_example, editorial_closing } = result;
+  const { persona, positioning, brand_codes, editorial_directions, editorial_example, editorial_closing, commerce } = result;
   
   // Check if we have editorial directions to display (Completo mode)
   const hasDirections = editorial_directions && editorial_directions.length > 0;
+
+  // Calculate section number for commerce (depends on whether directions are shown)
+  const commerceSectionNumber = hasDirections ? "06" : "05";
+  const closingSectionNumber = hasDirections ? "07" : "06";
 
   return (
     <div className="pro-editorial-content space-y-16 leading-relaxed">
@@ -233,6 +237,14 @@ export function ProResultsView({ result }: ProResultsViewProps) {
           </p>
         </Card>
       </section>
+
+      {/* Commerce Section - O Edit */}
+      {commerce && (
+        <section className="space-y-6 page-break-after">
+          <SectionTitle number={commerceSectionNumber}>O Edit — por onde começar</SectionTitle>
+          <EditorialCommerceSection commerce={commerce as CommerceData} delay={0} />
+        </section>
+      )}
 
       {/* Editorial Closing */}
       <section className="py-10 text-center max-w-xl mx-auto">

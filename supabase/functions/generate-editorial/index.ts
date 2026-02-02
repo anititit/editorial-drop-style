@@ -390,7 +390,22 @@ Retorne este JSON EXATO:
         "why_it_matches": "uma linha curta explicando a conexão com o estilo"
       }
     ],
-    "footer_note": "nota de fechamento editorial elegante"
+    "footer_note": "nota de fechamento editorial elegante",
+    "commerce": {
+      "shortlist": [
+        { "category": "Hero", "item_name": "peça-chave genérica", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Supporting", "item_name": "peça de apoio", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Beauty", "item_name": "item de beleza", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Scent", "item_name": "fragrância ou vela", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Wildcard", "item_name": "item curinga inesperado", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" }
+      ],
+      "look_recipes": [
+        { "formula": "fórmula de look em uma linha (sem marcas)" },
+        { "formula": "fórmula de look em uma linha (sem marcas)" },
+        { "formula": "fórmula de look em uma linha (sem marcas)" }
+      ],
+      "search_terms": ["termo 1", "termo 2", "termo 3", "termo 4", "termo 5"]
+    }
   }
 }
 
@@ -401,6 +416,11 @@ INSTRUÇÕES:
 - makeup: Produtos e técnicas específicas, não vagas
 - fragrances: EXATAMENTE 3 perfumes seguindo as regras de faixa acima. Use perfumes REAIS disponíveis no Brasil. Os exemplos são apenas calibração — sugira outros que combinem melhor com o estilo.
 - why_this: Justificativas baseadas nas cores, texturas e mood das referências
+
+COMMERCE (O Edit):
+- shortlist: 5 itens GENÉRICOS (sem marcas), cada um com categoria, faixa de preço e justificativa curta
+- look_recipes: 3 fórmulas de outfit em uma linha (ex: "Blazer oversized + jeans vintage + mocassim bordeaux")
+- search_terms: 5-8 termos de busca que refletem paleta + texturas + silhuetas do perfil
 
 Tom: Premium, confiante, nunca arrogante. Editorial de moda, não consultoria genérica.`;
 }
@@ -451,6 +471,10 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
     "editorial.makeup_day",
     "editorial.makeup_night",
     "editorial.fragrances",
+    "editorial.commerce",
+    "editorial.commerce.shortlist",
+    "editorial.commerce.look_recipes",
+    "editorial.commerce.search_terms",
   ];
 
   const missing: string[] = [];

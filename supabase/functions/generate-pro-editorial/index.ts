@@ -199,7 +199,22 @@ Retorne este JSON EXATO:
     "title": "título de uma campanha ou momento editorial hipotético",
     "description": "descrição poética de uma aplicação editorial (3-4 frases, sem checklist)"
   },
-  "editorial_closing": "parágrafo curto, poético, alinhado à marca. Encerramento editorial, não instrucional."
+  "editorial_closing": "parágrafo curto, poético, alinhado à marca. Encerramento editorial, não instrucional.",
+  "commerce": {
+    "shortlist": [
+      { "category": "Hero", "item_name": "peça-chave genérica da marca", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona para a marca" },
+      { "category": "Supporting", "item_name": "peça de apoio", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+      { "category": "Beauty", "item_name": "item de beleza ou lifestyle", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+      { "category": "Scent", "item_name": "fragrância ou vela", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+      { "category": "Wildcard", "item_name": "item curinga inesperado", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" }
+    ],
+    "look_recipes": [
+      { "formula": "fórmula de look/styling em uma linha (sem marcas)" },
+      { "formula": "fórmula de look/styling em uma linha (sem marcas)" },
+      { "formula": "fórmula de look/styling em uma linha (sem marcas)" }
+    ],
+    "search_terms": ["termo 1", "termo 2", "termo 3", "termo 4", "termo 5"]
+  }
 }
 
 INSTRUÇÕES DE CONTEÚDO:
@@ -207,6 +222,11 @@ INSTRUÇÕES DE CONTEÚDO:
 - positioning: Uma frase que define o diferencial de forma editorial${directionsInstructions}
 - editorial_example: UM exemplo apenas. Campanha, imagem, ou momento de marca. Descritivo, não prescritivo.
 - editorial_closing: Reflexão de encerramento. Poético, alinhado ao tom da marca.
+
+COMMERCE (O Edit):
+- shortlist: 5 itens GENÉRICOS (sem marcas), cada um com categoria, faixa de preço e justificativa curta que conecta ao posicionamento
+- look_recipes: 3 fórmulas de styling em uma linha (ex: "Blazer estruturado + slip dress + sandália minimal")
+- search_terms: 5-8 termos de busca que refletem os códigos visuais da marca
 
 Tom geral: Premium, confiante, nunca arrogante. Editorial, nunca operacional.`;
 }
