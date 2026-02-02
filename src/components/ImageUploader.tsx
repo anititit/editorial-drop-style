@@ -229,6 +229,9 @@ export function ImageUploader({
                 <p className="text-xs text-muted-foreground mt-1">
                   PNG, JPG ou WebP (máx. 6MB cada)
                 </p>
+                <p className="text-xs text-muted-foreground/70 mt-2">
+                  Você pode selecionar várias de uma vez
+                </p>
               </div>
             </div>
 
