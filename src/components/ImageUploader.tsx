@@ -9,15 +9,37 @@ interface ImageUploaderProps {
   images: string[];
   onImagesChange: (images: string[]) => void;
   maxImages?: number;
+  locale?: "en" | "pt-BR";
 }
 
 const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
+
+const i18n = {
+  en: {
+    selectedReferences: "Selected references",
+    add: "Add",
+    addMorePhotos: "Add more photos",
+    dragImages: "Drag 3 images or click here",
+    fileTypes: "PNG, JPG or WebP (max 6MB each)",
+    reference: "Reference",
+  },
+  "pt-BR": {
+    selectedReferences: "Referências selecionadas",
+    add: "Adicionar",
+    addMorePhotos: "Adicionar mais fotos",
+    dragImages: "Arraste 3 imagens ou clique aqui",
+    fileTypes: "PNG, JPG ou WebP (máx. 6MB cada)",
+    reference: "Referência",
+  },
+};
 
 export function ImageUploader({
   images,
   onImagesChange,
   maxImages = 3,
+  locale = "pt-BR",
 }: ImageUploaderProps) {
+  const t = i18n[locale];
   const [isDragging, setIsDragging] = useState(false);
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [hasAcceptedSafety, setHasAcceptedSafety] = useState(false);
@@ -145,9 +167,9 @@ export function ImageUploader({
         onDragOver={images.length < maxImages ? handleDragOver : undefined}
         onDragLeave={images.length < maxImages ? handleDragLeave : undefined}
       >
-        {/* Counter */}
+      {/* Counter */}
         <div className="flex items-center justify-between">
-          <span className="editorial-caption">Referências selecionadas</span>
+          <span className="editorial-caption">{t.selectedReferences}</span>
           <span className="text-sm font-medium">
             {images.length}/{maxImages}
           </span>
@@ -170,7 +192,7 @@ export function ImageUploader({
                 >
                   <img
                     src={img}
-                    alt={`Referência ${index + 1}`}
+                    alt={`${t.reference} ${index + 1}`}
                     className="image-preview w-full h-full object-cover"
                   />
                   <button
@@ -194,7 +216,7 @@ export function ImageUploader({
                   className="aspect-square border-2 border-dashed border-border/60 rounded-sm flex flex-col items-center justify-center gap-1 hover:border-foreground/40 transition-colors text-muted-foreground hover:text-foreground"
                 >
                   <Plus className="w-5 h-5" />
-                  <span className="text-xs">Adicionar</span>
+                  <span className="text-xs">{t.add}</span>
                 </motion.button>
               )}
             </AnimatePresence>
@@ -209,7 +231,7 @@ export function ImageUploader({
             className="w-full py-3 border-2 border-dashed border-border/60 rounded-lg flex items-center justify-center gap-2 hover:border-foreground/40 hover:bg-muted/30 transition-colors text-muted-foreground hover:text-foreground"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">Adicionar mais fotos</span>
+            <span className="text-sm font-medium">{t.addMorePhotos}</span>
           </button>
         )}
 
@@ -229,10 +251,10 @@ export function ImageUploader({
               <ImageIcon className="w-8 h-8 text-muted-foreground" />
               <div className="text-center">
                 <p className="text-sm font-medium">
-                  Arraste 3 imagens ou clique aqui
+                  {t.dragImages}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG ou WebP (máx. 6MB cada)
+                  {t.fileTypes}
                 </p>
               </div>
             </div>

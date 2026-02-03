@@ -6,7 +6,31 @@ interface UrlInputProps {
   urls: string[];
   onUrlsChange: (urls: string[]) => void;
   maxUrls?: number;
+  locale?: "en" | "pt-BR";
 }
+
+const i18n = {
+  en: {
+    validUrls: "Valid URLs",
+    loadError: "Loading error",
+    urlHelp: "Paste 1 direct image link per line (.jpg, .png, .webp).",
+    urlTip: "Tip: from Pinterest, use links starting with i.pinimg.com.",
+    invalidUrl: "Invalid URL",
+    useDirectLink: "Use direct link from i.pinimg.com",
+    instagramNotSupported: "Instagram does not support direct links",
+    useExtension: "Use URL ending in .jpg, .png or .webp",
+  },
+  "pt-BR": {
+    validUrls: "URLs válidas",
+    loadError: "Erro ao carregar",
+    urlHelp: "Cole 1 link direto de imagem por linha (.jpg, .png, .webp).",
+    urlTip: "Dica: do Pinterest, use links que começam com i.pinimg.com.",
+    invalidUrl: "URL inválida",
+    useDirectLink: "Use link direto de i.pinimg.com",
+    instagramNotSupported: "Instagram não suporta links diretos",
+    useExtension: "Use URL terminando em .jpg, .png ou .webp",
+  },
+};
 
 interface UrlValidation {
   url: string;
@@ -48,14 +72,15 @@ const ALLOWED_CDN_DOMAINS = [
   "cdn.dribbble.com",
 ];
 
-// Invalid page URLs (not direct images)
+// Invalid page URLs (not direct images) - messages are locale-specific, handled in validateImageUrl
 const INVALID_PAGE_PATTERNS = [
-  { pattern: /pinterest\.com\/pin\//i, message: "Use link direto de i.pinimg.com" },
-  { pattern: /instagram\.com\//i, message: "Instagram não suporta links diretos" },
-  { pattern: /pinterest\.[a-z]+\/pin\//i, message: "Use link direto de i.pinimg.com" },
+  { pattern: /pinterest\.com\/pin\//i, errorKey: "useDirectLink" as const },
+  { pattern: /instagram\.com\//i, errorKey: "instagramNotSupported" as const },
+  { pattern: /pinterest\.[a-z]+\/pin\//i, errorKey: "useDirectLink" as const },
 ];
 
-function validateImageUrl(url: string): UrlValidation {
+function validateImageUrl(url: string, locale: "en" | "pt-BR"): UrlValidation {
+  const t = i18n[locale];
   const trimmedUrl = url.trim();
   
   if (!trimmedUrl) {
@@ -67,9 +92,9 @@ function validateImageUrl(url: string): UrlValidation {
     const parsed = new URL(trimmedUrl);
     
     // Check for invalid page patterns first
-    for (const { pattern, message } of INVALID_PAGE_PATTERNS) {
+    for (const { pattern, errorKey } of INVALID_PAGE_PATTERNS) {
       if (pattern.test(trimmedUrl)) {
-        return { url: trimmedUrl, isValid: false, error: message };
+        return { url: trimmedUrl, isValid: false, error: t[errorKey] };
       }
     }
 
@@ -89,17 +114,18 @@ function validateImageUrl(url: string): UrlValidation {
       return { 
         url: trimmedUrl, 
         isValid: false, 
-        error: "Use URL terminando em .jpg, .png ou .webp" 
+        error: t.useExtension 
       };
     }
 
     return { url: trimmedUrl, isValid: true };
   } catch {
-    return { url: trimmedUrl, isValid: false, error: "URL inválida" };
+    return { url: trimmedUrl, isValid: false, error: t.invalidUrl };
   }
 }
 
-export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
+export function UrlInput({ urls, onUrlsChange, maxUrls = 3, locale = "pt-BR" }: UrlInputProps) {
+  const t = i18n[locale];
   const [text, setText] = useState(urls.join("\n"));
   const [validations, setValidations] = useState<UrlValidation[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -116,7 +142,7 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
       .slice(0, maxUrls);
     
     // Validate each URL
-    const newValidations = lines.map(validateImageUrl);
+    const newValidations = lines.map(line => validateImageUrl(line, locale));
     setValidations(newValidations);
     
     // Only pass valid URLs to parent
@@ -169,7 +195,7 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
     <div className="space-y-4">
       {/* Counter */}
       <div className="flex items-center justify-between">
-        <span className="editorial-caption">URLs válidas</span>
+        <span className="editorial-caption">{t.validUrls}</span>
         <span className={cn(
           "text-sm font-medium",
           validCount === maxUrls ? "text-green-600" : "text-muted-foreground"
@@ -240,7 +266,7 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
               {imageErrors[url] ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-2">
                   <ImageOff className="w-6 h-6 mb-1" />
-                  <span className="text-[10px] text-center">Erro ao carregar</span>
+                  <span className="text-[10px] text-center">{t.loadError}</span>
                 </div>
               ) : (
                 <img
@@ -259,10 +285,10 @@ export function UrlInput({ urls, onUrlsChange, maxUrls = 3 }: UrlInputProps) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Cole 1 link direto de imagem por linha (.jpg, .png, .webp).
+        {t.urlHelp}
         <br />
         <span className="text-muted-foreground/80">
-          Dica: do Pinterest, use links que começam com i.pinimg.com.
+          {t.urlTip}
         </span>
       </p>
     </div>
