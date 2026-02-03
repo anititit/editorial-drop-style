@@ -1,13 +1,14 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Image as ImageIcon, Building2, Layers, X, Plus, Link as LinkIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Image as ImageIcon, Building2, Layers, X, Plus, Link as LinkIcon, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import GlobalNav from "@/components/GlobalNav";
 
 type GuidanceType = "visual" | "brands" | "both";
 
@@ -186,26 +187,10 @@ const GlobalStudioInputPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Language Switch - Top */}
-      <div className="absolute top-6 right-6">
-        <Link to="/" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-          Versão Brasil →
-        </Link>
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
-        <div className="container-results py-4 flex items-center justify-between">
-          <Link to="/global/studio" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="editorial-caption tracking-[0.2em]">Studio</span>
-          <div className="w-5" />
-        </div>
-      </header>
+      <GlobalNav />
 
       {/* Content */}
-      <main className="container-results py-10 space-y-10">
+      <main className="container-results pt-24 py-10 space-y-10">
         {/* Hero */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}

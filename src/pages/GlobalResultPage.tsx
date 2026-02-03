@@ -1,12 +1,13 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, RotateCcw } from "lucide-react";
+import { Download, RotateCcw } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
+import GlobalNav from "@/components/GlobalNav";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -206,32 +207,17 @@ const GlobalResultPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Language Switch */}
-      <div className="absolute top-6 right-6 print-hide">
-        <Link to="/" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-          Versão Brasil →
-        </Link>
+      <GlobalNav />
+
+      {/* Actions Bar */}
+      <div className="fixed top-16 right-6 z-40 print-hide">
+        <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
+          <Download className="w-4 h-4" />
+        </EditorialButton>
       </div>
 
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 print-hide">
-        <div className="container-results py-4 flex items-center justify-between">
-          <Link to="/global" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="editorial-caption tracking-[0.2em]">Global Edition</span>
-          <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
-            <Download className="w-4 h-4" />
-          </EditorialButton>
-        </div>
-      </header>
-
       {/* Content */}
-      <div ref={contentRef} className="container-results py-10 space-y-12">
-        {/* GLOBAL EDITION Label */}
-        <div className="text-center">
-          <span className="text-xs text-muted-foreground/60 tracking-[0.3em] uppercase">Global Edition</span>
-        </div>
+      <div ref={contentRef} className="container-results pt-24 py-10 space-y-12">
 
         {/* Hero - Aesthetic Profile */}
         <motion.header

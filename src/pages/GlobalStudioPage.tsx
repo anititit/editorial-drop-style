@@ -1,20 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import GlobalNav from "@/components/GlobalNav";
 
 const GlobalStudioPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Language Switch - Top */}
-      <div className="absolute top-6 right-6">
-        <Link 
-          to="/" 
-          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-        >
-          Versão Brasil →
-        </Link>
-      </div>
+      <GlobalNav />
 
-      <div className="container-editorial min-h-screen flex flex-col justify-center py-24">
+      <div className="container-editorial min-h-screen flex flex-col justify-center pt-16 py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -23,7 +16,6 @@ const GlobalStudioPage = () => {
         >
           {/* Header */}
           <div className="space-y-4">
-            <span className="editorial-caption tracking-[0.3em]">Global Edition</span>
             <h1 className="editorial-headline text-5xl md:text-6xl lg:text-7xl tracking-tight">
               STUDIO
             </h1>
