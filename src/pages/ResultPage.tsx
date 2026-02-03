@@ -1,6 +1,6 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
+import { Download, RotateCcw, Sparkles } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
+import BrazilNav from "@/components/BrazilNav";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -194,21 +195,17 @@ const ResultPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 print-hide">
-        <div className="container-results py-4 flex items-center justify-between">
-          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="editorial-caption">Leitura Estética</span>
-          <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
-            <Download className="w-4 h-4" />
-          </EditorialButton>
-        </div>
-      </header>
+      <BrazilNav />
+
+      {/* Actions Bar */}
+      <div className="fixed top-16 right-6 z-40 print-hide">
+        <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
+          <Download className="w-4 h-4" />
+        </EditorialButton>
+      </div>
 
       {/* Content */}
-      <div ref={contentRef} className="container-results py-10 space-y-12">
+      <div ref={contentRef} className="container-results pt-24 py-10 space-y-12">
         {/* Hero - Aesthetic Profile */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}

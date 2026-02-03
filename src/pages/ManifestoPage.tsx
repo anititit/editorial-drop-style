@@ -1,22 +1,13 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import BrazilNav from "@/components/BrazilNav";
 
 const ManifestoPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="py-6 px-8">
-        <Link 
-          to="/" 
-          className="text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-2 text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
-      </header>
+      <BrazilNav />
 
       {/* Manifesto Content */}
-      <main className="flex-1 flex items-center justify-center px-8 py-16 md:py-24">
+      <main className="flex-1 flex items-center justify-center px-8 pt-24 py-16 md:py-24">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
