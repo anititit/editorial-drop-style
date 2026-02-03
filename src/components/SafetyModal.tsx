@@ -6,19 +6,28 @@ interface SafetyModalProps {
   isOpen: boolean;
   onAccept: () => void;
   onClose: () => void;
+  locale?: "en" | "pt-BR";
 }
 
-export function SafetyModal({ isOpen, onAccept, onClose }: SafetyModalProps) {
-  const allowedItems = [
-    "Editorial, campanhas, produtos",
-    "Texturas, cenários, recortes",
-  ];
+const i18n = {
+  en: {
+    title: "Fashion references only",
+    subtitle: "This app works with moodboard images — no personal photos.",
+    allowed: ["Editorial, campaigns, products", "Textures, settings, cutouts"],
+    notAllowed: ["No selfies", "No nudity or sexual content", "No minors"],
+    button: "Got it",
+  },
+  "pt-BR": {
+    title: "Apenas referências de moda",
+    subtitle: "Este app funciona com imagens de moodboard — sem fotos pessoais.",
+    allowed: ["Editorial, campanhas, produtos", "Texturas, cenários, recortes"],
+    notAllowed: ["Sem selfies", "Sem nudez ou conteúdo sexual", "Sem menores"],
+    button: "Entendi",
+  },
+};
 
-  const notAllowedItems = [
-    "Sem selfies",
-    "Sem nudez ou conteúdo sexual",
-    "Sem menores",
-  ];
+export function SafetyModal({ isOpen, onAccept, onClose, locale = "pt-BR" }: SafetyModalProps) {
+  const t = i18n[locale];
 
   return (
     <AnimatePresence>
@@ -42,19 +51,19 @@ export function SafetyModal({ isOpen, onAccept, onClose }: SafetyModalProps) {
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
             <div className="bg-card border border-border rounded-sm shadow-2xl p-6 space-y-6">
-              {/* Header */}
+            {/* Header */}
               <div className="space-y-2">
                 <h2 className="editorial-headline text-xl">
-                  Apenas referências de moda
+                  {t.title}
                 </h2>
                 <p className="editorial-body text-sm text-muted-foreground">
-                  Este app funciona com imagens de moodboard — sem fotos pessoais.
+                  {t.subtitle}
                 </p>
               </div>
 
               {/* Allowed items */}
               <div className="space-y-2">
-                {allowedItems.map((item, i) => (
+                {t.allowed.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-primary" />
@@ -66,7 +75,7 @@ export function SafetyModal({ isOpen, onAccept, onClose }: SafetyModalProps) {
 
               {/* Not allowed items */}
               <div className="space-y-2 pt-2 border-t border-border/50">
-                {notAllowedItems.map((item, i) => (
+                {t.notAllowed.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
                       <X className="w-3 h-3 text-destructive" />
@@ -82,7 +91,7 @@ export function SafetyModal({ isOpen, onAccept, onClose }: SafetyModalProps) {
                 className="w-full"
                 onClick={onAccept}
               >
-                Entendi
+                {t.button}
               </EditorialButton>
             </div>
           </motion.div>

@@ -159,6 +159,7 @@ export function ImageUploader({
         isOpen={showSafetyModal}
         onAccept={handleSafetyAccept}
         onClose={handleSafetyClose}
+        locale={locale}
       />
 
       <div 
