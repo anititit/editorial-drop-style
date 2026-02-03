@@ -3,13 +3,34 @@ import exampleEditorial from "@/assets/example-editorial.jpg";
 import exampleProduct from "@/assets/example-product.jpg";
 import exampleTexture from "@/assets/example-texture.jpg";
 
-const examples = [
-  { src: exampleEditorial, label: "Editorial" },
-  { src: exampleProduct, label: "Produto" },
-  { src: exampleTexture, label: "Textura" },
-];
+interface ExampleThumbnailsProps {
+  locale?: "en" | "pt-BR";
+}
 
-export function ExampleThumbnails() {
+const i18n = {
+  en: {
+    tip: "The more 'magazine-quality' the reference, the better the curation.",
+    editorial: "Editorial",
+    product: "Product",
+    texture: "Texture",
+  },
+  "pt-BR": {
+    tip: "Quanto mais \"referência de revista\", melhor a curadoria.",
+    editorial: "Editorial",
+    product: "Produto",
+    texture: "Textura",
+  },
+};
+
+export function ExampleThumbnails({ locale = "pt-BR" }: ExampleThumbnailsProps) {
+  const t = i18n[locale];
+  
+  const examples = [
+    { src: exampleEditorial, label: t.editorial },
+    { src: exampleProduct, label: t.product },
+    { src: exampleTexture, label: t.texture },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -18,7 +39,7 @@ export function ExampleThumbnails() {
       className="space-y-3"
     >
       <p className="text-xs text-muted-foreground text-center">
-        Quanto mais "referência de revista", melhor a curadoria.
+        {t.tip}
       </p>
       
       <div className="flex items-center justify-center gap-3">

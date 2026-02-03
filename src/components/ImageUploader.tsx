@@ -260,7 +260,7 @@ export function ImageUploader({
             </div>
 
             {/* Example thumbnails */}
-            <ExampleThumbnails />
+            <ExampleThumbnails locale={locale} />
           </>
         )}
 
