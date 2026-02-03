@@ -7,6 +7,16 @@ import { ImageIcon, Link as LinkIcon, Sparkles, BookOpen } from "lucide-react";
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-background">
+      {/* Global Edition Link - Top */}
+      <div className="absolute top-6 right-6">
+        <Link 
+          to="/global" 
+          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        >
+          Global Edition →
+        </Link>
+      </div>
+
       <div className="container-editorial min-h-screen flex flex-col justify-center py-16">
         {/* Hero */}
         <motion.div
@@ -55,18 +65,12 @@ const HomePage = () => {
           </p>
 
           {/* Manifesto Link */}
-          <div className="pt-2 flex flex-col items-center gap-2">
+          <div className="pt-2">
             <Link 
               to="/manifesto" 
               className="text-xs text-muted-foreground/70 hover:text-foreground transition-colors"
             >
               Leia o manifesto →
-            </Link>
-            <Link 
-              to="/global" 
-              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-            >
-              Global Edition →
             </Link>
           </div>
 
