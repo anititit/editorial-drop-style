@@ -51,7 +51,7 @@ const GlobalStudioPage = () => {
           {/* CTA */}
           <div className="pt-8">
             <Link 
-              to="/pro/brief" 
+              to="/global/studio/input" 
               className="text-sm text-foreground hover:text-muted-foreground transition-colors tracking-wide"
             >
               Create a Studio Edit →
