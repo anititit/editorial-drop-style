@@ -187,9 +187,9 @@ const GlobalInputPage = () => {
             className="mb-8"
           >
             {mode === "upload" ? (
-              <ImageUploader images={images} onImagesChange={setImages} maxImages={3} />
+              <ImageUploader images={images} onImagesChange={setImages} maxImages={3} locale="en" />
             ) : (
-              <UrlInput urls={urls} onUrlsChange={setUrls} maxUrls={3} />
+              <UrlInput urls={urls} onUrlsChange={setUrls} maxUrls={3} locale="en" />
             )}
           </motion.div>
         </AnimatePresence>
