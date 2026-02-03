@@ -12,9 +12,9 @@ import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
-
 import GlobalInputPage from "./pages/GlobalInputPage";
 import GlobalResultPage from "./pages/GlobalResultPage";
+import GlobalManifestoPage from "./pages/GlobalManifestoPage";
 import GlobalStudioPage from "./pages/GlobalStudioPage";
 import GlobalStudioInputPage from "./pages/GlobalStudioInputPage";
 import GlobalStudioResultPage from "./pages/GlobalStudioResultPage";
@@ -39,8 +39,9 @@ const App = () => (
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/global" element={<GlobalInputPage />} />
-          <Route path="/global/input" element={<GlobalInputPage />} />
+          <Route path="/global/edit" element={<GlobalInputPage />} />
           <Route path="/global/result/:id" element={<GlobalResultPage />} />
+          <Route path="/global/manifesto" element={<GlobalManifestoPage />} />
           <Route path="/global/studio" element={<GlobalStudioPage />} />
           <Route path="/global/studio/input" element={<GlobalStudioInputPage />} />
           <Route path="/global/studio/result" element={<GlobalStudioResultPage />} />

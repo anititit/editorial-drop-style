@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageIcon, Link as LinkIcon } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ImageUploader } from "@/components/ImageUploader";
 import { UrlInput } from "@/components/UrlInput";
 import { saveResult } from "@/lib/storage";
-import { EditorialResult, DEFAULT_RESULT } from "@/lib/types";
+import { EditorialResult } from "@/lib/types";
+import GlobalNav from "@/components/GlobalNav";
 
 const GlobalInputPage = () => {
   const [searchParams] = useSearchParams();
@@ -100,15 +101,8 @@ const GlobalInputPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="absolute top-6 right-6">
-          <Link to="/" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-            Versão Brasil →
-          </Link>
-        </div>
-        <div className="container-editorial py-20 text-center space-y-6">
-          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
-            Global Edition
-          </span>
+        <GlobalNav />
+        <div className="container-editorial pt-24 py-20 text-center space-y-6">
           <motion.div
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -124,15 +118,8 @@ const GlobalInputPage = () => {
   if (hasError) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="absolute top-6 right-6">
-          <Link to="/" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-            Versão Brasil →
-          </Link>
-        </div>
-        <div className="container-editorial py-20 text-center space-y-6">
-          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
-            Global Edition
-          </span>
+        <GlobalNav />
+        <div className="container-editorial pt-24 py-20 text-center space-y-6">
           <p className="text-lg text-foreground">{errorMessage}</p>
           <EditorialButton variant="primary" onClick={handleRetry}>
             Try again
@@ -144,21 +131,9 @@ const GlobalInputPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Language Switch */}
-      <div className="absolute top-6 right-6">
-        <Link to="/" className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-          Versão Brasil →
-        </Link>
-      </div>
+      <GlobalNav />
 
-      <div className="container-editorial py-8">
-        {/* Global Edition Label */}
-        <div className="text-center mb-6">
-          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
-            Global Edition
-          </span>
-        </div>
-
+      <div className="container-editorial pt-24 py-8">
         {/* Intro */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
