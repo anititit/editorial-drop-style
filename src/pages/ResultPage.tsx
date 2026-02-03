@@ -195,11 +195,34 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
-        {/* Visual Identity */}
+        {/* Why This */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="space-y-4"
+        >
+          <SectionTitle>Por que esse estilo?</SectionTitle>
+          <ul className="space-y-3">
+            {profile.why_this.map((reason, i) => (
+              <li
+                key={i}
+                className="text-sm text-muted-foreground editorial-body flex items-start gap-3"
+              >
+                <span className="text-foreground/50">•</span>
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
+        {/* Visual Identity */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           className="space-y-6"
         >
           <SectionTitle>Identidade Visual</SectionTitle>
@@ -227,29 +250,6 @@ const ResultPage = () => {
             <span className="editorial-caption block mb-2">Família Olfativa</span>
             <p className="text-lg font-medium">{profile.fragrance_family}</p>
           </div>
-        </motion.section>
-
-        <div className="editorial-divider" />
-
-        {/* Por que funciona - AFTER Visual Identity, BEFORE actionable sections */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-4"
-        >
-          <SectionTitle>Por que funciona</SectionTitle>
-          <ul className="space-y-3">
-            {profile.why_this.slice(0, 3).map((reason, i) => (
-              <li
-                key={i}
-                className="text-sm text-muted-foreground editorial-body flex items-start gap-3"
-              >
-                <span className="text-foreground/50">•</span>
-                {reason}
-              </li>
-            ))}
-          </ul>
         </motion.section>
 
         <div className="editorial-divider" />
