@@ -7,11 +7,22 @@ import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
+import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="editorial-headline text-xl md:text-2xl mb-4">{children}</h2>
   );
 }
+
+const MANIFESTO_TEXT = {
+  line1: "DROP Edit é luxo com precisão.",
+  line2: "Um ateliê invisível, em grande escala, sem perder o corte sob medida.",
+  line3: "Organizamos repertório em direção, linguagem visual, presença, coerência.",
+  line4: "Luxo é escolher com intenção.",
+  line5: "Não é tendência, é direção.",
+  footer: "DROP Edit™",
+};
 
 const ResultPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,6 +69,11 @@ const ResultPage = () => {
           clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
             (el as HTMLElement).style.opacity = '1';
             (el as HTMLElement).style.transform = 'none';
+          });
+          // Expand all collapsed sections for PDF
+          clonedDoc.querySelectorAll('[data-state="closed"]').forEach((el) => {
+            (el as HTMLElement).setAttribute('data-state', 'open');
+            (el as HTMLElement).style.display = 'block';
           });
         },
       });
@@ -116,6 +132,46 @@ const ResultPage = () => {
           );
         }
       }
+
+      // Add Manifesto as final page
+      pdf.addPage();
+      
+      // Center the manifesto text
+      const centerX = a4Width / 2;
+      let currentY = 80;
+      const lineSpacing = 20;
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(18);
+      pdf.setTextColor(30, 30, 30);
+      pdf.text(MANIFESTO_TEXT.line1, centerX, currentY, { align: "center" });
+      
+      currentY += lineSpacing * 2;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(12);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(MANIFESTO_TEXT.line2, centerX, currentY, { align: "center" });
+      
+      currentY += lineSpacing * 1.5;
+      pdf.text(MANIFESTO_TEXT.line3, centerX, currentY, { align: "center" });
+      
+      currentY += lineSpacing * 2;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.setTextColor(30, 30, 30);
+      pdf.text(MANIFESTO_TEXT.line4, centerX, currentY, { align: "center" });
+      
+      currentY += lineSpacing * 1.5;
+      pdf.setFont("helvetica", "italic");
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(MANIFESTO_TEXT.line5, centerX, currentY, { align: "center" });
+      
+      // Footer
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text(MANIFESTO_TEXT.footer, centerX, a4Height - 20, { align: "center" });
 
       const fileName = `leitura-estetica-${id || "resultado"}.pdf`;
       pdf.save(fileName);
@@ -195,34 +251,11 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
-        {/* Why This */}
+        {/* Visual Identity - MANDATORY */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="space-y-4"
-        >
-          <SectionTitle>Por que esse estilo?</SectionTitle>
-          <ul className="space-y-3">
-            {profile.why_this.map((reason, i) => (
-              <li
-                key={i}
-                className="text-sm text-muted-foreground editorial-body flex items-start gap-3"
-              >
-                <span className="text-foreground/50">•</span>
-                {reason}
-              </li>
-            ))}
-          </ul>
-        </motion.section>
-
-        <div className="editorial-divider" />
-
-        {/* Visual Identity */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
           className="space-y-6"
         >
           <SectionTitle>Identidade Visual</SectionTitle>
@@ -254,11 +287,37 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
+        {/* Por que funciona - MANDATORY */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="space-y-4"
+        >
+          <SectionTitle>Por que funciona</SectionTitle>
+          <p className="editorial-subhead text-sm text-muted-foreground mb-6">
+            Não é sobre tendência, é sobre direção.
+          </p>
+          <ul className="space-y-3">
+            {profile.why_this.map((reason, i) => (
+              <li
+                key={i}
+                className="text-sm text-muted-foreground editorial-body flex items-start gap-3"
+              >
+                <span className="text-foreground/50">•</span>
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
         {/* Editorial Headline */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+          transition={{ delay: 0.3 }}
           className="text-center space-y-3"
         >
           <h2 className="editorial-headline text-2xl md:text-3xl">
@@ -271,147 +330,156 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
-        {/* Conceptual Looks */}
+        {/* Conceptual Looks - TOGGLE */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <EditorialToggleSection
+            title="Looks conceituais"
+            introLine="Três leituras visuais da mesma direção."
+            secondaryLine="Não são propostas fechadas, são caminhos possíveis."
+            defaultOpen={false}
+          >
+            <div className="space-y-8">
+              {editorial.looks.map((look, i) => (
+                <article
+                  key={i}
+                  className="p-5 bg-muted/30 rounded-lg space-y-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="editorial-caption">{look.title}</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  
+                  <h3 className="font-medium text-lg">{look.hero_piece}</h3>
+                  
+                  <ul className="space-y-1">
+                    {look.supporting.map((item, j) => (
+                      <li key={j} className="text-sm text-muted-foreground">
+                        + {item}
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Acessório:</span>{" "}
+                    <span className="font-medium">{look.accessory}</span>
+                  </p>
+                  
+                  <p className="editorial-subhead text-sm text-muted-foreground pt-2 border-t border-border/30 italic">
+                    "{look.caption}"
+                  </p>
+                </article>
+              ))}
+            </div>
+          </EditorialToggleSection>
+        </motion.section>
+
+        <div className="editorial-divider" />
+
+        {/* Makeup - TOGGLE */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="space-y-8"
         >
-          <SectionTitle>3 Looks Conceituais</SectionTitle>
-          
-          <div className="space-y-8">
-            {editorial.looks.map((look, i) => (
-              <motion.article
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="p-5 bg-muted/30 rounded-lg space-y-4"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="editorial-caption">{look.title}</span>
-                  <div className="flex-1 h-px bg-border" />
+          <EditorialToggleSection
+            title="Maquiagem"
+            introLine="Textura, acabamento e intenção."
+            secondaryLine="A maquiagem acompanha o gesto, não compete com ele."
+            defaultOpen={false}
+          >
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Day */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="editorial-caption">Dia</span>
                 </div>
-                
-                <h3 className="font-medium text-lg">{look.hero_piece}</h3>
-                
-                <ul className="space-y-1">
-                  {look.supporting.map((item, j) => (
-                    <li key={j} className="text-sm text-muted-foreground">
-                      + {item}
-                    </li>
+                <div className="space-y-3">
+                  {[
+                    { label: "Base", value: editorial.makeup_day.base },
+                    { label: "Bochechas", value: editorial.makeup_day.cheeks },
+                    { label: "Olhos", value: editorial.makeup_day.eyes },
+                    { label: "Lábios", value: editorial.makeup_day.lips },
+                  ].map((step) => (
+                    <div key={step.label} className="flex items-start gap-3">
+                      <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                        {step.label}
+                      </span>
+                      <span className="text-sm editorial-body">{step.value}</span>
+                    </div>
                   ))}
-                </ul>
-                
-                <p className="text-sm">
-                  <span className="text-muted-foreground">Acessório:</span>{" "}
-                  <span className="font-medium">{look.accessory}</span>
-                </p>
-                
-                <p className="editorial-subhead text-sm text-muted-foreground pt-2 border-t border-border/30 italic">
-                  "{look.caption}"
-                </p>
-              </motion.article>
-            ))}
-          </div>
-        </motion.section>
-
-        <div className="editorial-divider" />
-
-        {/* Makeup */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="space-y-6"
-        >
-          <SectionTitle>Maquiagem</SectionTitle>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Day */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="editorial-caption">Dia</span>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { label: "Base", value: editorial.makeup_day.base },
-                  { label: "Bochechas", value: editorial.makeup_day.cheeks },
-                  { label: "Olhos", value: editorial.makeup_day.eyes },
-                  { label: "Lábios", value: editorial.makeup_day.lips },
-                ].map((step) => (
-                  <div key={step.label} className="flex items-start gap-3">
-                    <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
-                      {step.label}
-                    </span>
-                    <span className="text-sm editorial-body">{step.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Night */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="editorial-caption">Noite</span>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { label: "Base", value: editorial.makeup_night.base },
-                  { label: "Bochechas", value: editorial.makeup_night.cheeks },
-                  { label: "Olhos", value: editorial.makeup_night.eyes },
-                  { label: "Lábios", value: editorial.makeup_night.lips },
-                ].map((step) => (
-                  <div key={step.label} className="flex items-start gap-3">
-                    <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
-                      {step.label}
-                    </span>
-                    <span className="text-sm editorial-body">{step.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        <div className="editorial-divider" />
-
-        {/* Fragrance */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="space-y-6"
-        >
-          <SectionTitle>Fragrâncias</SectionTitle>
-          
-          <div className="space-y-4">
-            {editorial.fragrances.map((fragrance, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0"
-              >
-                <span className="text-xs text-muted-foreground w-24 flex-shrink-0 uppercase tracking-wider pt-0.5">
-                  {fragrance.price_tier === "affordable" && "Acessível"}
-                  {fragrance.price_tier === "mid" && "Intermediário"}
-                  {fragrance.price_tier === "premium" && "Premium"}
-                </span>
-                <div className="flex-1">
-                  <p className="font-medium">{fragrance.name}</p>
-                  <p className="text-sm text-muted-foreground">{fragrance.brand}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{fragrance.notes}</p>
                 </div>
               </div>
-            ))}
-          </div>
+              
+              {/* Night */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="editorial-caption">Noite</span>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { label: "Base", value: editorial.makeup_night.base },
+                    { label: "Bochechas", value: editorial.makeup_night.cheeks },
+                    { label: "Olhos", value: editorial.makeup_night.eyes },
+                    { label: "Lábios", value: editorial.makeup_night.lips },
+                  ].map((step) => (
+                    <div key={step.label} className="flex items-start gap-3">
+                      <span className="text-xs text-muted-foreground w-20 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                        {step.label}
+                      </span>
+                      <span className="text-sm editorial-body">{step.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </EditorialToggleSection>
         </motion.section>
 
-        {/* Commerce Section - O Edit */}
+        <div className="editorial-divider" />
+
+        {/* Fragrance - TOGGLE */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+        >
+          <EditorialToggleSection
+            title="Fragrâncias"
+            introLine="A assinatura invisível."
+            secondaryLine="O perfume completa a presença, não a anuncia."
+            defaultOpen={false}
+          >
+            <div className="space-y-4">
+              {editorial.fragrances.map((fragrance, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-4 py-3 border-b border-border/30 last:border-0"
+                >
+                  <span className="text-xs text-muted-foreground w-24 flex-shrink-0 uppercase tracking-wider pt-0.5">
+                    {fragrance.price_tier === "affordable" && "Acessível"}
+                    {fragrance.price_tier === "mid" && "Intermediário"}
+                    {fragrance.price_tier === "premium" && "Premium"}
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-medium">{fragrance.name}</p>
+                    <p className="text-sm text-muted-foreground">{fragrance.brand}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{fragrance.notes}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </EditorialToggleSection>
+        </motion.section>
+
+        {/* Commerce Section - O Edit - MANDATORY */}
         {editorial.commerce && (
           <>
             <div className="editorial-divider" />
-            <EditorialCommerceSection commerce={editorial.commerce} delay={0.65} />
+            <EditorialCommerceSection commerce={editorial.commerce} delay={0.5} />
           </>
         )}
 
@@ -420,7 +488,7 @@ const ResultPage = () => {
           <motion.footer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.55 }}
             className={`text-center pt-8 border-t border-border/30 ${
               editorial.footer_note.includes("resultado parcial") ? "print-hide" : ""
             }`}
