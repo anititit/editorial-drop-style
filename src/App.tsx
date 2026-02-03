@@ -14,6 +14,8 @@ import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import GlobalHomePage from "./pages/GlobalHomePage";
 import GlobalStudioPage from "./pages/GlobalStudioPage";
+import GlobalStudioInputPage from "./pages/GlobalStudioInputPage";
+import GlobalStudioResultPage from "./pages/GlobalStudioResultPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/global" element={<GlobalHomePage />} />
           <Route path="/global/studio" element={<GlobalStudioPage />} />
+          <Route path="/global/studio/input" element={<GlobalStudioInputPage />} />
+          <Route path="/global/studio/result" element={<GlobalStudioResultPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
