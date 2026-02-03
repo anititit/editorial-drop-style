@@ -54,6 +54,16 @@ const HomePage = () => {
             <span className="italic">Para estilo pessoal.</span>
           </p>
 
+          {/* Manifesto Link */}
+          <div className="pt-2">
+            <Link 
+              to="/manifesto" 
+              className="text-xs text-muted-foreground/70 hover:text-foreground transition-colors"
+            >
+              Leia o manifesto →
+            </Link>
+          </div>
+
           {/* Pro CTA */}
           <div className="pt-8 mt-8 border-t border-border/40">
             <Link to="/pro/brief">
