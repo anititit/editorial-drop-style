@@ -12,7 +12,7 @@ import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
-import GlobalHomePage from "./pages/GlobalHomePage";
+
 import GlobalInputPage from "./pages/GlobalInputPage";
 import GlobalResultPage from "./pages/GlobalResultPage";
 import GlobalStudioPage from "./pages/GlobalStudioPage";
@@ -38,7 +38,7 @@ const App = () => (
           <Route path="/manifesto" element={<ManifestoPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/global" element={<GlobalHomePage />} />
+          <Route path="/global" element={<GlobalInputPage />} />
           <Route path="/global/input" element={<GlobalInputPage />} />
           <Route path="/global/result/:id" element={<GlobalResultPage />} />
           <Route path="/global/studio" element={<GlobalStudioPage />} />

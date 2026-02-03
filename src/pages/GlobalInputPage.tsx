@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ImageIcon, Link as LinkIcon } from "lucide-react";
+import { ImageIcon, Link as LinkIcon } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ImageUploader } from "@/components/ImageUploader";
 import { UrlInput } from "@/components/UrlInput";
@@ -105,15 +105,10 @@ const GlobalInputPage = () => {
             Versão Brasil →
           </Link>
         </div>
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
-          <div className="container-editorial py-4 flex items-center gap-4">
-            <Link to="/global" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <span className="editorial-caption">Global Edition</span>
-          </div>
-        </header>
         <div className="container-editorial py-20 text-center space-y-6">
+          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
+            Global Edition
+          </span>
           <motion.div
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -134,15 +129,10 @@ const GlobalInputPage = () => {
             Versão Brasil →
           </Link>
         </div>
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
-          <div className="container-editorial py-4 flex items-center gap-4">
-            <Link to="/global" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <span className="editorial-caption">Global Edition</span>
-          </div>
-        </header>
         <div className="container-editorial py-20 text-center space-y-6">
+          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
+            Global Edition
+          </span>
           <p className="text-lg text-foreground">{errorMessage}</p>
           <EditorialButton variant="primary" onClick={handleRetry}>
             Try again
@@ -162,12 +152,11 @@ const GlobalInputPage = () => {
       </div>
 
       <div className="container-editorial py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/global" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="editorial-caption tracking-[0.2em]">Global Edition</span>
+        {/* Global Edition Label */}
+        <div className="text-center mb-6">
+          <span className="text-[10px] tracking-[0.4em] text-muted-foreground/50 uppercase">
+            Global Edition
+          </span>
         </div>
 
         {/* Intro */}
@@ -176,11 +165,11 @@ const GlobalInputPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 text-center"
         >
-          <h1 className="editorial-headline text-2xl md:text-3xl mb-3">
-            Your references, your identity
+          <h1 className="editorial-headline text-3xl md:text-4xl lg:text-5xl mb-4">
+            Your style, edited.
           </h1>
-          <p className="editorial-body text-muted-foreground">
-            Upload 3 images that represent your ideal style.
+          <p className="editorial-body text-muted-foreground max-w-md mx-auto">
+            Upload 3 images that represent your ideal aesthetic.
           </p>
         </motion.div>
 
