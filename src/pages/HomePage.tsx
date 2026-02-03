@@ -55,12 +55,18 @@ const HomePage = () => {
           </p>
 
           {/* Manifesto Link */}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col items-center gap-2">
             <Link 
               to="/manifesto" 
               className="text-xs text-muted-foreground/70 hover:text-foreground transition-colors"
             >
               Leia o manifesto →
+            </Link>
+            <Link 
+              to="/global" 
+              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              Global Edition →
             </Link>
           </div>
 
