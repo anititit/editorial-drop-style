@@ -5,6 +5,16 @@ import { Sparkles, BookOpen } from "lucide-react";
 const GlobalHomePage = () => {
   return (
     <div className="min-h-screen bg-background">
+      {/* Language Switch - Top */}
+      <div className="absolute top-6 right-6">
+        <Link 
+          to="/" 
+          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        >
+          Versão Brasil →
+        </Link>
+      </div>
+
       <div className="container-editorial min-h-screen flex flex-col justify-center py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -67,15 +77,6 @@ const GlobalHomePage = () => {
             </div>
           </div>
 
-          {/* Language Switch */}
-          <div className="pt-12 border-t border-border/40">
-            <Link 
-              to="/" 
-              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-            >
-              Versão Brasil →
-            </Link>
-          </div>
         </motion.div>
       </div>
     </div>
