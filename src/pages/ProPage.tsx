@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, RotateCcw, Sparkles } from "lucide-react";
+import { Download, RotateCcw, Sparkles } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ProLoadingEditorial } from "@/components/ProLoadingEditorial";
@@ -9,6 +9,7 @@ import { getResultById } from "@/lib/storage";
 import { ProEditorialResult, DEFAULT_PRO_RESULT } from "@/lib/pro-types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import BrazilNav from "@/components/BrazilNav";
 
 type ProPageState = "loading" | "results" | "error";
 
@@ -251,19 +252,10 @@ const ProPage = () => {
   if (state === "loading") {
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
-          <div className="container-results py-4 flex items-center justify-between">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="editorial-caption">DROP Pro</span>
-            </div>
-            <div className="w-5" />
-          </div>
-        </header>
-        <ProLoadingEditorial />
+        <BrazilNav />
+        <div className="pt-20">
+          <ProLoadingEditorial />
+        </div>
       </div>
     );
   }
@@ -272,19 +264,10 @@ const ProPage = () => {
   if (state === "error") {
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30">
-          <div className="container-results py-4 flex items-center justify-between">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="editorial-caption">DROP Pro</span>
-            </div>
-            <div className="w-5" />
-          </div>
-        </header>
-        <ProLoadingEditorial hasError errorMessage={errorMessage} onRetry={handleRetry} />
+        <BrazilNav />
+        <div className="pt-20">
+          <ProLoadingEditorial hasError errorMessage={errorMessage} onRetry={handleRetry} />
+        </div>
       </div>
     );
   }
@@ -294,24 +277,17 @@ const ProPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 print-hide">
-        <div className="container-results py-4 flex items-center justify-between">
-          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="editorial-caption">Brand Editorial Kit</span>
-          </div>
-          <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
-            <Download className="w-4 h-4" />
-          </EditorialButton>
-        </div>
-      </header>
+      <BrazilNav />
+
+      {/* Actions Bar */}
+      <div className="fixed top-16 right-6 z-40 print-hide">
+        <EditorialButton variant="ghost" size="icon" onClick={handleExportPDF}>
+          <Download className="w-4 h-4" />
+        </EditorialButton>
+      </div>
 
       {/* Content */}
-      <div ref={contentRef} className="container-results py-10">
+      <div ref={contentRef} className="container-results pt-24 py-10">
         {/* Hero */}
         <header
           className="pro-editorial-header text-center space-y-4 mb-12"

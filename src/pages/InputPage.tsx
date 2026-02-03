@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ImageIcon, Link as LinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ImageIcon, Link as LinkIcon } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ImageUploader } from "@/components/ImageUploader";
 import { UrlInput } from "@/components/UrlInput";
 import { LoadingEditorial } from "@/components/LoadingEditorial";
 import { saveResult } from "@/lib/storage";
-import { EditorialResult, DEFAULT_RESULT } from "@/lib/types";
+import { EditorialResult } from "@/lib/types";
+import BrazilNav from "@/components/BrazilNav";
 
 const InputPage = () => {
   const [searchParams] = useSearchParams();
@@ -159,14 +159,9 @@ const InputPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container-editorial py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <span className="editorial-caption">Leitura Estética</span>
-        </div>
+      <BrazilNav />
+
+      <div className="container-editorial pt-24 py-8">
 
         {/* Intro */}
         <motion.div

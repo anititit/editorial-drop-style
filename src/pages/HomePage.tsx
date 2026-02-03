@@ -3,21 +3,14 @@ import { Link } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { HistorySection } from "@/components/HistorySection";
 import { ImageIcon, Link as LinkIcon, Sparkles, BookOpen } from "lucide-react";
+import BrazilNav from "@/components/BrazilNav";
 
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Global Edition Link - Top */}
-      <div className="absolute top-6 right-6">
-        <Link 
-          to="/global" 
-          className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-        >
-          Global Edition →
-        </Link>
-      </div>
+      <BrazilNav />
 
-      <div className="container-editorial min-h-screen flex flex-col justify-center py-16">
+      <div className="container-editorial min-h-screen flex flex-col justify-center pt-16 py-16">
         {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -27,7 +20,6 @@ const HomePage = () => {
         >
           {/* Brand */}
           <div className="space-y-2">
-            <span className="editorial-caption">Editorial Drop</span>
             <h1 className="editorial-headline text-4xl md:text-5xl lg:text-6xl">
               Seu estilo, editado.
             </h1>
@@ -63,35 +55,6 @@ const HomePage = () => {
             <br />
             <span className="italic">Para estilo pessoal.</span>
           </p>
-
-          {/* Manifesto Link */}
-          <div className="pt-2">
-            <Link 
-              to="/manifesto" 
-              className="text-xs text-muted-foreground/70 hover:text-foreground transition-colors"
-            >
-              Leia o manifesto →
-            </Link>
-          </div>
-
-          {/* Pro CTA */}
-          <div className="pt-8 mt-8 border-t border-border/40">
-            <Link to="/pro/brief">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-block"
-              >
-                <EditorialButton variant="secondary" className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  DROP Pro (beta)
-                </EditorialButton>
-              </motion.div>
-            </Link>
-            <p className="text-xs text-muted-foreground mt-3">
-              Versão profissional do DROP.
-            </p>
-          </div>
 
           {/* Editorial */}
           <div className="pt-6">
