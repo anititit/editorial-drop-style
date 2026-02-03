@@ -12,6 +12,7 @@ import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
+import GlobalStudioPage from "./pages/GlobalStudioPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/manifesto" element={<ManifestoPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/global/studio" element={<GlobalStudioPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
