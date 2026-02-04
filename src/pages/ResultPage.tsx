@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
+import { SocialShareSection } from "@/components/results/SocialShareSection";
 import BrazilNav from "@/components/BrazilNav";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -479,6 +480,13 @@ const ResultPage = () => {
             <EditorialCommerceSection commerce={editorial.commerce} delay={0.5} />
           </>
         )}
+
+        {/* Social Share Section */}
+        <SocialShareSection 
+          profileName={primaryName}
+          headline={editorial.headline}
+          resultId={id}
+        />
 
         {/* Footer Note - hidden in PDF if it's the partial result message */}
         {editorial.footer_note && (
