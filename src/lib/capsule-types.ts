@@ -4,11 +4,13 @@ export interface CapsulePriorityItem {
   position: number;
   item: string;
   impact: string;
+  serves_aesthetics?: string[]; // Which aesthetics this piece serves
 }
 
 export interface CapsuleBonusItem {
   item: string;
   impact: string;
+  serves_aesthetics?: string[];
 }
 
 export interface CapsuleResult {
@@ -16,12 +18,14 @@ export interface CapsuleResult {
   priority_five: CapsulePriorityItem[];
   bonus_items?: CapsuleBonusItem[];
   edit_rule: string;
+  fusion_name?: string; // Name of the fused aesthetic direction
+  fusion_description?: string; // Description of the fusion
 }
 
 export interface CapsuleApiResponse {
   success: boolean;
   capsule: CapsuleResult;
-  aesthetic_id: string;
+  aesthetic_ids: string[]; // Now an array
   normalized_items?: string[];
   debug_id: string;
 }

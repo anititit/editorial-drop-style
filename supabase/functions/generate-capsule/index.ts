@@ -226,44 +226,113 @@ function sanitizeOutputItems(items: string[]): string[] {
 }
 
 // ============================================================================
+// AESTHETIC DEFINITIONS & FUSION
+// ============================================================================
+
+const AESTHETIC_LABELS: Record<string, { name: string; description: string }> = {
+  clean_glow: { 
+    name: "Glow limpo", 
+    description: "pele luminosa, minimalismo fresco, presença leve" 
+  },
+  minimal_chic: { 
+    name: "Minimal chic", 
+    description: "cortes precisos, neutros sofisticados, menos é mais" 
+  },
+  romantic_modern: { 
+    name: "Romântico moderno", 
+    description: "suavidade com estrutura, feminilidade atual" 
+  },
+  after_dark_minimal: { 
+    name: "Minimal noturno", 
+    description: "alto contraste, linhas limpas, noite polida" 
+  },
+  soft_grunge: { 
+    name: "Grunge suave", 
+    description: "texturas vividas, preto lavado, charme sem esforço" 
+  },
+  street_sporty: { 
+    name: "Street sporty", 
+    description: "energia urbana, peças utilitárias, conforto intencional" 
+  },
+  color_pop: { 
+    name: "Cor em destaque", 
+    description: "paleta ousada, impacto controlado, statement inteligente" 
+  },
+  boho_updated: { 
+    name: "Boho polido", 
+    description: "fluidez, naturalidade, boho com acabamento" 
+  },
+  classic_luxe: { 
+    name: "Clássico luxo", 
+    description: "ícones atemporais, materiais nobres, elegância óbvia" 
+  },
+  coastal_cool: { 
+    name: "Coastal cool", 
+    description: "natural, claro, textura orgânica, refinamento relaxado" 
+  },
+  soft_glam: { 
+    name: "Glam suave", 
+    description: "polido, brilho sutil, beleza pronta para câmera" 
+  },
+  artsy_eclectic: { 
+    name: "Artsy eclético", 
+    description: "combinações inesperadas, repertório criativo, assinatura própria" 
+  },
+};
+
+function getAestheticsDescription(aestheticIds: string[]): string {
+  return aestheticIds
+    .map(id => {
+      const a = AESTHETIC_LABELS[id];
+      return a ? `${a.name} — ${a.description}` : id;
+    })
+    .join("\n- ");
+}
+
+// ============================================================================
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-const AESTHETIC_LABELS: Record<string, string> = {
-  clean_glow: "Glow limpo — pele luminosa, minimalismo fresco, presença leve",
-  minimal_chic: "Minimal chic — cortes precisos, neutros sofisticados, menos é mais",
-  romantic_modern: "Romântico moderno — suavidade com estrutura, feminilidade atual",
-  after_dark_minimal: "Minimal noturno — alto contraste, linhas limpas, noite polida",
-  soft_grunge: "Grunge suave — texturas vividas, preto lavado, charme sem esforço",
-  street_sporty: "Street sporty — energia urbana, peças utilitárias, conforto intencional",
-  color_pop: "Cor em destaque — paleta ousada, impacto controlado, statement inteligente",
-  boho_updated: "Boho polido — fluidez, naturalidade, boho com acabamento",
-  classic_luxe: "Clássico luxo — ícones atemporais, materiais nobres, elegância óbvia",
-  coastal_cool: "Coastal cool — natural, claro, textura orgânica, refinamento relaxado",
-  soft_glam: "Glam suave — polido, brilho sutil, beleza pronta para câmera",
-  artsy_eclectic: "Artsy eclético — combinações inesperadas, repertório criativo, assinatura própria",
-};
-
-function buildSystemPrompt(aestheticId: string, normalizedItems: string[]): string {
-  const aestheticLabel = AESTHETIC_LABELS[aestheticId] || aestheticId;
+function buildSystemPrompt(aestheticIds: string[], normalizedItems: string[]): string {
+  const isMultiAesthetic = aestheticIds.length > 1;
+  const aestheticsDescription = getAestheticsDescription(aestheticIds);
+  const aestheticNames = aestheticIds.map(id => AESTHETIC_LABELS[id]?.name || id).join(" + ");
   
+  const fusionInstructions = isMultiAesthetic ? `
+FUSÃO DE ESTÉTICAS:
+O usuário selecionou ${aestheticIds.length} direções. Sua tarefa é criar uma FUSÃO coerente.
+- Identifique os pontos de convergência entre as estéticas
+- Priorize peças que servem MÚLTIPLAS estéticas (mais versáteis)
+- Cada item de prioridade deve indicar quais estéticas ele serve
+
+IMPORTANTE: No campo "serves_aesthetics" de cada peça, liste os IDs das estéticas que ela atende.
+Exemplo: ["minimal_chic", "clean_glow"] se a peça serve ambas.
+Peças que servem mais estéticas têm PRIORIDADE MAIOR.
+` : '';
+
   return `Você é um consultor de guarda-roupa cápsula de alto nível. Tom Vogue/Harper's Bazaar.
 
 CONTEXTO:
-Direção estética: "${aestheticLabel}"
+${isMultiAesthetic ? 'Direções estéticas (fusão):' : 'Direção estética:'}
+- ${aestheticsDescription}
+
 Peças do usuário: ${normalizedItems.join(", ")}
 
 OBJETIVO:
 1. Identificar o que já cobre bem (max 5)
 2. Sugerir AS 5 PEÇAS MAIS IMPACTANTES que faltam
 3. Definir uma regra de edição
+${isMultiAesthetic ? '4. Criar um nome e descrição para a fusão estética' : ''}
+
+${fusionInstructions}
 
 ⚠️ ALGORITMO DE PRIORIDADE (para selecionar as 5 peças):
 
-1. **Versatilidade** - Combina com mais itens que o usuário já tem
-2. **Severidade da lacuna** - Categoria completamente ausente > tem alguns itens
-3. **Fundação primeiro** - Calças > Tops > Sapatos > Acessórios
-4. **Mix de preços** - Equilibre opções acessíveis e premium
+1. **Versatilidade multi-estética** - Serve mais de uma estética selecionada (MAIS IMPORTANTE quando há fusão)
+2. **Versatilidade geral** - Combina com mais itens que o usuário já tem
+3. **Severidade da lacuna** - Categoria completamente ausente > tem alguns itens
+4. **Fundação primeiro** - Calças > Tops > Sapatos > Acessórios
+5. **Mix de preços** - Equilibre opções acessíveis e premium
 
 ⚠️ REGRAS DE ESCRITA:
 
@@ -291,50 +360,61 @@ REGRAS CRÍTICAS:
 ESTRUTURA JSON:
 
 {
-  "covered": [
+  ${isMultiAesthetic ? `"fusion_name": "Nome criativo para a fusão (ex: Minimal Glow)",
+  "fusion_description": "Uma frase descrevendo a fusão (máx 15 palavras)",
+  ` : ''}"covered": [
     "categoria que o usuário já cobre (máx 5)"
   ],
   "priority_five": [
     {
       "position": 1,
       "item": "Nome do item (ex: Calça de alfaiataria)",
-      "impact": "Uma frase. Máximo 10 palavras."
+      "impact": "Uma frase. Máximo 10 palavras.",
+      "serves_aesthetics": ${isMultiAesthetic ? '["aesthetic_id_1", "aesthetic_id_2"]' : `["${aestheticIds[0]}"]`}
     },
     {
       "position": 2,
       "item": "Nome do item",
-      "impact": "Uma frase curta."
+      "impact": "Uma frase curta.",
+      "serves_aesthetics": ${isMultiAesthetic ? '["aesthetic_id"]' : `["${aestheticIds[0]}"]`}
     },
     {
       "position": 3,
       "item": "Nome do item",
-      "impact": "Uma frase curta."
+      "impact": "Uma frase curta.",
+      "serves_aesthetics": ${isMultiAesthetic ? '["aesthetic_id_1", "aesthetic_id_2"]' : `["${aestheticIds[0]}"]`}
     },
     {
       "position": 4,
       "item": "Nome do item",
-      "impact": "Uma frase curta."
+      "impact": "Uma frase curta.",
+      "serves_aesthetics": ${isMultiAesthetic ? '["aesthetic_id"]' : `["${aestheticIds[0]}"]`}
     },
     {
       "position": 5,
       "item": "Nome do item",
-      "impact": "Uma frase curta."
+      "impact": "Uma frase curta.",
+      "serves_aesthetics": ${isMultiAesthetic ? '["aesthetic_id_1"]' : `["${aestheticIds[0]}"]`}
     }
   ],
   "bonus_items": [
     {
       "item": "Item adicional",
-      "impact": "Frase curta"
+      "impact": "Frase curta",
+      "serves_aesthetics": ["aesthetic_id"]
     }
   ],
   "edit_rule": "regra de edição simples (máx 10 palavras)"
 }
 
+IDs válidos para serves_aesthetics: ${aestheticIds.join(", ")}
+
 IMPORTANTE:
 - "covered": máximo 5 itens
-- "priority_five": EXATAMENTE 5 itens, ordenados por impacto
+- "priority_five": EXATAMENTE 5 itens, ordenados por impacto (priorizar os que servem mais estéticas)
 - "bonus_items": 3-5 itens adicionais (para "Precisa de mais?")
-- "edit_rule": frase curta e memorável`;
+- "edit_rule": frase curta e memorável
+${isMultiAesthetic ? '- "fusion_name": nome criativo e elegante para a combinação\n- "fusion_description": uma frase que capture a essência da fusão' : ''}`;
 }
 
 function extractJson(text: string): any {
@@ -386,11 +466,23 @@ serve(async (req: Request) => {
     const body = await req.json();
     console.log(`[${debugId}] Request body:`, JSON.stringify(body));
 
-    const { aesthetic_id, owned_items_text, budget } = body;
+    // Support both old (aesthetic_id) and new (aesthetic_ids) format
+    let aestheticIds: string[] = [];
+    if (body.aesthetic_ids && Array.isArray(body.aesthetic_ids)) {
+      aestheticIds = body.aesthetic_ids;
+    } else if (body.aesthetic_id && typeof body.aesthetic_id === "string") {
+      aestheticIds = [body.aesthetic_id];
+    }
+
+    const { owned_items_text } = body;
 
     // Validate input
-    if (!aesthetic_id || typeof aesthetic_id !== "string") {
-      return errorResponse("invalid_input", "Selecione uma direção estética.", debugId);
+    if (aestheticIds.length === 0) {
+      return errorResponse("invalid_input", "Selecione pelo menos uma direção estética.", debugId);
+    }
+
+    if (aestheticIds.length > 3) {
+      return errorResponse("invalid_input", "Selecione no máximo 3 direções estéticas.", debugId);
     }
 
     if (!owned_items_text || typeof owned_items_text !== "string" || owned_items_text.trim().length < 10) {
@@ -413,10 +505,10 @@ serve(async (req: Request) => {
     }
 
     // Build prompt with normalized items
-    const systemPrompt = buildSystemPrompt(aesthetic_id, normalizedItems);
-    const userMessage = `Analise as peças normalizadas acima e monte a cápsula.`;
+    const systemPrompt = buildSystemPrompt(aestheticIds, normalizedItems);
+    const userMessage = `Analise as peças normalizadas acima e monte a cápsula${aestheticIds.length > 1 ? ' com fusão de estéticas' : ''}.`;
 
-    console.log(`[${debugId}] Calling AI with aesthetic: ${aesthetic_id}`);
+    console.log(`[${debugId}] Calling AI with aesthetics: ${aestheticIds.join(", ")}`);
 
     // Call AI
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -431,7 +523,7 @@ serve(async (req: Request) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        max_tokens: 2000,
+        max_tokens: 2500,
         temperature: 0.7,
       }),
     });
@@ -470,11 +562,14 @@ serve(async (req: Request) => {
     // Sanitize output to ensure no brands slipped through
     capsuleResult.covered = sanitizeOutputItems(capsuleResult.covered);
     
-    // Sanitize priority_five
+    // Sanitize priority_five and ensure serves_aesthetics is valid
     if (Array.isArray(capsuleResult.priority_five)) {
       capsuleResult.priority_five = capsuleResult.priority_five.map((p: any) => ({
         ...p,
         item: sanitizeOutputItems([p.item])[0] || p.item,
+        serves_aesthetics: Array.isArray(p.serves_aesthetics) 
+          ? p.serves_aesthetics.filter((id: string) => aestheticIds.includes(id))
+          : aestheticIds.slice(0, 1),
       }));
     }
     
@@ -483,6 +578,9 @@ serve(async (req: Request) => {
       capsuleResult.bonus_items = capsuleResult.bonus_items.map((b: any) => ({
         ...b,
         item: sanitizeOutputItems([b.item])[0] || b.item,
+        serves_aesthetics: Array.isArray(b.serves_aesthetics)
+          ? b.serves_aesthetics.filter((id: string) => aestheticIds.includes(id))
+          : aestheticIds.slice(0, 1),
       }));
     }
 
@@ -492,7 +590,7 @@ serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         capsule: capsuleResult,
-        aesthetic_id,
+        aesthetic_ids: aestheticIds,
         normalized_items: normalizedItems,
         debug_id: debugId,
       }),
