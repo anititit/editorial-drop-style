@@ -20,6 +20,7 @@ import GlobalStudioInputPage from "./pages/GlobalStudioInputPage";
 import GlobalStudioResultPage from "./pages/GlobalStudioResultPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import MethodPage from "./pages/MethodPage";
 import NotFound from "./pages/NotFound";
 import { CookieConsent } from "./components/CookieConsent";
 
@@ -56,8 +57,10 @@ const App = () => (
           <Route path="/global/studio/result" element={<GlobalStudioResultPage />} />
           <Route path="/global/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/global/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/global/method" element={<MethodPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/method" element={<MethodPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
