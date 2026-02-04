@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
@@ -19,6 +19,13 @@ import GlobalStudioPage from "./pages/GlobalStudioPage";
 import GlobalStudioInputPage from "./pages/GlobalStudioInputPage";
 import GlobalStudioResultPage from "./pages/GlobalStudioResultPage";
 import NotFound from "./pages/NotFound";
+import { CookieConsent } from "./components/CookieConsent";
+
+function CookieConsentWrapper() {
+  const location = useLocation();
+  const isGlobalRoute = location.pathname.startsWith("/global");
+  return <CookieConsent locale={isGlobalRoute ? "en" : "pt-BR"} />;
+}
 
 const queryClient = new QueryClient();
 
@@ -48,6 +55,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <CookieConsentWrapper />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
