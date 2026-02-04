@@ -346,7 +346,7 @@ REGRAS CRÍTICAS:
 4. Todo texto em português brasileiro (pt-BR).
 5. Tom: Vogue/Harper's Bazaar — elegante, confiante, aspiracional, nunca didático.
 ${fragranceInstructions}
-${capsuleInstructions}
+
 
 ${brazilianBrandsCatalog}
 
