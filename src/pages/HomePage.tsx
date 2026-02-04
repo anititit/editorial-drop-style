@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { HistorySection } from "@/components/HistorySection";
+import { Footer } from "@/components/Footer";
 import { ImageIcon, Link as LinkIcon, Sparkles, BookOpen } from "lucide-react";
 import BrazilNav from "@/components/BrazilNav";
 
@@ -94,6 +95,8 @@ const HomePage = () => {
           <HistorySection />
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
