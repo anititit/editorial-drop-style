@@ -123,33 +123,37 @@ CRITICAL RULES:
 3. ALL fields are REQUIRED.
 4. All text MUST be in ENGLISH. Global, easy, clear — not slang-heavy.
 5. Tone: Vogue/Harper's Bazaar — elegant, confident, aspirational, never instructional.
-6. Use GLOBAL brands and references (not region-specific unless relevant).
+6. Use GLOBAL brands and references.
 
-FRAGRANCE RECOMMENDATIONS - GLOBAL EDITION:
+BRAZILIAN BRANDS - GLOBAL EDITION (~20% of all recommendations):
+Position Brazilian brands as references of design, identity, and value. Use badge "🇧🇷 Brazilian Brand" when including them.
 
-BRAZILIAN BRANDS TO INCLUDE (~20% of recommendations):
-Position these as "affordable luxury alternatives" with high quality, identity, and sophistication without traditional luxury markup.
+FASHION & CLOTHING:
+- Farm Rio (tropical prints, sustainable fashion)
+- Osklen (minimalist, sustainable luxury)
+- Animale (sophisticated, contemporary)
+- Lenny Niemeyer (resort wear, swimwear)
+- Água de Coco, Salinas (beachwear)
 
-Accessible tier:
-- O Boticário (Malbec, Lily, Egeo, Floratta)
-- Natura (Ekos, Kaiak, Luna) - highlight Brazilian ingredients: açaí, cupuaçu, buriti
-- Eudora (Siàge, Soul, Intense)
-- Granado
-- Phebo
-- Mahogany
+SHOES & ACCESSORIES:
+- Schutz (contemporary footwear)
+- Arezzo (refined leather goods)
+- Melissa (innovative design, sustainable)
 
-Mid-range tier:
-- Oui Paris
+JEWELRY:
+- H.Stern (fine jewelry, Brazilian gemstones)
+- Amsterdam Sauer (precious stones)
+- Carla Amorim (sustainable luxury jewelry)
+
+FRAGRANCE:
+- Natura (Ekos line - açaí, cupuaçu, buriti ingredients)
+- Granado, Phebo (heritage apothecary)
 - L'Occitane au Brésil
 
-COMPOSITION RULE (5 fragrances total):
-- 1 Brazilian brand (badge: "🇧🇷 Brazil") - positioned as affordable luxury alternative
-- 4 International brands across price tiers
-
-When recommending Brazilian fragrances, emphasize:
-- Brazilian botanical ingredients when relevant (açaí, cupuaçu, buriti, Brazilian woods)
-- High quality-to-price ratio
-- Unique olfactory identity
+COMPOSITION RULE FOR ALL SECTIONS:
+- ~20% Brazilian brands across styling, shopping edit, and fragrance
+- Position as "design-forward alternatives" with strong identity and value
+- Use badge "🇧🇷 Brazilian Brand" for Brazilian recommendations
 
 LANGUAGE GUIDELINES:
 - Short sentences, confident tone
@@ -182,9 +186,10 @@ Return this EXACT JSON:
     "looks": [
       {
         "title": "Day Look",
-        "hero_piece": "main piece of the look",
+        "hero_piece": "main piece (can reference Brazilian brand with badge when appropriate)",
         "supporting": ["supporting item 1", "supporting item 2"],
-        "accessory": "key accessory",
+        "accessory": "key accessory (can reference Schutz, Arezzo, H.Stern with badge)",
+        "badge": "🇧🇷 Brazilian Brand|null",
         "caption": "short editorial caption"
       },
       {
@@ -192,6 +197,7 @@ Return this EXACT JSON:
         "hero_piece": "main piece",
         "supporting": ["item 1", "item 2"],
         "accessory": "accessory",
+        "badge": null,
         "caption": "editorial caption"
       },
       {
@@ -199,6 +205,7 @@ Return this EXACT JSON:
         "hero_piece": "main piece",
         "supporting": ["item 1", "item 2"],
         "accessory": "accessory",
+        "badge": null,
         "caption": "editorial caption"
       }
     ],
@@ -218,7 +225,7 @@ Return this EXACT JSON:
       { 
         "name": "Perfume Name", 
         "brand": "Brand",
-        "badge": "🇧🇷 Brazil|null (for international brands)",
+        "badge": "🇧🇷 Brazilian Brand|null",
         "notes": "main olfactory notes", 
         "price_tier": "affordable|mid|premium",
         "approximate_price_usd": 60,
@@ -264,16 +271,16 @@ Return this EXACT JSON:
     "footer_note": "elegant editorial closing note",
     "commerce": {
       "shortlist": [
-        { "category": "Hero", "item_name": "generic key piece", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Supporting", "item_name": "supporting piece", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Beauty", "item_name": "beauty item", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Scent", "item_name": "fragrance or candle", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Wildcard", "item_name": "unexpected wildcard item", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" }
+        { "category": "Hero", "item_name": "key piece (can be Brazilian brand)", "badge": "🇧🇷 Brazilian Brand|null", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Supporting", "item_name": "supporting piece", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Accessory", "item_name": "accessory (can be Brazilian: Schutz, Arezzo, H.Stern)", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Beauty", "item_name": "beauty item", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Scent", "item_name": "fragrance or candle", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" }
       ],
       "look_recipes": [
-        { "formula": "outfit formula in one line (no brands)" },
-        { "formula": "outfit formula in one line (no brands)" },
-        { "formula": "outfit formula in one line (no brands)" }
+        { "formula": "outfit formula in one line (can include Brazilian brand reference)" },
+        { "formula": "outfit formula in one line" },
+        { "formula": "outfit formula in one line" }
       ],
       "search_terms": ["term 1", "term 2", "term 3", "term 4", "term 5"]
     }
@@ -284,19 +291,21 @@ INSTRUCTIONS:
 - aesthetic_primary/secondary: Use evocative names in English
 - confidence: 0.85 default, 0.45-0.65 if images are very abstract
 - looks: Each look should have specific pieces, not generic
+  - Include 1 Brazilian brand reference across the 3 looks (with badge "🇧🇷 Brazilian Brand")
+  - Examples: "Osklen linen shirt", "Schutz leather sandals", "H.Stern earrings"
 - makeup: Specific products and techniques, not vague
 - fragrances: EXACTLY 5 perfumes. Use REAL, globally available perfumes.
-  - 1 Brazilian brand with badge "🇧🇷 Brazil" - positioned as affordable luxury alternative
-  - 4 International brands: One affordable, one mid-range, two premium
-  - For Brazilian fragrances, mention Brazilian ingredients when relevant
-  - Affordable: CK, Zara, The Body Shop, affordable designer (up to $60 USD)
-  - Mid-range: Designer fragrances (YSL, Armani, Narciso Rodriguez, etc.) ($60-150 USD)
-  - Premium: Niche/luxury (Byredo, Le Labo, Tom Ford Private, MFK) (above $150 USD)
+  - 1 Brazilian brand with badge "🇧🇷 Brazilian Brand" - positioned as design-forward alternative
+  - 4 International brands across price tiers
+  - For Brazilian fragrances, mention Brazilian ingredients when relevant (açaí, cupuaçu, buriti)
+  - Affordable: up to $60 USD | Mid-range: $60-150 USD | Premium: above $150 USD
 - why_this: EXACTLY 3 bullets, max 18 words each, confident editorial tone. No AI/analysis references.
 
 COMMERCE (The Edit):
-- shortlist: 5 GENERIC items (no brands), each with category, price lane, and short rationale
-- look_recipes: 3 outfit formulas in one line (e.g. "Oversized blazer + vintage jeans + burgundy loafers")
+- shortlist: 5 items with category, badge (if Brazilian), price lane, and rationale
+  - Include 1 Brazilian brand (with badge "🇧🇷 Brazilian Brand") positioned as design/value reference
+  - Examples: "Melissa jelly sandal 🇧🇷 Brazilian Brand", "Arezzo leather bag 🇧🇷 Brazilian Brand"
+- look_recipes: 3 outfit formulas in one line (can include Brazilian brand reference)
 - search_terms: 5-8 search terms reflecting palette + textures + silhouettes
 
 Tone: Premium, confident, never arrogant. Fashion editorial, not generic consulting.`;
