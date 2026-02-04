@@ -6,10 +6,8 @@ import { EditorialButton } from "@/components/ui/EditorialButton";
 import { ImageUploader } from "@/components/ImageUploader";
 import { UrlInput } from "@/components/UrlInput";
 import { LoadingEditorial } from "@/components/LoadingEditorial";
-import { CapsuleQuiz } from "@/components/CapsuleQuiz";
 import { saveResult } from "@/lib/storage";
 import { EditorialResult } from "@/lib/types";
-import { CapsulePreferences, DEFAULT_CAPSULE_PREFERENCES } from "@/lib/capsule-types";
 import BrazilNav from "@/components/BrazilNav";
 
 const InputPage = () => {
@@ -22,10 +20,6 @@ const InputPage = () => {
   // Image states
   const [images, setImages] = useState<string[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
-
-  // Capsule opt-in state
-  const [includeCapsule, setIncludeCapsule] = useState(false);
-  const [capsulePreferences, setCapsulePreferences] = useState<CapsulePreferences>(DEFAULT_CAPSULE_PREFERENCES);
 
   // Loading and error state
   const [isLoading, setIsLoading] = useState(false);
@@ -56,24 +50,11 @@ const InputPage = () => {
     "unauthorized",
   ];
 
-  // Validate capsule preferences if opted in
-  const hasCapsuleRequiredFields = !includeCapsule || (
-    capsulePreferences.existing.length > 0 &&
-    capsulePreferences.palette !== "" &&
-    capsulePreferences.silhouette !== ""
-  );
-
   const callGenerateEditorial = async () => {
     const imageData = mode === "upload" ? images : urls;
     
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    
-    // Prepare capsule data only if opted in
-    const capsuleData = includeCapsule ? {
-      includeCapsule: true,
-      capsulePreferences,
-    } : { includeCapsule: false };
     
     const response = await fetch(`${supabaseUrl}/functions/v1/generate-editorial`, {
       method: "POST",
@@ -85,7 +66,6 @@ const InputPage = () => {
       body: JSON.stringify({
         images: imageData,
         isUrls: mode === "url",
-        ...capsuleData,
       }),
     });
 
@@ -116,7 +96,7 @@ const InputPage = () => {
   };
 
   const handleGenerate = async () => {
-    if (!hasValidInput || !hasCapsuleRequiredFields) return;
+    if (!hasValidInput) return;
 
     setIsLoading(true);
     setHasError(false);
@@ -243,33 +223,9 @@ const InputPage = () => {
           </motion.div>
         </AnimatePresence>
 
-        <p className="text-xs text-muted-foreground mb-6">
+        <p className="text-xs text-muted-foreground mb-8">
           Use moodboards, looks, beleza ou editoriais. Para estilo pessoal.
         </p>
-
-        {/* Capsule Opt-in */}
-        <div className="mb-8">
-          <button
-            type="button"
-            onClick={() => setIncludeCapsule(!includeCapsule)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-dotted"
-          >
-            {includeCapsule ? "Remover cápsula" : "Quero incluir minha cápsula (opcional)"}
-          </button>
-          {!includeCapsule && (
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Leva ~20 segundos.
-            </p>
-          )}
-          
-          {/* Capsule Quiz */}
-          {includeCapsule && (
-            <CapsuleQuiz
-              preferences={capsulePreferences}
-              onChange={setCapsulePreferences}
-            />
-          )}
-        </div>
 
         {/* Generate Button */}
         <motion.div
@@ -282,7 +238,7 @@ const InputPage = () => {
             variant="primary"
             size="lg"
             className="w-full"
-            disabled={!hasValidInput || !hasCapsuleRequiredFields}
+            disabled={!hasValidInput}
             onClick={handleGenerate}
           >
             Gerar Editorial
@@ -290,11 +246,6 @@ const InputPage = () => {
           {!hasValidInput && (
             <p className="text-xs text-muted-foreground text-center mt-3">
               Selecione exatamente 3 {mode === "upload" ? "imagens" : "URLs válidas"}
-            </p>
-          )}
-          {hasValidInput && includeCapsule && !hasCapsuleRequiredFields && (
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              Complete as perguntas obrigatórias da cápsula
             </p>
           )}
         </motion.div>

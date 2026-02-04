@@ -158,16 +158,6 @@ function validateBase64Image(data: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-// Capsule preferences type
-interface CapsulePreferences {
-  existing: string[];
-  palette: string;
-  silhouette: string;
-  exclusions: string[];
-  context: string;
-  investment: string;
-}
-
 type FragranceBudget = "affordable" | "mid" | "premium" | "mix";
 
 function validateRequestBody(body: any): { 
@@ -175,8 +165,6 @@ function validateRequestBody(body: any): {
   images: string[]; 
   isUrls: boolean; 
   fragranceBudget: FragranceBudget;
-  includeCapsule: boolean;
-  capsulePreferences?: CapsulePreferences;
 } | { ok: false; error: string; message: string } {
   if (!body || !Array.isArray(body.images) || body.images.length !== 3) {
     return { ok: false, error: "invalid_input", message: "Envie exatamente 3 imagens." };
@@ -203,22 +191,7 @@ function validateRequestBody(body: any): {
     ? body.fragranceBudget 
     : "mix";
 
-  // Handle capsule opt-in
-  const includeCapsule = body.includeCapsule === true;
-  let capsulePreferences: CapsulePreferences | undefined;
-  
-  if (includeCapsule && body.capsulePreferences) {
-    capsulePreferences = {
-      existing: Array.isArray(body.capsulePreferences.existing) ? body.capsulePreferences.existing : [],
-      palette: typeof body.capsulePreferences.palette === "string" ? body.capsulePreferences.palette : "",
-      silhouette: typeof body.capsulePreferences.silhouette === "string" ? body.capsulePreferences.silhouette : "",
-      exclusions: Array.isArray(body.capsulePreferences.exclusions) ? body.capsulePreferences.exclusions : [],
-      context: typeof body.capsulePreferences.context === "string" ? body.capsulePreferences.context : "",
-      investment: typeof body.capsulePreferences.investment === "string" ? body.capsulePreferences.investment : "",
-    };
-  }
-
-  return { ok: true, images: body.images, isUrls, fragranceBudget, includeCapsule, capsulePreferences };
+  return { ok: true, images: body.images, isUrls, fragranceBudget };
 }
 
 // ============================================================================
@@ -302,7 +275,7 @@ async function checkContentSafety(
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-function buildSystemPrompt(fragranceBudget: FragranceBudget, capsulePreferences?: CapsulePreferences): string {
+function buildSystemPrompt(fragranceBudget: FragranceBudget): string {
   // Brazil Edition: 1 fragrance per tier, always in order: Acessível → Intermediário → Premium
   const brazilianBrandsInfo = `
 MARCAS BRASILEIRAS DE PERFUMARIA (para badges 🇧🇷):
@@ -342,27 +315,6 @@ EXEMPLOS POR FAIXA:
 - Premium: Le Labo, Byredo, MFK, Tom Ford Private Blend, Creed
 
 Apresente como recomendações editoriais, não anúncios.`;
-
-  // Capsule instructions (only if capsule preferences provided)
-  const capsuleInstructions = capsulePreferences ? `
-
-CÁPSULA PESSOAL - REGRAS OBRIGATÓRIAS:
-O usuário optou por incluir análise de cápsula. Use estas preferências:
-
-O que já tem na cápsula: ${capsulePreferences.existing.join(", ") || "não especificado"}
-Paleta atual: ${capsulePreferences.palette || "não especificada"}
-Silhueta comum: ${capsulePreferences.silhouette || "não especificada"}
-O que NÃO entra: ${capsulePreferences.exclusions.join(", ") || "nada especificado"}
-Contexto de uso: ${capsulePreferences.context || "misto"}
-Nível de investimento: ${capsulePreferences.investment || "misto"}
-
-Gere o campo "capsule" no JSON com:
-1. "aligned": Exatamente 3 bullets curtos sobre o que já está alinhado com a direção estética
-2. "missing_prioritized": 5 a 7 itens com prioridade (1 = mais urgente), o que falta para completar a direção
-3. "smart_investments": hero (1 item mais impactante) + supporting (2 itens de apoio)
-
-Tom: Vogue/Harper's. NÃO use "você precisa", não moralize. Use "investimentos" não "compras".
-Os itens devem ser acionáveis mas NÃO comerciais (sem preços, sem marcas específicas obrigatórias).` : "";
 
   const brazilianBrandsCatalog = `
 MARCAS BRASILEIRAS PARA SUGESTÕES EDITORIAIS:
@@ -621,18 +573,15 @@ async function callAI(
   isUrls: boolean,
   apiKey: string,
   debugId: string,
-  fragranceBudget: FragranceBudget,
-  capsulePreferences?: CapsulePreferences
+  fragranceBudget: FragranceBudget
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
   const imageContent = isUrls
     ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
     : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
 
-  const systemPrompt = buildSystemPrompt(fragranceBudget, capsulePreferences);
+  const systemPrompt = buildSystemPrompt(fragranceBudget);
 
-  const userPrompt = capsulePreferences
-    ? "Analise estas 3 referências visuais e gere uma leitura estética pessoal completa COM análise de cápsula. Retorne APENAS o JSON."
-    : "Analise estas 3 referências visuais e gere uma leitura estética pessoal completa. Retorne APENAS o JSON.";
+  const userPrompt = "Analise estas 3 referências visuais e gere uma leitura estética pessoal completa. Retorne APENAS o JSON.";
 
   const messages = [
     { role: "system", content: systemPrompt },
@@ -646,7 +595,7 @@ async function callAI(
   ];
 
   try {
-    console.log(`[${debugId}] Calling AI for personal aesthetic reading (capsule: ${!!capsulePreferences})`);
+    console.log(`[${debugId}] Calling AI for personal aesthetic reading`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -657,7 +606,7 @@ async function callAI(
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages,
-        max_tokens: capsulePreferences ? 4500 : 3500,
+        max_tokens: 4000,
         temperature: 0.7,
       }),
     });
@@ -738,7 +687,7 @@ serve(async (req) => {
       return errorResponse(validation.error, validation.message, debugId);
     }
 
-    const { images, isUrls, fragranceBudget, includeCapsule, capsulePreferences } = validation;
+    const { images, isUrls, fragranceBudget } = validation;
 
     // Get API key
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -760,12 +709,12 @@ serve(async (req) => {
     }
 
     // Generate personal aesthetic reading with retry
-    console.log(`[${debugId}] Fragrance budget: ${fragranceBudget}, Capsule: ${includeCapsule}`);
-    let result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget, includeCapsule ? capsulePreferences : undefined);
+    console.log(`[${debugId}] Fragrance budget: ${fragranceBudget}`);
+    let result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
     
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget, includeCapsule ? capsulePreferences : undefined);
+      result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
     }
 
     if (!result.success) {
