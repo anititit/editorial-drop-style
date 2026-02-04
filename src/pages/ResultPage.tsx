@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
+import { CapsuleResultSection } from "@/components/results/CapsuleResultSection";
 import { SocialShareSection } from "@/components/results/SocialShareSection";
 import { CapsuleCTA } from "@/components/results/CapsuleCTA";
 import BrazilNav from "@/components/BrazilNav";
@@ -482,8 +483,24 @@ const ResultPage = () => {
           </>
         )}
 
-        {/* Capsule CTA */}
-        <CapsuleCTA locale="pt-BR" resultId={id} />
+        {/* Capsule Section - TOGGLE (only if capsule data exists) */}
+        {editorial.capsule && (
+          <>
+            <div className="editorial-divider" />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+            >
+              <CapsuleResultSection capsule={editorial.capsule} />
+            </motion.section>
+          </>
+        )}
+
+        {/* Capsule CTA - only show if no capsule data (user didn't opt in) */}
+        {!editorial.capsule && (
+          <CapsuleCTA locale="pt-BR" resultId={id} />
+        )}
 
         {/* Social Share Section */}
         <SocialShareSection 
