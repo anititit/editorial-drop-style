@@ -6,8 +6,6 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
-import ProPage from "./pages/ProPage";
-import ProBriefPage from "./pages/ProBriefPage";
 import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
@@ -43,8 +41,6 @@ const App = () => (
           <Route path="/" element={<HomePage />} />
           <Route path="/input" element={<InputPage />} />
           <Route path="/resultado/:id" element={<ResultPage />} />
-          <Route path="/pro" element={<ProPage />} />
-          <Route path="/pro/brief" element={<ProBriefPage />} />
           <Route path="/editorial" element={<EditorialPage />} />
           <Route path="/manifesto" element={<ManifestoPage />} />
           <Route path="/auth" element={<AuthPage />} />

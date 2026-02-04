@@ -45,16 +45,6 @@ const BrazilNav = ({ showEditionLabel = true }: BrazilNavProps) => {
             >
               Metodologia
             </Link>
-            <Link 
-              to="/pro" 
-              className={`text-xs transition-colors ${
-                isActive("/pro") 
-                  ? "text-foreground" 
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Pro
-            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-4">
