@@ -36,6 +36,16 @@ const BrazilNav = ({ showEditionLabel = true }: BrazilNavProps) => {
               Manifesto
             </Link>
             <Link 
+              to="/method" 
+              className={`text-xs transition-colors ${
+                isActive("/method") 
+                  ? "text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Metodologia
+            </Link>
+            <Link 
               to="/pro" 
               className={`text-xs transition-colors ${
                 isActive("/pro") 
