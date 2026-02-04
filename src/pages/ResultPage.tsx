@@ -10,7 +10,6 @@ import { EditorialCommerceSection } from "@/components/results/EditorialCommerce
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
 import { CapsuleResultSection } from "@/components/results/CapsuleResultSection";
 import { SocialShareSection } from "@/components/results/SocialShareSection";
-import { CapsuleCTA } from "@/components/results/CapsuleCTA";
 import BrazilNav from "@/components/BrazilNav";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -495,11 +494,6 @@ const ResultPage = () => {
               <CapsuleResultSection capsule={editorial.capsule} />
             </motion.section>
           </>
-        )}
-
-        {/* Capsule CTA - only show if no capsule data (user didn't opt in) */}
-        {!editorial.capsule && (
-          <CapsuleCTA locale="pt-BR" resultId={id} />
         )}
 
         {/* Social Share Section */}
