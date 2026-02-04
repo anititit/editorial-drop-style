@@ -86,20 +86,17 @@ const CapsulePage = () => {
   const [inputMode, setInputMode] = useState<InputMode>("upload");
   const [images, setImages] = useState<string[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
-  const [existingPieces, setExistingPieces] = useState<string>("");
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorType, setErrorType] = useState<string | undefined>();
 
-  const hasValidImages = inputMode === "upload" 
+  const hasValidInput = inputMode === "upload" 
     ? images.length === 3 
     : urls.filter((u) => {
         try { new URL(u); return true; } catch { return false; }
       }).length === 3;
-  
-  const hasValidInput = hasValidImages && existingPieces.trim().length > 0;
 
   const handleAestheticSelect = (id: string) => {
     setSelectedAesthetic(id === selectedAesthetic ? null : id);
@@ -339,22 +336,6 @@ const CapsulePage = () => {
                 Use moodboards, looks, beleza ou editoriais. Para estilo pessoal.
               </p>
 
-              {/* Existing Pieces Field */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Escreva as peças que você já tem
-                </label>
-                <textarea
-                  value={existingPieces}
-                  onChange={(e) => setExistingPieces(e.target.value)}
-                  placeholder="Ex: calça reta de alfaiataria, camisa de seda, blazer bem estruturado, trench coat, camiseta branca encorpada, jeans escuro reto, loafer de couro, bota de cano curto, bolsa pequena estruturada"
-                  className="w-full min-h-[100px] p-3 text-sm bg-background border border-border/50 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/60"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Mesmo poucas peças já resolvem a base, o resto a gente edita.
-                </p>
-              </div>
-
               {/* Generate Button */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -373,10 +354,7 @@ const CapsulePage = () => {
                 </EditorialButton>
                 {!hasValidInput && (
                   <p className="text-xs text-muted-foreground text-center mt-3">
-                    {!hasValidImages 
-                      ? `Selecione exatamente 3 ${inputMode === "upload" ? "imagens" : "URLs válidas"}`
-                      : "Descreva as peças que você já tem"
-                    }
+                    Selecione exatamente 3 {inputMode === "upload" ? "imagens" : "URLs válidas"}
                   </p>
                 )}
               </motion.div>
