@@ -275,25 +275,18 @@ async function checkContentSafety(
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
-function buildSystemPrompt(fragranceBudget: FragranceBudget): string {
-  // Brazil Edition: 1 fragrance per tier, always in order: Acessível → Intermediário → Premium
-  const brazilianBrandsInfo = `
-MARCAS BRASILEIRAS DE PERFUMARIA (para badges 🇧🇷):
-
-ACESSÍVEL (até R$ 250) - badge: "🇧🇷 Acessível":
-- O Boticário (Malbec, Lily, Egeo, Floratta)
-- Natura (Ekos, Kaiak, Tododia, Luna)
-- Eudora (Siàge, Soul, Intense)
-- Avon Brasil, Granado, Phebo, Jequiti
-- Quem Disse, Berenice?, Avatim, Mahogany
-
-INTERMEDIÁRIA (R$ 251-650) - badge: "🇧🇷 Intermediária":
-- Oui Paris, L'Occitane au Brésil`;
+function buildSystemPrompt(fragranceBudget: FragranceBudget, fragranceDislikes?: string[], fragranceIntensity?: string): string {
+  // Fragrance preferences handling
+  const dislikesInstruction = fragranceDislikes && fragranceDislikes.length > 0
+    ? `\n⚠️ O USUÁRIO NÃO GOSTA DE: ${fragranceDislikes.join(", ")}. NÃO recomende fragrâncias com essas características.`
+    : "";
   
-  // All budgets now generate exactly 3 fragrances, one per tier
+  const intensityInstruction = fragranceIntensity
+    ? `\n⚠️ INTENSIDADE PREFERIDA: ${fragranceIntensity}. Priorize fragrâncias com essa projeção.`
+    : "";
+
   const fragranceInstructions = `
 FRAGRÂNCIAS - REGRAS OBRIGATÓRIAS:
-${brazilianBrandsInfo}
 
 COMPOSIÇÃO OBRIGATÓRIA (EXATAMENTE 3 fragrâncias):
 1. PRIMEIRO: 1 fragrância ACESSÍVEL (até R$ 250) - price_tier: "affordable"
@@ -302,42 +295,50 @@ COMPOSIÇÃO OBRIGATÓRIA (EXATAMENTE 3 fragrâncias):
 
 ⚠️ ORDEM FIXA: A ordem DEVE ser sempre Acessível → Intermediário → Premium no array.
 ⚠️ QUANTIDADE FIXA: Retorne EXATAMENTE 3 fragrâncias, uma por faixa.
+⚠️ USE NOMES REAIS de perfumes conhecidos e disponíveis no mercado.
+${dislikesInstruction}
+${intensityInstruction}
 
-REGRA DE MARCAS BRASILEIRAS:
+MARCAS BRASILEIRAS DE PERFUMARIA (para badges 🇧🇷):
+- ACESSÍVEL: O Boticário, Natura, Eudora, Granado, Phebo
+- INTERMEDIÁRIA: Oui Paris, L'Occitane au Brésil
+
+REGRA DE MARCAS BRASILEIRAS EM FRAGRÂNCIAS:
 - Inclua pelo menos 1 marca brasileira entre as 3 (com badge apropriado)
 - Marcas brasileiras Acessíveis: badge "🇧🇷 Acessível"
 - Marcas brasileiras Intermediárias: badge "🇧🇷 Intermediária"
 - Marcas internacionais: badge null
 
-EXEMPLOS POR FAIXA:
-- Acessível: Natura Ekos, O Boticário Malbec, Zara, CK One
-- Intermediário: Oui Paris, YSL Libre, Armani My Way, Carolina Herrera
-- Premium: Le Labo, Byredo, MFK, Tom Ford Private Blend, Creed
-
 Apresente como recomendações editoriais, não anúncios.`;
-
-  const brazilianBrandsCatalog = `
-MARCAS BRASILEIRAS PARA SUGESTÕES EDITORIAIS:
-Inclua marcas brasileiras de forma orgânica e integrada à curadoria, com o mesmo status editorial das marcas internacionais.
-Use de forma distribuída, não exaustiva. Tom sofisticado, minimalista, fashion-forward.
-Evite qualquer tom promocional ou funcional.
-
-FASHION & CLOTHING:
-- Farm Rio, Osklen, Animale, Lenny Niemeyer
-- Cia Marítima, Água de Coco, Salinas
-- Reinaldo Lourenço, Maria Filó, Isabela Capeto
-
-SHOES & ACCESSORIES:
-- Schutz, Arezzo, Melissa, Vicenza, Santa Lolla
-
-JEWELRY:
-- H.Stern, Vivara, Amsterdam Sauer, Carla Amorim
-
-REGRA: Nas sugestões de looks e commerce, inclua pelo menos 1-2 referências a marcas brasileiras quando apropriado ao estilo identificado.`;
 
   return `Você é um consultor de estilo pessoal de alto nível para o mercado brasileiro. Analisa referências visuais e gera leituras estéticas no tom de Vogue e Harper's Bazaar.
 
 Este é um serviço de ESTILO PESSOAL (não de marcas). Você analisa as referências visuais para entender a identidade estética da PESSOA.
+
+⚠️ REGRA CRÍTICA DE PRODUTOS (MVP SEM AFILIADOS):
+
+ROUPA E BELEZA = SEMPRE GENÉRICO:
+- NÃO cite marcas, lojas, sites ou produtos específicos em roupa, maquiagem ou skincare.
+- Escreva de forma descritiva: textura, material, acabamento, cor, forma e intenção.
+- Exemplos CORRETOS:
+  • "blazer de alfaiataria em lã fria, corte reto"
+  • "batom nude rosado de acabamento satin"
+  • "sandália de tiras finas em couro natural"
+  • "hidratante leve com brilho controlado"
+- Exemplos INCORRETOS (NÃO USE):
+  • "Blazer The Row" ❌
+  • "Batom MAC Ruby Woo" ❌
+  • "Sandália Schutz" ❌
+
+FRAGRÂNCIA = ÚNICA EXCEÇÃO:
+- Fragrâncias PODEM citar nomes reais de perfumes.
+- Limite de 3 fragrâncias (1 por faixa: acessível, intermediário, premium).
+
+NUNCA INCLUA:
+- Links de compra
+- "affiliate", "compre agora", "clique para comprar"
+- Preços específicos no texto (apenas approximate_price_brl no JSON)
+- Nomes de lojas ou sites
 
 REGRAS CRÍTICAS:
 1. Retorne APENAS JSON válido. Sem markdown. Sem explicações.
@@ -346,9 +347,6 @@ REGRAS CRÍTICAS:
 4. Todo texto em português brasileiro (pt-BR).
 5. Tom: Vogue/Harper's Bazaar — elegante, confiante, aspiracional, nunca didático.
 ${fragranceInstructions}
-
-
-${brazilianBrandsCatalog}
 
 Retorne este JSON EXATO:
 
@@ -361,7 +359,7 @@ Retorne este JSON EXATO:
     "contrast": "low|medium|high",
     "textures": ["3-4 texturas que definem o estilo"],
     "silhouettes": ["3-4 silhuetas características"],
-    "makeup_finish": "descrição do acabamento de maquiagem ideal",
+    "makeup_finish": "descrição do acabamento de maquiagem ideal (GENÉRICO, sem marcas)",
     "fragrance_family": "família olfativa predominante",
     "why_this": [
       "Razão 1 baseada nas referências",
@@ -375,42 +373,42 @@ Retorne este JSON EXATO:
     "looks": [
       {
         "title": "Look Dia",
-        "hero_piece": "peça principal do look (pode referenciar marca brasileira quando apropriado)",
-        "supporting": ["item de apoio 1", "item de apoio 2"],
-        "accessory": "acessório chave (pode referenciar marca brasileira: Schutz, Arezzo, H.Stern, etc.)",
+        "hero_piece": "peça principal GENÉRICA (ex: blazer oversized em linho cru)",
+        "supporting": ["item genérico 1", "item genérico 2"],
+        "accessory": "acessório genérico (ex: bolsa estruturada em couro tan)",
         "caption": "legenda editorial curta"
       },
       {
         "title": "Look Transição",
-        "hero_piece": "peça principal",
+        "hero_piece": "peça principal genérica",
         "supporting": ["item 1", "item 2"],
-        "accessory": "acessório",
+        "accessory": "acessório genérico",
         "caption": "legenda editorial"
       },
       {
         "title": "Look Noite",
-        "hero_piece": "peça principal",
+        "hero_piece": "peça principal genérica",
         "supporting": ["item 1", "item 2"],
-        "accessory": "acessório",
+        "accessory": "acessório genérico",
         "caption": "legenda editorial"
       }
     ],
     "makeup_day": {
-      "base": "recomendação de base/pele dia",
-      "cheeks": "bochechas dia",
-      "eyes": "olhos dia",
-      "lips": "lábios dia"
+      "base": "recomendação genérica de base/pele dia (ex: base leve com acabamento natural)",
+      "cheeks": "bochechas dia (ex: blush pêssego em creme)",
+      "eyes": "olhos dia (ex: máscara preta, sobrancelhas penteadas)",
+      "lips": "lábios dia (ex: lip oil rosado)"
     },
     "makeup_night": {
-      "base": "base/pele noite",
+      "base": "base/pele noite genérica",
       "cheeks": "bochechas noite",
       "eyes": "olhos noite",
       "lips": "lábios noite"
     },
     "fragrances": [
       { 
-        "name": "Perfume Acessível", 
-        "brand": "Marca",
+        "name": "Nome REAL do Perfume Acessível", 
+        "brand": "Marca Real",
         "badge": "🇧🇷 Acessível|null",
         "notes": "notas olfativas", 
         "price_tier": "affordable",
@@ -418,8 +416,8 @@ Retorne este JSON EXATO:
         "why_it_matches": "conexão com o estilo"
       },
       { 
-        "name": "Perfume Intermediário", 
-        "brand": "Marca",
+        "name": "Nome REAL do Perfume Intermediário", 
+        "brand": "Marca Real",
         "badge": "🇧🇷 Intermediária|null",
         "notes": "notas olfativas", 
         "price_tier": "mid",
@@ -427,8 +425,8 @@ Retorne este JSON EXATO:
         "why_it_matches": "conexão com o estilo"
       },
       { 
-        "name": "Perfume Premium", 
-        "brand": "Marca",
+        "name": "Nome REAL do Perfume Premium", 
+        "brand": "Marca Real",
         "badge": "null",
         "notes": "notas olfativas", 
         "price_tier": "premium",
@@ -439,27 +437,27 @@ Retorne este JSON EXATO:
     "footer_note": "nota de fechamento editorial elegante",
     "commerce": {
       "shortlist": [
-        { "category": "Hero", "item_name": "peça-chave (pode ser marca brasileira: Osklen, Farm Rio, Animale)", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
-        { "category": "Supporting", "item_name": "peça de apoio", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
-        { "category": "Accessory", "item_name": "acessório (pode ser marca brasileira: Schutz, Arezzo, H.Stern, Vivara)", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
-        { "category": "Beauty", "item_name": "item de beleza", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
-        { "category": "Scent", "item_name": "fragrância ou vela", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" }
+        { "category": "Hero", "item_name": "peça-chave GENÉRICA (ex: casaco longo de lã, corte reto)", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Supporting", "item_name": "peça de apoio GENÉRICA", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Accessory", "item_name": "acessório GENÉRICO (ex: bolsa estruturada em couro)", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Beauty", "item_name": "item de beleza GENÉRICO (ex: sérum iluminador com ácido hialurônico)", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" },
+        { "category": "Scent", "item_name": "fragrância (pode citar nome real) ou vela genérica", "price_lane": "Acessível|Intermediário|Premium", "rationale": "por que funciona" }
       ],
       "look_recipes": [
-        { "formula": "fórmula de look em uma linha (pode incluir referências brasileiras)" },
-        { "formula": "fórmula de look em uma linha (pode incluir referências brasileiras)" },
-        { "formula": "fórmula de look em uma linha (pode incluir referências brasileiras)" }
+        { "formula": "fórmula de look GENÉRICA (ex: blazer oversized + vestido midi + mocassim de couro)" },
+        { "formula": "fórmula de look GENÉRICA" },
+        { "formula": "fórmula de look GENÉRICA" }
       ],
       "search_terms": ["termo 1", "termo 2", "termo 3", "termo 4", "termo 5"]
     },
     "start_here": {
-      "anchor_piece": "uma peça âncora específica que define a direção (ex: blazer oversized em linho cru)",
-      "look_formula": "uma fórmula de look em uma linha (ex: midi + mocassim + bolsa estruturada)",
-      "finishing_touch": "um acabamento chave: sapato, acessório ou beleza (ex: batom terracota matte)"
+      "anchor_piece": "uma peça âncora GENÉRICA que define a direção (ex: blazer oversized em linho cru)",
+      "look_formula": "uma fórmula de look GENÉRICA (ex: midi + mocassim + bolsa estruturada)",
+      "finishing_touch": "um acabamento chave GENÉRICO: sapato, acessório ou beleza (ex: batom terracota matte)"
     },
     "refinements": {
       "start": {
-        "priorities": ["prioridade 1 para quem não sabe por onde começar", "prioridade 2", "prioridade 3"],
+        "priorities": ["prioridade 1 GENÉRICA para quem não sabe por onde começar", "prioridade 2", "prioridade 3"],
         "edit_rule": "regra simples em uma frase, sem hífen (ex: Repita a silhueta, troque a textura, mantenha a paleta)"
       },
       "chaos": {
@@ -489,26 +487,16 @@ REGRAS OBRIGATÓRIAS PARA start_here e refinements:
 - Frases sem hífen, usar vírgulas.
 - Não mencionar IA, análise ou algoritmo.
 
-INSTRUÇÕES:
+INSTRUÇÕES FINAIS:
 - aesthetic_primary/secondary: Use nomes evocativos em português
 - confidence: 0.85 padrão, 0.45-0.65 se imagens são muito abstratas
-- looks: Cada look deve ter peças específicas, não genéricas. Inclua marcas brasileiras naturalmente quando apropriado.
-  - Exemplos: "Vestido fluido Farm Rio", "Sandália Schutz dourada", "Brincos H.Stern"
-- makeup: Produtos e técnicas específicas, não vagas
-- fragrances: Siga as regras de equilíbrio acima. Use perfumes REAIS. Inclua o campo "badge" para marcas brasileiras.
-  - Formato de saída: "Mahogany Intense 🇧🇷 Acessível - Sofisticação brasileira acessível. Notas: Âmbar, baunilha, sândalo"
+- looks: Cada look deve ter peças GENÉRICAS e específicas, nunca citar marcas
+- makeup: Técnicas e acabamentos específicos, NUNCA marcas
+- fragrances: Use perfumes REAIS. Única categoria onde marcas são permitidas.
 - why_this: Justificativas baseadas nas cores, texturas e mood das referências
 
-COMMERCE (O Edit):
-- shortlist: 5 itens com categoria, faixa de preço e justificativa curta
-  - INCLUA pelo menos 1-2 marcas brasileiras de forma natural (não forçada)
-  - Exemplos: "Sandália rasteira Arezzo", "Bolsa estruturada Schutz", "Camisa linho Osklen"
-- look_recipes: 3 fórmulas de outfit em uma linha (pode incluir marcas brasileiras)
-  - Exemplo: "Vestido midi Animale + sandália Schutz + brincos Vivara"
-- search_terms: 5-8 termos de busca que refletem paleta + texturas + silhuetas do perfil
-
 Tom: Premium, confiante, nunca arrogante. Editorial de moda, não consultoria genérica.
-Marcas brasileiras devem aparecer com o mesmo status editorial das internacionais.`;
+Para roupa e beleza, não use marcas. Escreva sempre de forma genérica e descritiva.`;
 }
 
 function normalizeModelContent(content: any): string {
@@ -590,18 +578,131 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
   return { valid: missing.length === 0, missing };
 }
 
+// ============================================================================
+// BRAND SANITIZATION (MVP - no affiliate brands in clothing/beauty)
+// ============================================================================
+
+const KNOWN_FASHION_BRANDS = [
+  // International luxury
+  "the row", "hermes", "hermès", "chanel", "dior", "prada", "gucci", "louis vuitton",
+  "bottega veneta", "celine", "céline", "saint laurent", "ysl", "balenciaga", "loewe",
+  "valentino", "givenchy", "fendi", "burberry", "alexander mcqueen", "tom ford",
+  "max mara", "loro piana", "brunello cucinelli", "zegna", "ermenegildo zegna",
+  // Contemporary
+  "cos", "arket", "toteme", "totême", "acne studios", "apc", "a.p.c.", "theory",
+  "vince", "reiss", "sandro", "maje", "ba&sh", "iro", "isabel marant", "ganni",
+  "reformation", "realisation par", "réalisation par", "rouje", "sézane",
+  // Fast fashion
+  "zara", "h&m", "mango", "massimo dutti", "uniqlo", "& other stories",
+  // Brazilian fashion
+  "farm rio", "farm", "osklen", "animale", "lenny niemeyer", "cia marítima",
+  "água de coco", "salinas", "reinaldo lourenço", "maria filó", "isabela capeto",
+  // Shoes/Accessories
+  "schutz", "arezzo", "melissa", "vicenza", "santa lolla", "birkenstock",
+  "new balance", "nike", "adidas", "converse", "vans", "golden goose",
+  // Jewelry
+  "h.stern", "vivara", "amsterdam sauer", "carla amorim", "cartier", "tiffany",
+  "bulgari", "bvlgari", "van cleef", "chopard", "boucheron", "piaget"
+];
+
+const KNOWN_BEAUTY_BRANDS = [
+  // Luxury beauty
+  "mac", "m.a.c", "nars", "charlotte tilbury", "pat mcgrath", "tom ford beauty",
+  "chanel beauty", "dior beauty", "ysl beauty", "armani beauty", "guerlain",
+  "la mer", "la prairie", "sisley", "sk-ii", "drunk elephant", "tatcha",
+  // Mid-range
+  "fenty", "fenty beauty", "rare beauty", "haus labs", "kosas", "merit",
+  "tower 28", "ilia", "milk makeup", "glossier", "hourglass", "laura mercier",
+  "bobbi brown", "estée lauder", "clinique", "origins", "benefit", "too faced",
+  // Drugstore
+  "maybelline", "l'oreal", "revlon", "covergirl", "e.l.f.", "nyx", "milani",
+  "wet n wild", "essence", "catrice", "colourpop",
+  // Brazilian beauty
+  "natura", "o boticário", "eudora", "quem disse berenice", "granado", "phebo",
+  "avon brasil", "jequiti", "avatim", "mahogany"
+];
+
+function containsBrandReference(text: string, brandList: string[]): boolean {
+  const lowerText = text.toLowerCase();
+  return brandList.some(brand => {
+    const pattern = new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    return pattern.test(lowerText);
+  });
+}
+
+function sanitizeClothingAndBeauty(obj: any, debugId: string): any {
+  const result = JSON.parse(JSON.stringify(obj)); // Deep clone
+  let sanitized = false;
+
+  // Check and log if brands found in looks
+  if (result.editorial?.looks) {
+    for (const look of result.editorial.looks) {
+      if (containsBrandReference(look.hero_piece || "", KNOWN_FASHION_BRANDS)) {
+        console.log(`[${debugId}] Brand found in hero_piece: ${look.hero_piece}`);
+        sanitized = true;
+      }
+      if (look.supporting) {
+        for (const item of look.supporting) {
+          if (containsBrandReference(item, KNOWN_FASHION_BRANDS)) {
+            console.log(`[${debugId}] Brand found in supporting: ${item}`);
+            sanitized = true;
+          }
+        }
+      }
+      if (containsBrandReference(look.accessory || "", KNOWN_FASHION_BRANDS)) {
+        console.log(`[${debugId}] Brand found in accessory: ${look.accessory}`);
+        sanitized = true;
+      }
+    }
+  }
+
+  // Check makeup
+  const makeupFields = ['makeup_day', 'makeup_night'];
+  for (const field of makeupFields) {
+    if (result.editorial?.[field]) {
+      for (const [key, value] of Object.entries(result.editorial[field])) {
+        if (typeof value === 'string' && containsBrandReference(value, KNOWN_BEAUTY_BRANDS)) {
+          console.log(`[${debugId}] Beauty brand found in ${field}.${key}: ${value}`);
+          sanitized = true;
+        }
+      }
+    }
+  }
+
+  // Check commerce shortlist (except Scent category)
+  if (result.editorial?.commerce?.shortlist) {
+    for (const item of result.editorial.commerce.shortlist) {
+      if (item.category !== "Scent") {
+        const allBrands = [...KNOWN_FASHION_BRANDS, ...KNOWN_BEAUTY_BRANDS];
+        if (containsBrandReference(item.item_name || "", allBrands)) {
+          console.log(`[${debugId}] Brand found in shortlist: ${item.item_name}`);
+          sanitized = true;
+        }
+      }
+    }
+  }
+
+  if (sanitized) {
+    console.log(`[${debugId}] WARNING: Brands detected in clothing/beauty. AI should regenerate with generic descriptions.`);
+  }
+
+  return result;
+}
+
 async function callAI(
   images: string[],
   isUrls: boolean,
   apiKey: string,
   debugId: string,
-  fragranceBudget: FragranceBudget
+  fragranceBudget: FragranceBudget,
+  fragranceDislikes?: string[],
+  fragranceIntensity?: string
 ): Promise<{ success: true; data: any } | { success: false; error: string; message: string }> {
   const imageContent = isUrls
     ? images.map((url: string) => ({ type: "image_url", image_url: { url: url.trim() } }))
     : images.map((base64: string) => ({ type: "image_url", image_url: { url: base64 } }));
 
-  const systemPrompt = buildSystemPrompt(fragranceBudget);
+  const systemPrompt = buildSystemPrompt(fragranceBudget, fragranceDislikes, fragranceIntensity);
 
   const userPrompt = "Analise estas 3 referências visuais e gere uma leitura estética pessoal completa. Retorne APENAS o JSON.";
 
@@ -710,6 +811,10 @@ serve(async (req) => {
     }
 
     const { images, isUrls, fragranceBudget } = validation;
+    
+    // Extract fragrance preferences from body
+    const fragranceDislikes: string[] = body.fragranceDislikes || [];
+    const fragranceIntensity: string | undefined = body.fragranceIntensity;
 
     // Get API key
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -731,21 +836,24 @@ serve(async (req) => {
     }
 
     // Generate personal aesthetic reading with retry
-    console.log(`[${debugId}] Fragrance budget: ${fragranceBudget}`);
-    let result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
+    console.log(`[${debugId}] Fragrance budget: ${fragranceBudget}, dislikes: ${fragranceDislikes.join(',')}, intensity: ${fragranceIntensity}`);
+    let result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget, fragranceDislikes, fragranceIntensity);
     
     if (!result.success) {
       console.log(`[${debugId}] First attempt failed, retrying...`);
-      result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget);
+      result = await callAI(images, isUrls, apiKey, debugId, fragranceBudget, fragranceDislikes, fragranceIntensity);
     }
 
     if (!result.success) {
       return errorResponse(result.error, result.message, debugId);
     }
 
+    // Sanitize any brand references in clothing/beauty (log warnings)
+    const sanitizedData = sanitizeClothingAndBeauty(result.data, debugId);
+
     console.log(`[${debugId}] Personal aesthetic reading generated successfully`);
 
-    return new Response(JSON.stringify(result.data), {
+    return new Response(JSON.stringify(sanitizedData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

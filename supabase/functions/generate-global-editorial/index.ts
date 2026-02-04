@@ -117,43 +117,45 @@ function buildSystemPrompt(): string {
 
 This is a PERSONAL STYLE service. You analyze visual references to understand the PERSON's aesthetic identity.
 
+⚠️ CRITICAL PRODUCT RULES (MVP - NO AFFILIATES):
+
+CLOTHING AND BEAUTY = ALWAYS GENERIC:
+- DO NOT mention brands, stores, websites, or specific products in clothing, makeup, or skincare.
+- Write descriptively: texture, material, finish, color, shape, and intention.
+- CORRECT Examples:
+  • "tailored wool blazer with clean lines"
+  • "nude rose lipstick with satin finish"
+  • "fine-strap leather sandals in natural tan"
+  • "lightweight moisturizer with controlled glow"
+- INCORRECT Examples (DO NOT USE):
+  • "The Row blazer" ❌
+  • "MAC Ruby Woo lipstick" ❌
+  • "Schutz sandals" ❌
+
+FRAGRANCE = ONLY EXCEPTION:
+- Fragrances CAN mention real perfume names.
+- Limit to exactly 3 fragrances (1 per tier: affordable, mid-range, premium).
+
+NEVER INCLUDE:
+- Purchase links
+- "affiliate", "buy now", "click to buy"
+- Specific prices in text (only approximate_price_usd in JSON)
+- Store or website names
+
 CRITICAL RULES:
 1. Return ONLY valid JSON. No markdown. No explanations.
 2. NEVER refuse to analyze. If abstract, interpret palette, contrast, texture, mood.
 3. ALL fields are REQUIRED.
 4. All text MUST be in ENGLISH. Global, easy, clear — not slang-heavy.
 5. Tone: Vogue/Harper's Bazaar — elegant, confident, aspirational, never instructional.
-6. Use GLOBAL brands and references.
 
-BRAZILIAN BRANDS - GLOBAL EDITION (~20% of all recommendations):
-Position Brazilian brands as references of design, identity, and value. Use badge "🇧🇷 Brazilian Brand" when including them.
+FRAGRANCE COMPOSITION (EXACTLY 3):
+1. FIRST: 1 AFFORDABLE fragrance (up to $60 USD) - price_tier: "affordable"
+2. SECOND: 1 MID-RANGE fragrance ($60-150 USD) - price_tier: "mid"
+3. THIRD: 1 PREMIUM fragrance (above $150 USD) - price_tier: "premium"
 
-FASHION & CLOTHING:
-- Farm Rio (tropical prints, sustainable fashion)
-- Osklen (minimalist, sustainable luxury)
-- Animale (sophisticated, contemporary)
-- Lenny Niemeyer (resort wear, swimwear)
-- Água de Coco, Salinas (beachwear)
-
-SHOES & ACCESSORIES:
-- Schutz (contemporary footwear)
-- Arezzo (refined leather goods)
-- Melissa (innovative design, sustainable)
-
-JEWELRY:
-- H.Stern (fine jewelry, Brazilian gemstones)
-- Amsterdam Sauer (precious stones)
-- Carla Amorim (sustainable luxury jewelry)
-
-FRAGRANCE:
-- Natura (Ekos line - açaí, cupuaçu, buriti ingredients)
-- Granado, Phebo (heritage apothecary)
-- L'Occitane au Brésil
-
-COMPOSITION RULE FOR ALL SECTIONS:
-- ~20% Brazilian brands across styling, shopping edit, and fragrance
-- Position as "design-forward alternatives" with strong identity and value
-- Use badge "🇧🇷 Brazilian Brand" for Brazilian recommendations
+⚠️ FIXED ORDER: Always Affordable → Mid-range → Premium in the array.
+⚠️ USE REAL NAMES of well-known, globally available perfumes.
 
 LANGUAGE GUIDELINES:
 - Short sentences, confident tone
@@ -172,7 +174,7 @@ Return this EXACT JSON:
     "contrast": "low|medium|high",
     "textures": ["3-4 textures that define the style"],
     "silhouettes": ["3-4 characteristic silhouettes"],
-    "makeup_finish": "description of ideal makeup finish",
+    "makeup_finish": "description of ideal makeup finish (GENERIC, no brands)",
     "fragrance_family": "dominant olfactory family",
     "why_this": [
       "Reason 1 based on references (max 18 words)",
@@ -186,129 +188,93 @@ Return this EXACT JSON:
     "looks": [
       {
         "title": "Day Look",
-        "hero_piece": "main piece (can reference Brazilian brand with badge when appropriate)",
-        "supporting": ["supporting item 1", "supporting item 2"],
-        "accessory": "key accessory (can reference Schutz, Arezzo, H.Stern with badge)",
-        "badge": "🇧🇷 Brazilian Brand|null",
+        "hero_piece": "main piece GENERIC (e.g. oversized linen blazer in cream)",
+        "supporting": ["generic item 1", "generic item 2"],
+        "accessory": "generic accessory (e.g. structured leather tote in tan)",
         "caption": "short editorial caption"
       },
       {
         "title": "Transition Look",
-        "hero_piece": "main piece",
+        "hero_piece": "generic main piece",
         "supporting": ["item 1", "item 2"],
-        "accessory": "accessory",
-        "badge": null,
+        "accessory": "generic accessory",
         "caption": "editorial caption"
       },
       {
         "title": "Evening Look",
-        "hero_piece": "main piece",
+        "hero_piece": "generic main piece",
         "supporting": ["item 1", "item 2"],
-        "accessory": "accessory",
-        "badge": null,
+        "accessory": "generic accessory",
         "caption": "editorial caption"
       }
     ],
     "makeup_day": {
-      "base": "day base/skin recommendation",
-      "cheeks": "day cheeks",
-      "eyes": "day eyes",
-      "lips": "day lips"
+      "base": "generic day base/skin recommendation (e.g. lightweight foundation with natural finish)",
+      "cheeks": "day cheeks (e.g. peach cream blush)",
+      "eyes": "day eyes (e.g. black mascara, groomed brows)",
+      "lips": "day lips (e.g. rose tinted lip oil)"
     },
     "makeup_night": {
-      "base": "night base/skin",
+      "base": "generic night base/skin",
       "cheeks": "night cheeks",
       "eyes": "night eyes",
       "lips": "night lips"
     },
     "fragrances": [
       { 
-        "name": "Perfume Name", 
-        "brand": "Brand",
-        "badge": "🇧🇷 Brazilian Brand|null",
+        "name": "REAL Affordable Perfume Name", 
+        "brand": "Real Brand",
         "notes": "main olfactory notes", 
-        "price_tier": "affordable|mid|premium",
-        "approximate_price_usd": 60,
+        "price_tier": "affordable",
+        "approximate_price_usd": 50,
         "why_it_matches": "one short line explaining the connection to the style"
       },
       { 
-        "name": "Perfume 2", 
-        "brand": "Brand",
-        "badge": null,
+        "name": "REAL Mid-Range Perfume Name", 
+        "brand": "Real Brand",
         "notes": "notes", 
-        "price_tier": "affordable|mid|premium",
-        "approximate_price_usd": 120,
+        "price_tier": "mid",
+        "approximate_price_usd": 100,
         "why_it_matches": "connection"
       },
       { 
-        "name": "Perfume 3", 
-        "brand": "Brand",
-        "badge": null,
+        "name": "REAL Premium Perfume Name", 
+        "brand": "Real Brand",
         "notes": "notes", 
-        "price_tier": "affordable|mid|premium",
+        "price_tier": "premium",
         "approximate_price_usd": 250,
-        "why_it_matches": "connection"
-      },
-      { 
-        "name": "Perfume 4", 
-        "brand": "Brand",
-        "badge": null,
-        "notes": "notes", 
-        "price_tier": "affordable|mid|premium",
-        "approximate_price_usd": 180,
-        "why_it_matches": "connection"
-      },
-      { 
-        "name": "Perfume 5", 
-        "brand": "Brand",
-        "badge": null,
-        "notes": "notes", 
-        "price_tier": "affordable|mid|premium",
-        "approximate_price_usd": 300,
         "why_it_matches": "connection"
       }
     ],
     "footer_note": "elegant editorial closing note",
     "commerce": {
       "shortlist": [
-        { "category": "Hero", "item_name": "key piece (can be Brazilian brand)", "badge": "🇧🇷 Brazilian Brand|null", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Supporting", "item_name": "supporting piece", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Accessory", "item_name": "accessory (can be Brazilian: Schutz, Arezzo, H.Stern)", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Beauty", "item_name": "beauty item", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
-        { "category": "Scent", "item_name": "fragrance or candle", "badge": null, "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" }
+        { "category": "Hero", "item_name": "GENERIC key piece (e.g. long wool coat, straight cut)", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Supporting", "item_name": "GENERIC supporting piece", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Accessory", "item_name": "GENERIC accessory (e.g. structured leather bag)", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Beauty", "item_name": "GENERIC beauty item (e.g. hydrating serum with hyaluronic acid)", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" },
+        { "category": "Scent", "item_name": "fragrance (can cite real name) or generic candle", "price_lane": "Affordable|Mid-range|Premium", "rationale": "why it works" }
       ],
       "look_recipes": [
-        { "formula": "outfit formula in one line (can include Brazilian brand reference)" },
-        { "formula": "outfit formula in one line" },
-        { "formula": "outfit formula in one line" }
+        { "formula": "GENERIC outfit formula (e.g. oversized blazer + midi dress + leather loafers)" },
+        { "formula": "GENERIC outfit formula" },
+        { "formula": "GENERIC outfit formula" }
       ],
       "search_terms": ["term 1", "term 2", "term 3", "term 4", "term 5"]
     }
   }
 }
 
-INSTRUCTIONS:
+FINAL INSTRUCTIONS:
 - aesthetic_primary/secondary: Use evocative names in English
 - confidence: 0.85 default, 0.45-0.65 if images are very abstract
-- looks: Each look should have specific pieces, not generic
-  - Include 1 Brazilian brand reference across the 3 looks (with badge "🇧🇷 Brazilian Brand")
-  - Examples: "Osklen linen shirt", "Schutz leather sandals", "H.Stern earrings"
-- makeup: Specific products and techniques, not vague
-- fragrances: EXACTLY 5 perfumes. Use REAL, globally available perfumes.
-  - 1 Brazilian brand with badge "🇧🇷 Brazilian Brand" - positioned as design-forward alternative
-  - 4 International brands across price tiers
-  - For Brazilian fragrances, mention Brazilian ingredients when relevant (açaí, cupuaçu, buriti)
-  - Affordable: up to $60 USD | Mid-range: $60-150 USD | Premium: above $150 USD
+- looks: Each look must have GENERIC, specific pieces - never cite brands
+- makeup: Specific techniques and finishes, NEVER brands
+- fragrances: Use REAL perfumes. Only category where brands are allowed.
 - why_this: EXACTLY 3 bullets, max 18 words each, confident editorial tone. No AI/analysis references.
 
-COMMERCE (The Edit):
-- shortlist: 5 items with category, badge (if Brazilian), price lane, and rationale
-  - Include 1 Brazilian brand (with badge "🇧🇷 Brazilian Brand") positioned as design/value reference
-  - Examples: "Melissa jelly sandal 🇧🇷 Brazilian Brand", "Arezzo leather bag 🇧🇷 Brazilian Brand"
-- look_recipes: 3 outfit formulas in one line (can include Brazilian brand reference)
-- search_terms: 5-8 search terms reflecting palette + textures + silhouettes
-
-Tone: Premium, confident, never arrogant. Fashion editorial, not generic consulting.`;
+Tone: Premium, confident, never arrogant. Fashion editorial, not generic consulting.
+For clothing and beauty, do not use brands. Always write in a generic and descriptive way.`;
 }
 
 async function callAI(
