@@ -1,5 +1,7 @@
 // B2C Personal Aesthetic Identity Types (people-focused)
 
+import { CapsuleResult } from "./capsule-types";
+
 export interface AestheticProfile {
   aesthetic_primary: string;
   aesthetic_secondary: string;
@@ -66,6 +68,7 @@ export interface PersonalEditorial {
   fragrances: FragranceSuggestion[];
   footer_note: string;
   commerce?: EditorialCommerce;
+  capsule?: CapsuleResult;
 }
 
 export interface EditorialResult {
