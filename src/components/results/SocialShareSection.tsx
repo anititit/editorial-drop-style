@@ -39,7 +39,12 @@ export function SocialShareSection({ profileName, headline, resultId }: SocialSh
   
   const handleWhatsAppShare = () => {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`;
-    window.open(whatsappUrl, "_blank");
+    // Use link navigation instead of window.open to avoid iframe blocking
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.click();
   };
   
   const handleNativeShare = async () => {
