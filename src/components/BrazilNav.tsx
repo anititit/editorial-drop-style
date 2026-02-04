@@ -48,11 +48,6 @@ const BrazilNav = ({ showEditionLabel = true }: BrazilNavProps) => {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          {showEditionLabel && (
-            <span className="text-[10px] tracking-[0.3em] text-muted-foreground/50 uppercase">
-              Brasil
-            </span>
-          )}
           <span className="text-[10px] tracking-[0.15em] text-muted-foreground/40 uppercase">
             Global em breve
           </span>
