@@ -1,11 +1,21 @@
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Check, ShoppingBag, Sparkles } from "lucide-react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import BrazilNav from "@/components/BrazilNav";
 import GlobalNav from "@/components/GlobalNav";
 import { Footer } from "@/components/Footer";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { getResultById } from "@/lib/storage";
+import { AestheticProfile, PersonalEditorial, AESTHETIC_NAMES } from "@/lib/types";
+
+interface CapsuleItem {
+  id: string;
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+}
 
 interface CapsuleCategory {
   id: string;
@@ -13,61 +23,207 @@ interface CapsuleCategory {
   nameEn: string;
   description: string;
   descriptionEn: string;
-  items: number;
   icon: string;
+  items: CapsuleItem[];
 }
 
-const CAPSULE_CATEGORIES: CapsuleCategory[] = [
-  {
-    id: "essentials",
-    name: "Essenciais",
-    nameEn: "Essentials",
-    description: "Peças atemporais que formam a base do seu guarda-roupa",
-    descriptionEn: "Timeless pieces that form your wardrobe foundation",
-    items: 5,
-    icon: "◯"
-  },
-  {
-    id: "statement",
-    name: "Peças Statement",
-    nameEn: "Statement Pieces",
-    description: "Itens de destaque que expressam sua identidade",
-    descriptionEn: "Standout items that express your identity",
-    items: 3,
-    icon: "◆"
-  },
-  {
-    id: "accessories",
-    name: "Acessórios",
-    nameEn: "Accessories",
-    description: "Detalhes que completam e elevam cada look",
-    descriptionEn: "Details that complete and elevate every look",
-    items: 4,
-    icon: "✧"
-  },
-  {
-    id: "shoes",
-    name: "Calçados",
-    nameEn: "Footwear",
-    description: "Base sólida para toda composição",
-    descriptionEn: "Solid foundation for every composition",
-    items: 3,
-    icon: "▽"
-  },
-];
+// Generate personalized capsule items based on profile
+function generatePersonalizedCapsule(
+  profile: AestheticProfile | null,
+  editorial: PersonalEditorial | null,
+  isEnglish: boolean
+): CapsuleCategory[] {
+  const textures = profile?.textures || ["linho", "algodão", "couro"];
+  const silhouettes = profile?.silhouettes || ["oversized", "midi", "estruturado"];
+  const aestheticPrimary = profile?.aesthetic_primary || "Minimalista Chique";
+  const contrast = profile?.contrast || "medium";
+  
+  // Get hero pieces from looks
+  const heroPieces = editorial?.looks?.map(look => look.hero_piece) || [];
+  const accessories = editorial?.looks?.map(look => look.accessory) || [];
+  
+  // Commerce items if available
+  const shortlistItems = editorial?.commerce?.shortlist || [];
+  
+  return [
+    {
+      id: "essentials",
+      name: "Essenciais",
+      nameEn: "Essentials",
+      description: `Peças atemporais em ${textures.slice(0, 2).join(" e ")}`,
+      descriptionEn: `Timeless pieces in ${textures.slice(0, 2).join(" and ")}`,
+      icon: "◯",
+      items: [
+        {
+          id: "essential-1",
+          name: shortlistItems.find(i => i.category === "Hero")?.item_name || `Blazer em ${textures[0] || "linho"}`,
+          nameEn: shortlistItems.find(i => i.category === "Hero")?.item_name || `Blazer in ${textures[0] || "linen"}`,
+          description: "Peça-âncora do guarda-roupa",
+          descriptionEn: "Wardrobe anchor piece"
+        },
+        {
+          id: "essential-2",
+          name: heroPieces[0] || `Top em ${textures[1] || "algodão orgânico"}`,
+          nameEn: heroPieces[0] || `Top in ${textures[1] || "organic cotton"}`,
+          description: "Base versátil para composições",
+          descriptionEn: "Versatile base for compositions"
+        },
+        {
+          id: "essential-3",
+          name: `Calça ${silhouettes[0] || "wide leg"} neutra`,
+          nameEn: `Neutral ${silhouettes[0] || "wide leg"} pants`,
+          description: "Silhueta que define seu estilo",
+          descriptionEn: "Silhouette that defines your style"
+        },
+        {
+          id: "essential-4",
+          name: shortlistItems.find(i => i.category === "Supporting")?.item_name || "Camisa clássica em tom neutro",
+          nameEn: shortlistItems.find(i => i.category === "Supporting")?.item_name || "Classic shirt in neutral tone",
+          description: "Elegância atemporal",
+          descriptionEn: "Timeless elegance"
+        },
+        {
+          id: "essential-5",
+          name: `Tricot texturizado em ${textures[2] || "cashmere"}`,
+          nameEn: `Textured knit in ${textures[2] || "cashmere"}`,
+          description: "Conforto sofisticado",
+          descriptionEn: "Sophisticated comfort"
+        }
+      ]
+    },
+    {
+      id: "statement",
+      name: "Peças Statement",
+      nameEn: "Statement Pieces",
+      description: `Itens que expressam ${aestheticPrimary}`,
+      descriptionEn: `Items that express ${AESTHETIC_NAMES[aestheticPrimary] || aestheticPrimary}`,
+      icon: "◆",
+      items: [
+        {
+          id: "statement-1",
+          name: heroPieces[2] || `Vestido ${silhouettes[1] || "midi"} em cor statement`,
+          nameEn: heroPieces[2] || `${silhouettes[1] || "Midi"} dress in statement color`,
+          description: "Presença imediata",
+          descriptionEn: "Immediate presence"
+        },
+        {
+          id: "statement-2",
+          name: `Conjunto de alfaiataria ${contrast === "high" ? "contrastante" : "tonal"}`,
+          nameEn: `${contrast === "high" ? "Contrasting" : "Tonal"} tailored set`,
+          description: "Sofisticação com personalidade",
+          descriptionEn: "Sophistication with personality"
+        },
+        {
+          id: "statement-3",
+          name: heroPieces[1] || "Peça de transição com detalhe especial",
+          nameEn: heroPieces[1] || "Transition piece with special detail",
+          description: "Do dia à noite sem esforço",
+          descriptionEn: "Day to night effortlessly"
+        }
+      ]
+    },
+    {
+      id: "accessories",
+      name: "Acessórios",
+      nameEn: "Accessories",
+      description: "Detalhes que elevam cada look",
+      descriptionEn: "Details that elevate every look",
+      icon: "✧",
+      items: [
+        {
+          id: "acc-1",
+          name: accessories[0] || shortlistItems.find(i => i.category === "Wildcard")?.item_name || "Bolsa estruturada em couro",
+          nameEn: accessories[0] || shortlistItems.find(i => i.category === "Wildcard")?.item_name || "Structured leather bag",
+          description: "Investimento atemporal",
+          descriptionEn: "Timeless investment"
+        },
+        {
+          id: "acc-2",
+          name: accessories[2] || "Joias minimalistas em ouro",
+          nameEn: accessories[2] || "Minimalist gold jewelry",
+          description: "Toques de luz",
+          descriptionEn: "Touches of light"
+        },
+        {
+          id: "acc-3",
+          name: "Cinto de couro em tom neutro",
+          nameEn: "Leather belt in neutral tone",
+          description: "Define a silhueta",
+          descriptionEn: "Defines the silhouette"
+        },
+        {
+          id: "acc-4",
+          name: accessories[1] || "Lenço de seda estampado",
+          nameEn: accessories[1] || "Printed silk scarf",
+          description: "Versatilidade criativa",
+          descriptionEn: "Creative versatility"
+        }
+      ]
+    },
+    {
+      id: "shoes",
+      name: "Calçados",
+      nameEn: "Footwear",
+      description: "Base sólida para toda composição",
+      descriptionEn: "Solid foundation for every composition",
+      icon: "▽",
+      items: [
+        {
+          id: "shoe-1",
+          name: "Tênis minimalista branco ou neutro",
+          nameEn: "Minimalist white or neutral sneaker",
+          description: "Elegância casual",
+          descriptionEn: "Casual elegance"
+        },
+        {
+          id: "shoe-2",
+          name: `Sandália ${contrast === "low" ? "discreta" : "statement"}`,
+          nameEn: `${contrast === "low" ? "Understated" : "Statement"} sandal`,
+          description: "Leveza sofisticada",
+          descriptionEn: "Sophisticated lightness"
+        },
+        {
+          id: "shoe-3",
+          name: "Bota de cano médio em couro",
+          nameEn: "Mid-calf leather boot",
+          description: "Versatilidade em estações",
+          descriptionEn: "Seasonal versatility"
+        }
+      ]
+    }
+  ];
+}
 
 const BuildCapsulePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isGlobal = location.pathname.startsWith("/global");
+  const resultId = searchParams.get("from");
+  
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   
-  const toggleItem = (categoryId: string, index: number) => {
-    const key = `${categoryId}-${index}`;
-    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+  // Load user's profile data
+  const savedResult = resultId ? getResultById(resultId) : null;
+  const profile = savedResult?.result?.profile || null;
+  const editorial = savedResult?.result?.editorial || null;
+  
+  // Get aesthetic name for display
+  const aestheticName = profile?.aesthetic_primary 
+    ? (AESTHETIC_NAMES[profile.aesthetic_primary] || profile.aesthetic_primary)
+    : null;
+  
+  // Generate personalized capsule
+  const capsuleCategories = useMemo(() => 
+    generatePersonalizedCapsule(profile, editorial, isGlobal),
+    [profile, editorial, isGlobal]
+  );
+  
+  const toggleItem = (itemId: string) => {
+    setCheckedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
   };
 
-  const totalItems = CAPSULE_CATEGORIES.reduce((acc, cat) => acc + cat.items, 0);
+  const totalItems = capsuleCategories.reduce((acc, cat) => acc + cat.items.length, 0);
   const checkedCount = Object.values(checkedItems).filter(Boolean).length;
   const progress = Math.round((checkedCount / totalItems) * 100);
 
@@ -104,12 +260,39 @@ const BuildCapsulePage = () => {
             {isGlobal ? "Build Your Capsule" : "Construa Seu Capsule"}
           </h1>
           
+          {/* Personalized subtitle based on profile */}
+          {aestheticName && (
+            <p className="text-sm text-muted-foreground">
+              {isGlobal 
+                ? `Curated for your ${aestheticName} aesthetic`
+                : `Curado para sua estética ${aestheticName}`
+              }
+            </p>
+          )}
+          
           <p className="editorial-subhead text-lg text-muted-foreground max-w-lg mx-auto">
             {isGlobal 
               ? "Transform your aesthetic profile into a curated, intentional wardrobe. Less noise, more direction."
               : "Transforme seu perfil estético em um guarda-roupa curado e intencional. Menos ruído, mais direção."
             }
           </p>
+
+          {/* Palette display if available */}
+          {profile?.palette_hex && profile.palette_hex.length > 0 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <span className="text-xs text-muted-foreground mr-2">
+                {isGlobal ? "Your palette:" : "Sua paleta:"}
+              </span>
+              {profile.palette_hex.slice(0, 5).map((color, i) => (
+                <div 
+                  key={i}
+                  className="w-6 h-6 rounded-full shadow-sm"
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="editorial-divider" />
         </motion.header>
@@ -142,7 +325,7 @@ const BuildCapsulePage = () => {
 
         {/* Categories */}
         <div className="space-y-12 max-w-2xl mx-auto">
-          {CAPSULE_CATEGORIES.map((category, catIndex) => (
+          {capsuleCategories.map((category, catIndex) => (
             <motion.section
               key={category.id}
               initial={{ opacity: 0, y: 20 }}
@@ -162,43 +345,44 @@ const BuildCapsulePage = () => {
                   </p>
                 </div>
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  {category.items} {isGlobal ? "items" : "itens"}
+                  {category.items.length} {isGlobal ? "items" : "itens"}
                 </span>
               </div>
 
               {/* Checklist */}
               <div className="space-y-2 pl-8">
-                {Array.from({ length: category.items }).map((_, index) => {
-                  const key = `${category.id}-${index}`;
-                  const isChecked = checkedItems[key];
+                {category.items.map((item) => {
+                  const isChecked = checkedItems[item.id];
                   
                   return (
                     <button
-                      key={key}
-                      onClick={() => toggleItem(category.id, index)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                      key={item.id}
+                      onClick={() => toggleItem(item.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
                         isChecked 
                           ? "border-foreground/30 bg-muted/50" 
                           : "border-border/50 hover:border-border"
                       }`}
                     >
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                         isChecked 
                           ? "border-foreground bg-foreground" 
                           : "border-muted-foreground/30"
                       }`}>
                         {isChecked && <Check className="w-3 h-3 text-background" />}
                       </div>
-                      <span className={`text-sm flex-1 text-left ${
-                        isChecked ? "line-through text-muted-foreground" : ""
-                      }`}>
-                        {isGlobal 
-                          ? `${category.nameEn} item ${index + 1}`
-                          : `${category.name} item ${index + 1}`
-                        }
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${
+                          isChecked ? "line-through text-muted-foreground" : ""
+                        }`}>
+                          {isGlobal ? item.nameEn : item.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {isGlobal ? item.descriptionEn : item.description}
+                        </p>
+                      </div>
                       {isChecked && (
-                        <Sparkles className="w-4 h-4 text-muted-foreground" />
+                        <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       )}
                     </button>
                   );
@@ -208,11 +392,36 @@ const BuildCapsulePage = () => {
           ))}
         </div>
 
+        {/* Search Terms Section */}
+        {editorial?.commerce?.search_terms && editorial.commerce.search_terms.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-12 max-w-2xl mx-auto"
+          >
+            <div className="editorial-divider mb-6" />
+            <h3 className="editorial-caption text-center mb-4">
+              {isGlobal ? "Search Terms" : "Termos para Buscar"}
+            </h3>
+            <div className="flex flex-wrap justify-center gap-2">
+              {editorial.commerce.search_terms.map((term, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-1.5 bg-muted/50 rounded-full text-xs text-muted-foreground"
+                >
+                  {term}
+                </span>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         {/* CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.8 }}
           className="mt-16 text-center space-y-6"
         >
           <div className="editorial-divider" />
