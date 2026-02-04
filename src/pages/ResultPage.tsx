@@ -8,8 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
-import { StartHereSection } from "@/components/results/StartHereSection";
-
 import { SocialShareSection } from "@/components/results/SocialShareSection";
 import BrazilNav from "@/components/BrazilNav";
 
@@ -314,13 +312,6 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
-        {/* Start Here Section - MANDATORY (after Por que funciona, before O Edit) */}
-        {editorial.start_here && (
-          <>
-            <StartHereSection content={editorial.start_here} />
-            <div className="editorial-divider" />
-          </>
-        )}
 
         {/* Editorial Headline */}
         <motion.section
