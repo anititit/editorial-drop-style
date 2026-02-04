@@ -26,6 +26,10 @@ const ERROR_MESSAGES: Record<string, { title: string; text: string }> = {
     title: "Precisamos de mais informação.",
     text: "Escreva algumas peças do seu guarda-roupa para montarmos a cápsula.",
   },
+  insufficient_items: {
+    title: "Preciso de mais peças.",
+    text: "Você pode citar 3 a 6 peças, mesmo básicas, para eu fechar a cápsula com precisão.",
+  },
 };
 
 const DEFAULT_ERROR = {
