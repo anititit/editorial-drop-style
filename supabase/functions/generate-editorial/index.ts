@@ -271,8 +271,7 @@ async function checkContentSafety(
 // ============================================================================
 
 function buildSystemPrompt(fragranceBudget: FragranceBudget): string {
-  // Build fragrance instructions based on budget
-  // Brazil Edition: 50% Brazilian brands, 50% international
+  // Brazil Edition: 1 fragrance per tier, always in order: Acessível → Intermediário → Premium
   const brazilianBrandsInfo = `
 MARCAS BRASILEIRAS DE PERFUMARIA (para badges 🇧🇷):
 
@@ -280,84 +279,37 @@ ACESSÍVEL (até R$ 250) - badge: "🇧🇷 Acessível":
 - O Boticário (Malbec, Lily, Egeo, Floratta)
 - Natura (Ekos, Kaiak, Tododia, Luna)
 - Eudora (Siàge, Soul, Intense)
-- Avon Brasil
-- Granado
-- Phebo
-- Jequiti
-- Quem Disse, Berenice?
-- Avatim
-- Mahogany
+- Avon Brasil, Granado, Phebo, Jequiti
+- Quem Disse, Berenice?, Avatim, Mahogany
 
 INTERMEDIÁRIA (R$ 251-650) - badge: "🇧🇷 Intermediária":
-- Oui Paris
-- L'Occitane au Brésil
-
-REGRA DE EQUILÍBRIO BRASIL EDITION:
-- OBRIGATÓRIO: 50% marcas brasileiras + 50% marcas internacionais
-- Cada fragrância brasileira deve incluir o badge correspondente no campo "badge"
-- Marcas internacionais não recebem badge (campo "badge" vazio ou null)`;
+- Oui Paris, L'Occitane au Brésil`;
   
-  let fragranceInstructions = "";
-  
-  if (fragranceBudget === "affordable") {
-    fragranceInstructions = `
-FRAGRÂNCIAS - FAIXA ACESSÍVEL (até R$ 250):
+  // All budgets now generate exactly 3 fragrances, one per tier
+  const fragranceInstructions = `
+FRAGRÂNCIAS - REGRAS OBRIGATÓRIAS:
 ${brazilianBrandsInfo}
 
-COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
-- 3 fragrâncias de marcas BRASILEIRAS (todas com badge "🇧🇷 Acessível")
-- 3 fragrâncias de marcas INTERNACIONAIS acessíveis (Zara, CK, The Body Shop, etc.)
+COMPOSIÇÃO OBRIGATÓRIA (EXATAMENTE 3 fragrâncias):
+1. PRIMEIRO: 1 fragrância ACESSÍVEL (até R$ 250) - price_tier: "affordable"
+2. SEGUNDO: 1 fragrância INTERMEDIÁRIA (R$ 251-650) - price_tier: "mid"  
+3. TERCEIRO: 1 fragrância PREMIUM (acima de R$ 650) - price_tier: "premium"
 
-- NUNCA sugira marcas de nicho ou luxo
-- Cada perfume deve custar até R$ 250
-- Apresente como recomendações editoriais, não anúncios`;
-  } else if (fragranceBudget === "mid") {
-    fragranceInstructions = `
-FRAGRÂNCIAS - FAIXA INTERMEDIÁRIA (R$ 251 a R$ 650):
-${brazilianBrandsInfo}
+⚠️ ORDEM FIXA: A ordem DEVE ser sempre Acessível → Intermediário → Premium no array.
+⚠️ QUANTIDADE FIXA: Retorne EXATAMENTE 3 fragrâncias, uma por faixa.
 
-COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
-- 3 fragrâncias de marcas BRASILEIRAS (com badge "🇧🇷 Acessível" ou "🇧🇷 Intermediária")
-- 3 fragrâncias de marcas INTERNACIONAIS designer (Narciso Rodriguez, YSL, Armani, Carolina Herrera)
+REGRA DE MARCAS BRASILEIRAS:
+- Inclua pelo menos 1 marca brasileira entre as 3 (com badge apropriado)
+- Marcas brasileiras Acessíveis: badge "🇧🇷 Acessível"
+- Marcas brasileiras Intermediárias: badge "🇧🇷 Intermediária"
+- Marcas internacionais: badge null
 
-- EVITE marcas de nicho/luxo (Le Labo, Byredo, MFK, etc.)
-- Cada perfume internacional deve custar entre R$ 251 e R$ 650
-- Apresente como recomendações editoriais, não anúncios`;
-  } else if (fragranceBudget === "premium") {
-    fragranceInstructions = `
-FRAGRÂNCIAS - FAIXA PREMIUM (acima de R$ 650):
-${brazilianBrandsInfo}
+EXEMPLOS POR FAIXA:
+- Acessível: Natura Ekos, O Boticário Malbec, Zara, CK One
+- Intermediário: Oui Paris, YSL Libre, Armani My Way, Carolina Herrera
+- Premium: Le Labo, Byredo, MFK, Tom Ford Private Blend, Creed
 
-COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
-- 2 fragrâncias de marcas BRASILEIRAS premium/intermediárias (com badge apropriado)
-- 4 fragrâncias de marcas INTERNACIONAIS nicho/luxo (Byredo, Le Labo, MFK, Tom Ford Private Blend, Creed)
-
-- Cada perfume internacional deve custar acima de R$ 650
-- Marcas brasileiras servem como alternativas sofisticadas de custo-benefício
-- Apresente como recomendações editoriais, não anúncios`;
-  } else {
-    // "mix" - default
-    fragranceInstructions = `
-FRAGRÂNCIAS - MISTURAR FAIXAS:
-${brazilianBrandsInfo}
-
-COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
-- 3 fragrâncias de marcas BRASILEIRAS:
-  - 2 Acessível (badge "🇧🇷 Acessível")
-  - 1 Intermediária (badge "🇧🇷 Intermediária")
-- 3 fragrâncias de marcas INTERNACIONAIS:
-  - 1 Acessível (até R$ 250)
-  - 1 Intermediária (R$ 251-650)
-  - 1 Premium (acima de R$ 650)
-
-- Apresente como recomendações editoriais, não anúncios
-- Exemplos de calibração (NÃO se limite a eles):
-  - BR Acessível: Natura Ekos, O Boticário Malbec, Mahogany Intense
-  - BR Intermediária: Oui Paris Signature
-  - INT Acessível: Zara Red Vanilla
-  - INT Intermediária: YSL Libre, Armani My Way
-  - INT Premium: Le Labo Santal 33, Byredo Mojave Ghost`;
-  }
+Apresente como recomendações editoriais, não anúncios.`;
 
   const brazilianBrandsCatalog = `
 MARCAS BRASILEIRAS PARA SUGESTÕES EDITORIAIS:
@@ -451,13 +403,31 @@ Retorne este JSON EXATO:
     },
     "fragrances": [
       { 
-        "name": "Nome do Perfume", 
+        "name": "Perfume Acessível", 
         "brand": "Marca",
-        "badge": "🇧🇷 Acessível|🇧🇷 Intermediária|null (para internacionais)",
-        "notes": "notas olfativas principais", 
-        "price_tier": "affordable|mid|premium",
+        "badge": "🇧🇷 Acessível|null",
+        "notes": "notas olfativas", 
+        "price_tier": "affordable",
         "approximate_price_brl": 180,
-        "why_it_matches": "uma linha curta explicando a conexão com o estilo"
+        "why_it_matches": "conexão com o estilo"
+      },
+      { 
+        "name": "Perfume Intermediário", 
+        "brand": "Marca",
+        "badge": "🇧🇷 Intermediária|null",
+        "notes": "notas olfativas", 
+        "price_tier": "mid",
+        "approximate_price_brl": 450,
+        "why_it_matches": "conexão com o estilo"
+      },
+      { 
+        "name": "Perfume Premium", 
+        "brand": "Marca",
+        "badge": "null",
+        "notes": "notas olfativas", 
+        "price_tier": "premium",
+        "approximate_price_brl": 950,
+        "why_it_matches": "conexão com o estilo"
       }
     ],
     "footer_note": "nota de fechamento editorial elegante",
