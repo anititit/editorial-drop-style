@@ -300,18 +300,6 @@ const CapsulePage = () => {
                 </p>
               </div>
 
-              {/* Selected Aesthetic Badge */}
-              {selectedAesthetic && (
-                <div className="mb-6 p-3 bg-muted/30 rounded-lg inline-flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Direção:
-                  </span>
-                  <span className="text-sm font-medium">
-                    {AESTHETICS.find(a => a.id === selectedAesthetic)?.name}
-                  </span>
-                </div>
-              )}
-
               <div className="editorial-divider mb-8" />
 
               {/* Mode Toggle */}
