@@ -58,36 +58,12 @@ const ResultPage = () => {
 
       const element = contentRef.current;
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#FAFAF8",
-        logging: false,
-        onclone: (clonedDoc) => {
-          // Hide elements marked as print-hide in the PDF
-          clonedDoc.querySelectorAll('.print-hide').forEach((el) => {
-            (el as HTMLElement).style.display = 'none';
-          });
-          // Force opacity for animations
-          clonedDoc.querySelectorAll('[style*="opacity"]').forEach((el) => {
-            (el as HTMLElement).style.opacity = '1';
-            (el as HTMLElement).style.transform = 'none';
-          });
-          // Expand all collapsed sections for PDF
-          clonedDoc.querySelectorAll('[data-state="closed"]').forEach((el) => {
-            (el as HTMLElement).setAttribute('data-state', 'open');
-            (el as HTMLElement).style.display = 'block';
-          });
-        },
-      });
-
+      // A4 dimensions in mm
       const a4Width = 210;
       const a4Height = 297;
       const margin = 12;
       const contentWidth = a4Width - margin * 2;
       const contentHeight = a4Height - margin * 2;
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -95,44 +71,129 @@ const ResultPage = () => {
         format: "a4",
       });
 
-      const totalPages = Math.ceil(imgHeight / contentHeight);
+      // Get all major sections to render separately
+      const sections = element.querySelectorAll('header, section, .editorial-divider, footer');
+      
+      // If no sections found, render as single block
+      if (sections.length === 0) {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#FAFAF8",
+          logging: false,
+        });
+        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, contentWidth, imgHeight);
+      } else {
+        // Render each section and paginate intelligently
+        let currentY = margin;
+        let isFirstPage = true;
 
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage();
-        }
+        for (const section of Array.from(sections)) {
+          const sectionEl = section as HTMLElement;
+          
+          // Skip print-hide elements
+          if (sectionEl.classList.contains('print-hide')) continue;
+          
+          // Skip empty dividers that would leave orphan lines
+          if (sectionEl.classList.contains('editorial-divider')) {
+            // Only add divider if we have content on the page
+            if (currentY > margin + 10) {
+              currentY += 4; // Small spacing instead of visible line in PDF
+            }
+            continue;
+          }
 
-        const sourceY = (page * contentHeight * canvas.width) / contentWidth;
-        const sourceHeight = Math.min(
-          (contentHeight * canvas.width) / contentWidth,
-          canvas.height - sourceY
-        );
+          const sectionCanvas = await html2canvas(sectionEl, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#FAFAF8",
+            logging: false,
+            onclone: (clonedDoc, clonedEl) => {
+              // Force opacity for animations
+              clonedEl.style.opacity = '1';
+              clonedEl.style.transform = 'none';
+              clonedEl.querySelectorAll('[style*="opacity"]').forEach((el) => {
+                (el as HTMLElement).style.opacity = '1';
+                (el as HTMLElement).style.transform = 'none';
+              });
+              // Expand all collapsed sections for PDF
+              clonedEl.querySelectorAll('[data-state="closed"]').forEach((el) => {
+                (el as HTMLElement).setAttribute('data-state', 'open');
+                (el as HTMLElement).style.display = 'block';
+              });
+            },
+          });
 
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sourceHeight;
+          const sectionImgHeight = (sectionCanvas.height * contentWidth) / sectionCanvas.width;
+          
+          // Check if section fits on current page
+          if (currentY + sectionImgHeight > a4Height - margin && !isFirstPage) {
+            // Start new page
+            pdf.addPage();
+            currentY = margin;
+          }
 
-        const ctx = pageCanvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(
-            canvas,
-            0, sourceY,
-            canvas.width, sourceHeight,
-            0, 0,
-            canvas.width, sourceHeight
-          );
+          // If section is taller than a full page, we need to split it
+          if (sectionImgHeight > contentHeight) {
+            // Split large section across pages
+            const pixelsPerMm = sectionCanvas.width / contentWidth;
+            let remainingHeight = sectionCanvas.height;
+            let sourceY = 0;
 
-          const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-          const pageImgHeight = (sourceHeight * contentWidth) / canvas.width;
-
-          pdf.addImage(
-            pageImgData,
-            "JPEG",
-            margin,
-            margin,
-            imgWidth,
-            pageImgHeight
-          );
+            while (remainingHeight > 0) {
+              const availableHeight = (a4Height - margin - currentY) * pixelsPerMm;
+              const sliceHeight = Math.min(remainingHeight, availableHeight);
+              
+              const sliceCanvas = document.createElement("canvas");
+              sliceCanvas.width = sectionCanvas.width;
+              sliceCanvas.height = sliceHeight;
+              
+              const ctx = sliceCanvas.getContext("2d");
+              if (ctx) {
+                ctx.drawImage(
+                  sectionCanvas,
+                  0, sourceY,
+                  sectionCanvas.width, sliceHeight,
+                  0, 0,
+                  sectionCanvas.width, sliceHeight
+                );
+                
+                const sliceImgHeight = sliceHeight / pixelsPerMm;
+                pdf.addImage(
+                  sliceCanvas.toDataURL("image/jpeg", 0.95),
+                  "JPEG",
+                  margin,
+                  currentY,
+                  contentWidth,
+                  sliceImgHeight
+                );
+                
+                currentY += sliceImgHeight;
+              }
+              
+              sourceY += sliceHeight;
+              remainingHeight -= sliceHeight;
+              
+              if (remainingHeight > 0) {
+                pdf.addPage();
+                currentY = margin;
+              }
+            }
+          } else {
+            // Section fits, add it
+            pdf.addImage(
+              sectionCanvas.toDataURL("image/jpeg", 0.95),
+              "JPEG",
+              margin,
+              currentY,
+              contentWidth,
+              sectionImgHeight
+            );
+            currentY += sectionImgHeight + 2; // Small gap between sections
+          }
+          
+          isFirstPage = false;
         }
       }
 
