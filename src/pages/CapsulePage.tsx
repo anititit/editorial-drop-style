@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
-import { ImageUploader } from "@/components/ImageUploader";
-import { UrlInput } from "@/components/UrlInput";
 import { LoadingEditorial } from "@/components/LoadingEditorial";
 import { saveResult } from "@/lib/storage";
 import { EditorialResult } from "@/lib/types";
@@ -75,7 +73,6 @@ const AESTHETICS = [
 ];
 
 type Step = 1 | 2;
-type InputMode = "upload" | "url";
 
 const CapsulePage = () => {
   const navigate = useNavigate();
@@ -83,20 +80,14 @@ const CapsulePage = () => {
   const [selectedAesthetic, setSelectedAesthetic] = useState<string | null>(null);
   
   // Step 2 states
-  const [inputMode, setInputMode] = useState<InputMode>("upload");
-  const [images, setImages] = useState<string[]>([]);
-  const [urls, setUrls] = useState<string[]>([]);
+  const [existingPieces, setExistingPieces] = useState<string>("");
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorType, setErrorType] = useState<string | undefined>();
 
-  const hasValidInput = inputMode === "upload" 
-    ? images.length === 3 
-    : urls.filter((u) => {
-        try { new URL(u); return true; } catch { return false; }
-      }).length === 3;
+  const hasValidInput = existingPieces.trim().length > 0;
 
   const handleAestheticSelect = (id: string) => {
     setSelectedAesthetic(id === selectedAesthetic ? null : id);
@@ -113,8 +104,6 @@ const CapsulePage = () => {
   };
 
   const callGenerateEditorial = async () => {
-    const imageData = inputMode === "upload" ? images : urls;
-    
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     
@@ -126,8 +115,7 @@ const CapsulePage = () => {
         "Authorization": `Bearer ${supabaseKey}`,
       },
       body: JSON.stringify({
-        images: imageData,
-        isUrls: inputMode === "url",
+        existingPieces,
         preferredAesthetic: selectedAesthetic,
       }),
     });
@@ -168,9 +156,8 @@ const CapsulePage = () => {
     try {
       const result = await callGenerateEditorial();
 
-      // Store images in sessionStorage
-      const imageData = inputMode === "upload" ? images : urls;
-      sessionStorage.setItem("editorial_images", JSON.stringify(imageData));
+      // Store data in sessionStorage
+      sessionStorage.setItem("capsule_pieces", existingPieces);
       sessionStorage.setItem("capsule_aesthetic", selectedAesthetic);
 
       // Save to history
@@ -290,51 +277,30 @@ const CapsulePage = () => {
                 
                 <span className="editorial-caption mb-2 block">Passo 2</span>
                 <h1 className="editorial-headline text-2xl md:text-3xl mb-3">
-                  Suas referências
+                  Suas peças
                 </h1>
                 <p className="editorial-body text-muted-foreground">
-                  Envie 3 imagens que representam seu estilo ideal.
+                  Descreva as peças que você já tem no guarda-roupa.
                 </p>
               </div>
 
               <div className="editorial-divider mb-8" />
 
-              {/* Mode Toggle */}
-              <div className="flex items-center gap-2 p-1 bg-muted rounded-sm mb-8">
-                <button
-                  onClick={() => setInputMode("upload")}
-                  className={`flex-1 py-2 text-sm transition-colors rounded-sm ${
-                    inputMode === "upload"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Upload
-                </button>
-                <button
-                  onClick={() => setInputMode("url")}
-                  className={`flex-1 py-2 text-sm transition-colors rounded-sm ${
-                    inputMode === "url"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  URLs
-                </button>
-              </div>
-
-              {/* Input Area */}
+              {/* Existing Pieces Field */}
               <div className="mb-8">
-                {inputMode === "upload" ? (
-                  <ImageUploader images={images} onImagesChange={setImages} maxImages={3} />
-                ) : (
-                  <UrlInput urls={urls} onUrlsChange={setUrls} maxUrls={3} />
-                )}
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Escreva as peças que você já tem
+                </label>
+                <textarea
+                  value={existingPieces}
+                  onChange={(e) => setExistingPieces(e.target.value)}
+                  placeholder="Ex: calça reta de alfaiataria, camisa de seda, blazer bem estruturado, trench coat, camiseta branca encorpada, jeans escuro reto, loafer de couro, bota de cano curto, bolsa pequena estruturada"
+                  className="w-full min-h-[120px] p-4 text-sm bg-background border border-border/50 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/60"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Mesmo poucas peças já resolvem a base, o resto a gente edita.
+                </p>
               </div>
-
-              <p className="text-xs text-muted-foreground mb-8">
-                Use moodboards, looks, beleza ou editoriais. Para estilo pessoal.
-              </p>
 
               {/* Generate Button */}
               <motion.div
@@ -354,7 +320,7 @@ const CapsulePage = () => {
                 </EditorialButton>
                 {!hasValidInput && (
                   <p className="text-xs text-muted-foreground text-center mt-3">
-                    Selecione exatamente 3 {inputMode === "upload" ? "imagens" : "URLs válidas"}
+                    Descreva as peças que você já tem
                   </p>
                 )}
               </motion.div>
