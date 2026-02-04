@@ -23,6 +23,7 @@ export interface CapsuleApiResponse {
   success: boolean;
   capsule: CapsuleResult;
   aesthetic_id: string;
+  normalized_items?: string[];
   debug_id: string;
 }
 

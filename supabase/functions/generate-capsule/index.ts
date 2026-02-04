@@ -80,6 +80,152 @@ function errorResponse(error: string, message: string, debugId: string, status =
 }
 
 // ============================================================================
+// INPUT NORMALIZATION (Brand-to-generic mapping)
+// ============================================================================
+
+const BRAND_MAPPINGS: Record<string, string> = {
+  // Sneakers
+  "vans": "tênis branco casual, sola reta",
+  "air force": "tênis branco robusto, casual",
+  "airforce": "tênis branco robusto, casual",
+  "af1": "tênis branco robusto, casual",
+  "converse": "tênis de lona, cano baixo",
+  "all star": "tênis de lona, cano baixo",
+  "allstar": "tênis de lona, cano baixo",
+  "adidas samba": "tênis retrô de perfil baixo",
+  "samba": "tênis retrô de perfil baixo",
+  "nike": "tênis esportivo casual",
+  "adidas": "tênis esportivo casual",
+  "new balance": "tênis esportivo casual",
+  "nb": "tênis esportivo casual",
+  "puma": "tênis esportivo casual",
+  "jordan": "tênis esportivo alto",
+  // Fast fashion (remove brand)
+  "zara": "", "shein": "", "h&m": "", "hm": "", "forever 21": "", "renner": "", 
+  "c&a": "", "cea": "", "riachuelo": "", "marisa": "",
+  // Beauty brands
+  "sephora": "", "mac": "", "m.a.c": "", "dior": "", "chanel": "", "ysl": "", 
+  "nars": "", "fenty": "", "charlotte tilbury": "", "bobbi brown": "",
+  "o boticário": "", "boticário": "", "natura": "", "eudora": "", "avon": "",
+  "maybelline": "", "revlon": "", "loreal": "", "l'oreal": "",
+  // Luxury brands
+  "gucci": "", "prada": "", "louis vuitton": "", "lv": "", "balenciaga": "",
+  "bottega": "", "burberry": "", "versace": "", "valentino": "", "celine": "",
+  "saint laurent": "", "hermès": "", "hermes": "", "fendi": "", "loewe": "",
+  "coach": "", "michael kors": "", "kate spade": "", "tory burch": "",
+  // Brazilian brands
+  "arezzo": "", "schutz": "", "santa lolla": "", "anacapri": "", "farm": "",
+  "animale": "", "le lis": "", "le lis blanc": "", "maria filó": "", "shoulder": "",
+  "mixed": "", "bo.bô": "", "bobo": "", "osklen": "",
+};
+
+const SLANG_MAPPINGS: Record<string, string> = {
+  "shorts jeans": "short de denim",
+  "short jeans": "short de denim",
+  "calça alfaiataria": "calça reta de alfaiataria",
+  "camisa social": "camisa de botão, corte limpo",
+  "blusinha": "top leve, alça fina",
+  "bota cano curto": "bota de cano curto, couro liso",
+  "bolsa pequena": "bolsa pequena estruturada",
+  "bolsinha": "bolsa pequena estruturada",
+  "cropped": "top cropped",
+  "legging": "legging de lycra",
+  "moletom": "moletom de algodão, corte relaxado",
+  "jaqueta jeans": "jaqueta de denim",
+  "sapatênis": "tênis casual de perfil baixo",
+  "sapato social": "oxford de couro",
+  "rasteirinha": "sandália rasteira, tiras finas",
+};
+
+const COLOR_MAPPINGS: Record<string, string> = {
+  "branco": "off-white", "off white": "off-white", "creme": "off-white",
+  "bege": "bege", "nude": "bege",
+  "jeans claro": "denim claro", "jeans escuro": "denim escuro",
+  "verde militar": "verde-oliva", "azul marinho": "azul-marinho",
+  "bordô": "burgundy", "vinho": "burgundy",
+};
+
+function removeEmojis(text: string): string {
+  return text.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+}
+
+function normalizeOwnedItems(text: string): string[] {
+  const items = text
+    .split(/[,;|\n]+/)
+    .map(item => removeEmojis(item.trim()))
+    .filter(item => item.length > 1);
+
+  const normalized: string[] = [];
+
+  for (let item of items) {
+    const lowerItem = item.toLowerCase();
+    
+    // Check brands (longest first)
+    const sortedBrands = Object.keys(BRAND_MAPPINGS).sort((a, b) => b.length - a.length);
+    for (const brand of sortedBrands) {
+      if (lowerItem.includes(brand)) {
+        const replacement = BRAND_MAPPINGS[brand];
+        if (replacement) {
+          const remaining = item.replace(new RegExp(brand, 'gi'), '').trim();
+          item = remaining.length > 2 ? `${replacement}, ${remaining}` : replacement;
+        } else {
+          item = item.replace(new RegExp(brand, 'gi'), '').trim();
+        }
+        break;
+      }
+    }
+
+    // Apply slang normalization
+    const sortedSlang = Object.keys(SLANG_MAPPINGS).sort((a, b) => b.length - a.length);
+    for (const slang of sortedSlang) {
+      if (item.toLowerCase().includes(slang)) {
+        item = item.replace(new RegExp(slang, 'gi'), SLANG_MAPPINGS[slang]);
+        break;
+      }
+    }
+
+    // Normalize colors
+    for (const [color, normalized_color] of Object.entries(COLOR_MAPPINGS)) {
+      if (item.toLowerCase().includes(color)) {
+        item = item.replace(new RegExp(color, 'gi'), normalized_color);
+        break;
+      }
+    }
+
+    // Cleanup
+    item = item.replace(/\s+/g, ' ').replace(/,\s*,/g, ',').trim();
+    if (item.length > 2) {
+      normalized.push(item.charAt(0).toUpperCase() + item.slice(1));
+    }
+  }
+
+  return [...new Set(normalized)];
+}
+
+// Sanitize AI output to remove any brands that slipped through
+function sanitizeOutputItems(items: string[]): string[] {
+  return items.map(item => {
+    let sanitized = item;
+    const lowerItem = item.toLowerCase();
+    
+    const sortedBrands = Object.keys(BRAND_MAPPINGS).sort((a, b) => b.length - a.length);
+    for (const brand of sortedBrands) {
+      if (lowerItem.includes(brand)) {
+        const replacement = BRAND_MAPPINGS[brand];
+        if (replacement) {
+          sanitized = replacement;
+        } else {
+          sanitized = sanitized.replace(new RegExp(brand, 'gi'), '').trim();
+        }
+        break;
+      }
+    }
+    
+    return sanitized.replace(/\s+/g, ' ').trim();
+  }).filter(item => item.length > 2);
+}
+
+// ============================================================================
 // AI PROMPT & RESPONSE HANDLING
 // ============================================================================
 
@@ -98,14 +244,14 @@ const AESTHETIC_LABELS: Record<string, string> = {
   artsy_eclectic: "Artsy eclético — combinações inesperadas, repertório criativo, assinatura própria",
 };
 
-function buildSystemPrompt(aestheticId: string): string {
+function buildSystemPrompt(aestheticId: string, normalizedItems: string[]): string {
   const aestheticLabel = AESTHETIC_LABELS[aestheticId] || aestheticId;
   
   return `Você é um consultor de guarda-roupa cápsula de alto nível para o mercado brasileiro. Você analisa peças existentes e monta uma cápsula direcionada no tom de Vogue e Harper's Bazaar.
 
 CONTEXTO:
 O usuário escolheu a direção estética: "${aestheticLabel}"
-Você receberá uma lista de peças que o usuário já possui.
+Peças já normalizadas do usuário: ${normalizedItems.join(", ")}
 
 OBJETIVO:
 Montar uma cápsula inteligente que:
@@ -115,9 +261,10 @@ Montar uma cápsula inteligente que:
 4. Define uma regra de edição simples
 
 ⚠️ REGRAS CRÍTICAS:
-- NÃO cite marcas, lojas ou produtos específicos
+- NUNCA cite marcas, lojas ou produtos específicos (Nike, Zara, Gucci, etc.)
 - Escreva de forma descritiva: textura, material, acabamento, cor, forma
-- Exemplos CORRETOS: "blazer de alfaiataria em lã fria, corte reto", "camiseta branca encorpada em algodão pima"
+- Exemplos CORRETOS: "blazer de alfaiataria em lã fria", "tênis branco casual, sola reta"
+- Exemplos INCORRETOS: "Vans Old Skool", "Blazer Zara", "Air Force 1"
 - NÃO inclua links, preços ou referências de compra
 - Tom: elegante, confiante, direto — nunca didático ou "blogueira"
 - Retorne APENAS JSON válido. Sem markdown. Sem explicações.
@@ -127,11 +274,11 @@ Retorne este JSON EXATO:
 
 {
   "covered": [
-    "categoria ou peça que o usuário já cobre bem (máx 5 itens)"
+    "categoria ou peça que o usuário já cobre bem (máx 5 itens, SEM MARCAS)"
   ],
   "missing": [
     {
-      "item": "descrição genérica da peça que falta",
+      "item": "descrição genérica da peça que falta (SEM MARCAS)",
       "priority": 1,
       "why": "razão curta de por que é importante"
     }
@@ -139,17 +286,17 @@ Retorne este JSON EXATO:
   "top_three": [
     {
       "priority": "P1",
-      "item": "a peça mais urgente para resolver",
+      "item": "a peça mais urgente (SEM MARCAS)",
       "impact": "impacto no guarda-roupa (1 linha)"
     },
     {
       "priority": "P2", 
-      "item": "segunda peça mais importante",
+      "item": "segunda peça (SEM MARCAS)",
       "impact": "impacto no guarda-roupa"
     },
     {
       "priority": "P3",
-      "item": "terceira peça importante",
+      "item": "terceira peça (SEM MARCAS)",
       "impact": "impacto no guarda-roupa"
     }
   ],
@@ -157,22 +304,17 @@ Retorne este JSON EXATO:
 }
 
 IMPORTANTE:
-- "covered": máximo 5 itens
+- "covered": máximo 5 itens, baseado nas peças normalizadas acima
 - "missing": máximo 10 itens, ordenados por prioridade (1 = mais urgente)
 - "top_three": exatamente 3 itens (P1, P2, P3)
-- "edit_rule": 1 frase curta e memorável`;
+- "edit_rule": 1 frase curta e memorável
+- ZERO marcas em qualquer campo`;
 }
 
 function extractJson(text: string): any {
-  // Remove markdown code blocks if present
   let cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
-  
-  // Find JSON object
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("No JSON object found");
-  }
-  
+  if (!jsonMatch) throw new Error("No JSON object found");
   return JSON.parse(jsonMatch[0]);
 }
 
@@ -230,6 +372,14 @@ serve(async (req: Request) => {
       return errorResponse("invalid_input", "Escreva algumas peças, mesmo poucas já resolvem a base.", debugId);
     }
 
+    // Normalize user input (remove brands, apply mappings)
+    const normalizedItems = normalizeOwnedItems(owned_items_text);
+    console.log(`[${debugId}] Normalized items:`, normalizedItems);
+
+    if (normalizedItems.length < 2) {
+      return errorResponse("insufficient_items", "Você pode citar 3 a 6 peças, mesmo básicas, para eu fechar a cápsula com precisão.", debugId);
+    }
+
     // Get API key
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -237,15 +387,9 @@ serve(async (req: Request) => {
       return errorResponse("config_error", "Erro de configuração do servidor.", debugId, 500);
     }
 
-    // Build prompt
-    const systemPrompt = buildSystemPrompt(aesthetic_id);
-    const userMessage = `Peças que o usuário já tem:
-
-${owned_items_text.trim()}
-
-${budget ? `Orçamento preferido: ${budget}` : ""}
-
-Analise e monte a cápsula.`;
+    // Build prompt with normalized items
+    const systemPrompt = buildSystemPrompt(aesthetic_id, normalizedItems);
+    const userMessage = `Analise as peças normalizadas acima e monte a cápsula.`;
 
     console.log(`[${debugId}] Calling AI with aesthetic: ${aesthetic_id}`);
 
@@ -298,6 +442,17 @@ Analise e monte a cápsula.`;
       return errorResponse("incomplete_capsule", "Estrutura de cápsula incompleta. Tente novamente.", debugId);
     }
 
+    // Sanitize output to ensure no brands slipped through
+    capsuleResult.covered = sanitizeOutputItems(capsuleResult.covered);
+    capsuleResult.missing = capsuleResult.missing.map((m: any) => ({
+      ...m,
+      item: sanitizeOutputItems([m.item])[0] || m.item,
+    }));
+    capsuleResult.top_three = capsuleResult.top_three.map((t: any) => ({
+      ...t,
+      item: sanitizeOutputItems([t.item])[0] || t.item,
+    }));
+
     console.log(`[${debugId}] Capsule generated successfully`);
 
     return new Response(
@@ -305,6 +460,7 @@ Analise e monte a cápsula.`;
         success: true,
         capsule: capsuleResult,
         aesthetic_id,
+        normalized_items: normalizedItems,
         debug_id: debugId,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

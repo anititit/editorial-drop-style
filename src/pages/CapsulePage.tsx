@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { LoadingCapsule } from "@/components/LoadingCapsule";
 import { CAPSULE_AESTHETICS } from "@/lib/capsule-types";
+import { normalizeOwnedItems, hasMinimumItems, getInsufficientItemsMessage } from "@/lib/capsule-normalizer";
 import BrazilNav from "@/components/BrazilNav";
 
 type Step = 1 | 2;
@@ -78,7 +79,16 @@ const CapsulePage = () => {
   };
 
   const handleGenerate = async () => {
-    // Validate minimum 10 characters
+    // Normalize input first
+    const { normalized } = normalizeOwnedItems(existingPieces);
+    
+    // Validate minimum items after normalization
+    if (!hasMinimumItems(normalized, 2)) {
+      setValidationError(getInsufficientItemsMessage());
+      return;
+    }
+
+    // Also validate raw input length
     if (existingPieces.trim().length < 10) {
       setValidationError("Escreva algumas peças, mesmo poucas já resolvem a base.");
       return;
