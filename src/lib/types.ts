@@ -1,7 +1,21 @@
 // B2C Personal Aesthetic Identity Types (people-focused)
 
-import { CapsuleResult } from "./capsule-types";
+// Start Here section - always generated
+export interface StartHereContent {
+  anchor_piece: string;
+  look_formula: string;
+  finishing_touch: string;
+}
 
+// Refinement responses for each blocker type
+export interface RefinementResult {
+  priorities: string[];
+  edit_rule: string;
+}
+
+export type RefinementId = "start" | "chaos" | "elevated" | "clarity" | "looks";
+
+export type RefinementResponses = Record<RefinementId, RefinementResult>;
 export interface AestheticProfile {
   aesthetic_primary: string;
   aesthetic_secondary: string;
@@ -68,7 +82,8 @@ export interface PersonalEditorial {
   fragrances: FragranceSuggestion[];
   footer_note: string;
   commerce?: EditorialCommerce;
-  capsule?: CapsuleResult;
+  start_here?: StartHereContent;
+  refinements?: RefinementResponses;
 }
 
 export interface EditorialResult {

@@ -3,12 +3,13 @@ import { motion } from "framer-motion";
 import { Download, RotateCcw } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
-import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
+import { DEFAULT_RESULT, AESTHETIC_NAMES, RefinementId } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
-import { CapsuleResultSection } from "@/components/results/CapsuleResultSection";
+import { StartHereSection } from "@/components/results/StartHereSection";
+import { RefineEditSection, RefineEditPDFSection } from "@/components/results/RefineEditSection";
 import { SocialShareSection } from "@/components/results/SocialShareSection";
 import BrazilNav from "@/components/BrazilNav";
 
@@ -33,6 +34,7 @@ const ResultPage = () => {
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedRefinement, setSelectedRefinement] = useState<RefinementId | null>(null);
 
   const savedResult = id ? getResultById(id) : null;
   const result = savedResult?.result || DEFAULT_RESULT;
@@ -312,6 +314,26 @@ const ResultPage = () => {
 
         <div className="editorial-divider" />
 
+        {/* Start Here Section - MANDATORY (after Por que funciona, before O Edit) */}
+        {editorial.start_here && (
+          <>
+            <StartHereSection content={editorial.start_here} />
+            
+            {/* Refine Edit - Optional toggle */}
+            {editorial.refinements && (
+              <div className="mt-6">
+                <RefineEditSection 
+                  refinements={editorial.refinements}
+                  selectedOption={selectedRefinement}
+                  onSelect={setSelectedRefinement}
+                />
+              </div>
+            )}
+            
+            <div className="editorial-divider" />
+          </>
+        )}
+
         {/* Editorial Headline */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -482,19 +504,6 @@ const ResultPage = () => {
           </>
         )}
 
-        {/* Capsule Section - TOGGLE (only if capsule data exists) */}
-        {editorial.capsule && (
-          <>
-            <div className="editorial-divider" />
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <CapsuleResultSection capsule={editorial.capsule} />
-            </motion.section>
-          </>
-        )}
 
         {/* Social Share Section */}
         <SocialShareSection 
