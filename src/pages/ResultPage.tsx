@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import { EditorialCommerceSection } from "@/components/results/EditorialCommerceSection";
 import { EditorialToggleSection } from "@/components/results/EditorialToggleSection";
 import { SocialShareSection } from "@/components/results/SocialShareSection";
+import { CapsuleCTA } from "@/components/results/CapsuleCTA";
 import BrazilNav from "@/components/BrazilNav";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -480,6 +481,9 @@ const ResultPage = () => {
             <EditorialCommerceSection commerce={editorial.commerce} delay={0.5} />
           </>
         )}
+
+        {/* Capsule CTA */}
+        <CapsuleCTA locale="pt-BR" />
 
         {/* Social Share Section */}
         <SocialShareSection 
