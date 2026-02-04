@@ -272,43 +272,91 @@ async function checkContentSafety(
 
 function buildSystemPrompt(fragranceBudget: FragranceBudget): string {
   // Build fragrance instructions based on budget
+  // Brazil Edition: 50% Brazilian brands, 50% international
+  const brazilianBrandsInfo = `
+MARCAS BRASILEIRAS DE PERFUMARIA (para badges 🇧🇷):
+
+ACESSÍVEL (até R$ 250) - badge: "🇧🇷 Acessível":
+- O Boticário (Malbec, Lily, Egeo, Floratta)
+- Natura (Ekos, Kaiak, Tododia, Luna)
+- Eudora (Siàge, Soul, Intense)
+- Avon Brasil
+- Granado
+- Phebo
+- Jequiti
+- Quem Disse, Berenice?
+- Avatim
+- Mahogany
+
+INTERMEDIÁRIA (R$ 251-650) - badge: "🇧🇷 Intermediária":
+- Oui Paris
+- L'Occitane au Brésil
+
+REGRA DE EQUILÍBRIO BRASIL EDITION:
+- OBRIGATÓRIO: 50% marcas brasileiras + 50% marcas internacionais
+- Cada fragrância brasileira deve incluir o badge correspondente no campo "badge"
+- Marcas internacionais não recebem badge (campo "badge" vazio ou null)`;
+  
   let fragranceInstructions = "";
   
   if (fragranceBudget === "affordable") {
     fragranceInstructions = `
 FRAGRÂNCIAS - FAIXA ACESSÍVEL (até R$ 250):
-- Sugira EXATAMENTE 3 perfumes, TODOS na faixa acessível
-- Priorize marcas amplamente disponíveis no Brasil: Natura, O Boticário, Zara, Avon, Eudora
+${brazilianBrandsInfo}
+
+COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
+- 3 fragrâncias de marcas BRASILEIRAS (todas com badge "🇧🇷 Acessível")
+- 3 fragrâncias de marcas INTERNACIONAIS acessíveis (Zara, CK, The Body Shop, etc.)
+
 - NUNCA sugira marcas de nicho ou luxo
 - Cada perfume deve custar até R$ 250
-- Exemplos de calibração (NÃO se limite a eles): Natura Essencial, O Boticário Malbec, Zara Red Vanilla`;
+- Apresente como recomendações editoriais, não anúncios`;
   } else if (fragranceBudget === "mid") {
     fragranceInstructions = `
 FRAGRÂNCIAS - FAIXA INTERMEDIÁRIA (R$ 251 a R$ 650):
-- Sugira EXATAMENTE 3 perfumes, TODOS na faixa intermediária
-- Priorize marcas designer comuns no Brasil: Narciso Rodriguez, YSL, Armani, Lancôme, Carolina Herrera, Paco Rabanne
+${brazilianBrandsInfo}
+
+COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
+- 3 fragrâncias de marcas BRASILEIRAS (com badge "🇧🇷 Acessível" ou "🇧🇷 Intermediária")
+- 3 fragrâncias de marcas INTERNACIONAIS designer (Narciso Rodriguez, YSL, Armani, Carolina Herrera)
+
 - EVITE marcas de nicho/luxo (Le Labo, Byredo, MFK, etc.)
-- Cada perfume deve custar entre R$ 251 e R$ 650
-- Exemplos de calibração (NÃO se limite a eles): Narciso Rodriguez For Her, YSL Libre EDT, Armani My Way`;
+- Cada perfume internacional deve custar entre R$ 251 e R$ 650
+- Apresente como recomendações editoriais, não anúncios`;
   } else if (fragranceBudget === "premium") {
     fragranceInstructions = `
 FRAGRÂNCIAS - FAIXA PREMIUM (acima de R$ 650):
-- Sugira EXATAMENTE 3 perfumes, TODOS na faixa premium
-- Pode incluir marcas de nicho e luxo: Byredo, Le Labo, Maison Francis Kurkdjian, Tom Ford Private Blend, Creed
-- Cada perfume deve custar acima de R$ 650
-- Exemplos de calibração (NÃO se limite a eles): Byredo Gypsy Water, Le Labo Santal 33, MFK Baccarat Rouge 540`;
+${brazilianBrandsInfo}
+
+COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
+- 2 fragrâncias de marcas BRASILEIRAS premium/intermediárias (com badge apropriado)
+- 4 fragrâncias de marcas INTERNACIONAIS nicho/luxo (Byredo, Le Labo, MFK, Tom Ford Private Blend, Creed)
+
+- Cada perfume internacional deve custar acima de R$ 650
+- Marcas brasileiras servem como alternativas sofisticadas de custo-benefício
+- Apresente como recomendações editoriais, não anúncios`;
   } else {
     // "mix" - default
     fragranceInstructions = `
 FRAGRÂNCIAS - MISTURAR FAIXAS:
-- Sugira EXATAMENTE 3 perfumes, um de cada faixa de preço:
-  1. Acessível (até R$ 250): Priorize Natura, O Boticário, Zara, Avon
-  2. Intermediário (R$ 251-650): Priorize designer comum no Brasil (Narciso Rodriguez, YSL, Armani)
-  3. Premium (acima de R$ 650): Pode ser nicho/luxo (Byredo, Le Labo, MFK)
+${brazilianBrandsInfo}
+
+COMPOSIÇÃO OBRIGATÓRIA (6 fragrâncias total):
+- 3 fragrâncias de marcas BRASILEIRAS:
+  - 2 Acessível (badge "🇧🇷 Acessível")
+  - 1 Intermediária (badge "🇧🇷 Intermediária")
+- 3 fragrâncias de marcas INTERNACIONAIS:
+  - 1 Acessível (até R$ 250)
+  - 1 Intermediária (R$ 251-650)
+  - 1 Premium (acima de R$ 650)
+
+- Apresente como recomendações editoriais, não anúncios
 - Exemplos de calibração (NÃO se limite a eles):
-  - Acessível: Natura Essencial, O Boticário Malbec
-  - Intermediário: YSL Libre, Armani My Way
-  - Premium: Le Labo Santal 33, Byredo Mojave Ghost`;
+  - BR Acessível: Natura Ekos, O Boticário Malbec, Mahogany Intense
+  - BR Intermediária: Oui Paris Signature
+  - INT Acessível: Zara Red Vanilla
+  - INT Intermediária: YSL Libre, Armani My Way
+  - INT Premium: Le Labo Santal 33, Byredo Mojave Ghost`;
   }
 
   return `Você é um consultor de estilo pessoal de alto nível para o mercado brasileiro. Analisa referências visuais e gera leituras estéticas no tom de Vogue e Harper's Bazaar.
@@ -384,6 +432,7 @@ Retorne este JSON EXATO:
       { 
         "name": "Nome do Perfume", 
         "brand": "Marca",
+        "badge": "🇧🇷 Acessível|🇧🇷 Intermediária|null (para internacionais)",
         "notes": "notas olfativas principais", 
         "price_tier": "affordable|mid|premium",
         "approximate_price_brl": 180,
@@ -414,7 +463,8 @@ INSTRUÇÕES:
 - confidence: 0.85 padrão, 0.45-0.65 se imagens são muito abstratas
 - looks: Cada look deve ter peças específicas, não genéricas
 - makeup: Produtos e técnicas específicas, não vagas
-- fragrances: EXATAMENTE 3 perfumes seguindo as regras de faixa acima. Use perfumes REAIS disponíveis no Brasil. Os exemplos são apenas calibração — sugira outros que combinem melhor com o estilo.
+- fragrances: Siga as regras de equilíbrio acima. Use perfumes REAIS. Inclua o campo "badge" para marcas brasileiras.
+  - Formato de saída: "Mahogany Intense 🇧🇷 Acessível - Sofisticação brasileira acessível. Notas: Âmbar, baunilha, sândalo"
 - why_this: Justificativas baseadas nas cores, texturas e mood das referências
 
 COMMERCE (O Edit):
