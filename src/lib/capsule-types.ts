@@ -1,21 +1,20 @@
 // Capsule Wardrobe Types
 
-export interface CapsuleMissingItem {
+export interface CapsulePriorityItem {
+  position: number;
   item: string;
-  priority: number;
-  why: string;
+  impact: string;
 }
 
-export interface CapsuleTopThreeItem {
-  priority: "P1" | "P2" | "P3";
+export interface CapsuleBonusItem {
   item: string;
   impact: string;
 }
 
 export interface CapsuleResult {
   covered: string[];
-  missing: CapsuleMissingItem[];
-  top_three: CapsuleTopThreeItem[];
+  priority_five: CapsulePriorityItem[];
+  bonus_items?: CapsuleBonusItem[];
   edit_rule: string;
 }
 

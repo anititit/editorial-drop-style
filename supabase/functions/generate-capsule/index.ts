@@ -247,98 +247,94 @@ const AESTHETIC_LABELS: Record<string, string> = {
 function buildSystemPrompt(aestheticId: string, normalizedItems: string[]): string {
   const aestheticLabel = AESTHETIC_LABELS[aestheticId] || aestheticId;
   
-  return `Você é um consultor de guarda-roupa cápsula de alto nível para o mercado brasileiro. Tom Vogue/Harper's Bazaar.
+  return `Você é um consultor de guarda-roupa cápsula de alto nível. Tom Vogue/Harper's Bazaar.
 
 CONTEXTO:
 Direção estética: "${aestheticLabel}"
 Peças do usuário: ${normalizedItems.join(", ")}
 
 OBJETIVO:
-1. Identificar o que já cobre bem
-2. Sugerir o que falta por prioridade
-3. Destacar 3 itens mais importantes
-4. Definir uma regra de edição
+1. Identificar o que já cobre bem (max 5)
+2. Sugerir AS 5 PEÇAS MAIS IMPACTANTES que faltam
+3. Definir uma regra de edição
 
-⚠️ REGRAS DE ESCRITA OBRIGATÓRIAS:
+⚠️ ALGORITMO DE PRIORIDADE (para selecionar as 5 peças):
 
-FORMATAÇÃO:
-- Nome do item: **Bold**, sem adjetivos no título (ex: "Blazer de lã" e não "Blazer de lã versátil")
-- Descrição: 2-3 frases curtas. Cada frase: 5-15 palavras.
-- Use quebras de linha, não bullet points.
+1. **Versatilidade** - Combina com mais itens que o usuário já tem
+2. **Severidade da lacuna** - Categoria completamente ausente > tem alguns itens
+3. **Fundação primeiro** - Calças > Tops > Sapatos > Acessórios
+4. **Mix de preços** - Equilibre opções acessíveis e premium
 
-PALAVRAS BANIDAS (nunca use):
-- "versátil" (mostre, não diga)
-- "essencial" (tudo é essencial)
-- "básico" (nada aqui é básico)
-- "peça" (redundante)
-- "adiciona" (verbo fraco)
-- "funciona para" (mostre a função)
+⚠️ REGRAS DE ESCRITA:
 
-VERBOS FORTES (use estes):
-- transforma, finaliza, alonga, sofistica, ancora, define, eleva
+FORMATO DAS DESCRIÇÕES:
+- UMA frase por item (não 2-3)
+- MÁXIMO 10 palavras por frase
+- Sem explicações, só o impacto
+- Verbos ativos: transforma, finaliza, alonga, sofistica
 
-SUBSTANTIVOS PRECISOS:
-- fundação, complemento, ponto final, estrutura, silhueta
+PALAVRAS BANIDAS:
+- "versátil", "essencial", "básico", "peça", "adiciona", "funciona para"
 
-ADJETIVOS RAROS:
-- silencioso, discreto, fluido, preciso, intencional
-
-RITMO:
-- Varie o tamanho: Curta. Média. Curta de novo.
-- Fragmentos com impacto: "A fundação."
-- Estrutura paralela: "Finaliza. Sofistica. Transforma."
+EXEMPLOS:
+✅ BOM: "Ancora qualquer look de transição."
+✅ BOM: "Silhueta alongada. Sofistica tudo."
+✅ BOM: "O ponto final que faltava."
+❌ RUIM: "É uma peça versátil que adiciona elegância ao look."
 
 REGRAS CRÍTICAS:
-- NUNCA cite marcas (Nike, Zara, Gucci, etc.)
-- Escreva descritivo: textura, material, acabamento, cor, forma
-- ZERO links, preços ou referências de compra
-- Retorne APENAS JSON válido. Sem markdown.
+- NUNCA cite marcas
+- ZERO links ou preços
+- Retorne APENAS JSON válido
 - Português brasileiro (pt-BR)
 
 ESTRUTURA JSON:
 
 {
   "covered": [
-    "categoria que o usuário já cobre (máx 5, SEM MARCAS)"
+    "categoria que o usuário já cobre (máx 5)"
   ],
-  "missing": [
+  "priority_five": [
     {
-      "item": "nome bold do item (ex: Blazer de lã fria)",
-      "priority": 1,
-      "why": "descrição com verbos fortes, 2-3 frases curtas, ritmo variado"
-    }
-  ],
-  "top_three": [
-    {
-      "priority": "P1",
-      "item": "nome bold (ex: Trench coat de algodão)",
-      "impact": "descrição editorial curta com verbos fortes. Fragmento. Ritmo."
+      "position": 1,
+      "item": "Nome do item (ex: Calça de alfaiataria)",
+      "impact": "Uma frase. Máximo 10 palavras."
     },
     {
-      "priority": "P2", 
-      "item": "nome bold",
-      "impact": "descrição editorial curta"
+      "position": 2,
+      "item": "Nome do item",
+      "impact": "Uma frase curta."
     },
     {
-      "priority": "P3",
-      "item": "nome bold",
-      "impact": "descrição editorial curta"
+      "position": 3,
+      "item": "Nome do item",
+      "impact": "Uma frase curta."
+    },
+    {
+      "position": 4,
+      "item": "Nome do item",
+      "impact": "Uma frase curta."
+    },
+    {
+      "position": 5,
+      "item": "Nome do item",
+      "impact": "Uma frase curta."
     }
   ],
-  "edit_rule": "regra de edição simples, memorável (máx 12 palavras)"
+  "bonus_items": [
+    {
+      "item": "Item adicional",
+      "impact": "Frase curta"
+    }
+  ],
+  "edit_rule": "regra de edição simples (máx 10 palavras)"
 }
-
-EXEMPLO DE DESCRIÇÃO BOA:
-"Ancora looks de transição. Silhueta alongada que sofistica qualquer composição. O ponto final."
-
-EXEMPLO DE DESCRIÇÃO RUIM:
-"É uma peça versátil e essencial que adiciona elegância e funciona para várias ocasiões."
 
 IMPORTANTE:
 - "covered": máximo 5 itens
-- "missing": máximo 10 itens, ordenados por prioridade
-- "top_three": exatamente 3 itens (P1, P2, P3)
-- "edit_rule": 1 frase curta e memorável`;
+- "priority_five": EXATAMENTE 5 itens, ordenados por impacto
+- "bonus_items": 3-5 itens adicionais (para "Precisa de mais?")
+- "edit_rule": frase curta e memorável`;
 }
 
 function extractJson(text: string): any {
@@ -351,8 +347,7 @@ function extractJson(text: string): any {
 function validateCapsuleResult(data: any): boolean {
   if (!data || typeof data !== "object") return false;
   if (!Array.isArray(data.covered)) return false;
-  if (!Array.isArray(data.missing)) return false;
-  if (!Array.isArray(data.top_three) || data.top_three.length !== 3) return false;
+  if (!Array.isArray(data.priority_five) || data.priority_five.length < 3) return false;
   if (typeof data.edit_rule !== "string") return false;
   return true;
 }
@@ -474,14 +469,22 @@ serve(async (req: Request) => {
 
     // Sanitize output to ensure no brands slipped through
     capsuleResult.covered = sanitizeOutputItems(capsuleResult.covered);
-    capsuleResult.missing = capsuleResult.missing.map((m: any) => ({
-      ...m,
-      item: sanitizeOutputItems([m.item])[0] || m.item,
-    }));
-    capsuleResult.top_three = capsuleResult.top_three.map((t: any) => ({
-      ...t,
-      item: sanitizeOutputItems([t.item])[0] || t.item,
-    }));
+    
+    // Sanitize priority_five
+    if (Array.isArray(capsuleResult.priority_five)) {
+      capsuleResult.priority_five = capsuleResult.priority_five.map((p: any) => ({
+        ...p,
+        item: sanitizeOutputItems([p.item])[0] || p.item,
+      }));
+    }
+    
+    // Sanitize bonus_items if present
+    if (Array.isArray(capsuleResult.bonus_items)) {
+      capsuleResult.bonus_items = capsuleResult.bonus_items.map((b: any) => ({
+        ...b,
+        item: sanitizeOutputItems([b.item])[0] || b.item,
+      }));
+    }
 
     console.log(`[${debugId}] Capsule generated successfully`);
 
