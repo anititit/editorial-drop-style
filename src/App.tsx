@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
+import CapsulePage from "./pages/CapsulePage";
 import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
@@ -39,6 +40,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/input" element={<InputPage />} />
+          <Route path="/capsula" element={<CapsulePage />} />
           <Route path="/resultado/:id" element={<ResultPage />} />
           <Route path="/editorial" element={<EditorialPage />} />
           <Route path="/manifesto" element={<ManifestoPage />} />
