@@ -1,10 +1,72 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// ============================================================================
+// RATE LIMITING
+// ============================================================================
+
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
+
+async function checkRateLimitDb(ip: string, debugId: string): Promise<{ allowed: boolean; retryAfter?: number }> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${debugId}] Missing Supabase credentials for rate limiting`);
+      return { allowed: true };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      p_ip: ip,
+      p_max_requests: RATE_LIMIT_MAX_REQUESTS,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+    });
+
+    if (error) {
+      console.error(`[${debugId}] Rate limit check error:`, error.message);
+      return { allowed: true };
+    }
+
+    if (data && data.length > 0) {
+      const result = data[0];
+      return {
+        allowed: result.allowed,
+        retryAfter: result.retry_after || undefined,
+      };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error(`[${debugId}] Rate limit exception:`, error);
+    return { allowed: true };
+  }
+}
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+  return "unknown";
+}
+
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 function generateDebugId(): string {
   return `pro_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
@@ -348,6 +410,22 @@ serve(async (req) => {
   console.log(`[${debugId}] PRO Editorial request started`);
 
   try {
+    // Rate limiting check
+    const clientIp = getClientIp(req);
+    const rateLimitResult = await checkRateLimitDb(clientIp, debugId);
+
+    if (!rateLimitResult.allowed) {
+      console.log(`[${debugId}] Rate limited: ${clientIp}`);
+      return new Response(
+        JSON.stringify({
+          error: "rate_limited",
+          message: "Muitas requisições. Aguarde um momento e tente novamente.",
+          retry_after: rateLimitResult.retryAfter,
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const body = await req.json();
     const { images = [], isUrls = false, brandRefs = [], brandInfo, depth = "completo" } = body;
 
