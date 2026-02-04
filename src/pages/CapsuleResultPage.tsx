@@ -109,23 +109,27 @@ const CapsuleResultPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-6">
               <Sparkles className="w-5 h-5 text-foreground" />
               <h2 className="editorial-headline text-xl">Se você só resolver 3 coisas</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {capsule.top_three.map((item, index) => (
                 <div
                   key={index}
-                  className="border border-foreground/20 rounded-lg p-4"
+                  className="border border-foreground/20 rounded-lg p-5"
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-foreground text-background text-sm font-medium shrink-0">
+                  <div className="flex items-start gap-4">
+                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-foreground text-background text-sm font-semibold shrink-0">
                       {item.priority}
                     </span>
-                    <div>
-                      <p className="font-medium text-foreground mb-1">{item.item}</p>
-                      <p className="text-sm text-muted-foreground">{item.impact}</p>
+                    <div className="space-y-2">
+                      <p className="font-semibold text-foreground text-lg leading-tight">
+                        {item.item}
+                      </p>
+                      <p className="text-muted-foreground leading-relaxed" style={{ lineHeight: '1.6' }}>
+                        {item.impact}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -139,22 +143,26 @@ const CapsuleResultPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-6">
               <AlertCircle className="w-5 h-5 text-foreground" />
               <h2 className="editorial-headline text-xl">O que falta, por ordem de prioridade</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {capsule.missing.slice(0, 10).map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-3 border border-border/50 rounded-lg"
+                  className="flex items-start gap-4 p-4 border border-border/50 rounded-lg"
                 >
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-foreground text-xs font-medium shrink-0">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-muted text-foreground text-xs font-semibold shrink-0 mt-0.5">
                     {item.priority}
                   </span>
-                  <div>
-                    <p className="font-medium text-foreground mb-0.5">{item.item}</p>
-                    <p className="text-sm text-muted-foreground">{item.why}</p>
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-foreground leading-tight">
+                      {item.item}
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed" style={{ lineHeight: '1.6' }}>
+                      {item.why}
+                    </p>
                   </div>
                 </div>
               ))}
