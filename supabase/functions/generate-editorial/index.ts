@@ -452,30 +452,42 @@ Retorne este JSON EXATO:
       ],
       "search_terms": ["termo 1", "termo 2", "termo 3", "termo 4", "termo 5"]
     },
-    "capsule": {
-      "aligned": [
-        "bullet 1: o que já está alinhado na cápsula atual",
-        "bullet 2: o que já está alinhado na cápsula atual",
-        "bullet 3: o que já está alinhado na cápsula atual"
-      ],
-      "missing_prioritized": [
-        { "priority": 1, "item": "item mais urgente que falta" },
-        { "priority": 2, "item": "segundo item" },
-        { "priority": 3, "item": "terceiro item" },
-        { "priority": 4, "item": "quarto item" },
-        { "priority": 5, "item": "quinto item" }
-      ],
-      "smart_investments": {
-        "hero": "a peça mais impactante que falta",
-        "supporting": ["item de apoio 1", "item de apoio 2"]
+    "start_here": {
+      "anchor_piece": "uma peça âncora específica que define a direção (ex: blazer oversized em linho cru)",
+      "look_formula": "uma fórmula de look em uma linha (ex: midi + mocassim + bolsa estruturada)",
+      "finishing_touch": "um acabamento chave: sapato, acessório ou beleza (ex: batom terracota matte)"
+    },
+    "refinements": {
+      "start": {
+        "priorities": ["prioridade 1 para quem não sabe por onde começar", "prioridade 2", "prioridade 3"],
+        "edit_rule": "regra simples em uma frase, sem hífen (ex: Repita a silhueta, troque a textura, mantenha a paleta)"
+      },
+      "chaos": {
+        "priorities": ["prioridade 1 para quem tem coisas demais", "prioridade 2", "prioridade 3"],
+        "edit_rule": "regra simples em uma frase"
+      },
+      "elevated": {
+        "priorities": ["prioridade 1 para quem quer parecer mais cara", "prioridade 2", "prioridade 3"],
+        "edit_rule": "regra simples em uma frase"
+      },
+      "clarity": {
+        "priorities": ["prioridade 1 para quem quer estética mais clara", "prioridade 2", "prioridade 3"],
+        "edit_rule": "regra simples em uma frase"
+      },
+      "looks": {
+        "priorities": ["prioridade 1 para quem precisa de looks prontos", "prioridade 2", "prioridade 3"],
+        "edit_rule": "regra simples em uma frase"
       }
     }
   }
 }
 
-NOTA SOBRE CAPSULE:
-- O campo "capsule" só deve ser incluído SE o usuário optou por análise de cápsula (indicado nas instruções acima).
-- Se NÃO houver instrução de cápsula, OMITA o campo "capsule" completamente do JSON.
+REGRAS OBRIGATÓRIAS PARA start_here e refinements:
+- start_here: SEMPRE inclua. São 3 sugestões editoriais curtas e específicas para destravar a direção.
+- refinements: SEMPRE inclua. São 5 variações de prioridades baseadas no bloqueio do usuário.
+- Tom editorial premium (Vogue/Harper's), direto, sem parecer terapia ou consultoria.
+- Frases sem hífen, usar vírgulas.
+- Não mencionar IA, análise ou algoritmo.
 
 INSTRUÇÕES:
 - aesthetic_primary/secondary: Use nomes evocativos em português
@@ -549,6 +561,16 @@ function validateEditorialStructure(obj: any): { valid: boolean; missing: string
     "editorial.commerce.shortlist",
     "editorial.commerce.look_recipes",
     "editorial.commerce.search_terms",
+    "editorial.start_here",
+    "editorial.start_here.anchor_piece",
+    "editorial.start_here.look_formula",
+    "editorial.start_here.finishing_touch",
+    "editorial.refinements",
+    "editorial.refinements.start",
+    "editorial.refinements.chaos",
+    "editorial.refinements.elevated",
+    "editorial.refinements.clarity",
+    "editorial.refinements.looks",
   ];
 
   const missing: string[] = [];
