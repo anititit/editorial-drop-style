@@ -1,6 +1,6 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Download, RotateCcw, Sparkles } from "lucide-react";
+import { Download, RotateCcw } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { getResultById } from "@/lib/storage";
 import { DEFAULT_RESULT, AESTHETIC_NAMES } from "@/lib/types";
@@ -511,7 +511,7 @@ const ResultPage = () => {
 
       {/* Actions */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border/30 py-4 print-hide">
-        <div className="container-results space-y-3">
+        <div className="container-results">
           <div className="flex items-center gap-4">
             <EditorialButton
               variant="secondary"
@@ -531,17 +531,6 @@ const ResultPage = () => {
               {isExporting ? "Gerando..." : "Exportar PDF"}
             </EditorialButton>
           </div>
-          
-          {/* Pro Upgrade CTA */}
-          <Link to="/pro/brief" className="block">
-            <EditorialButton variant="ghost" className="w-full text-sm">
-              <Sparkles className="w-4 h-4 mr-2" />
-              DROP Pro
-            </EditorialButton>
-          </Link>
-          <p className="text-xs text-muted-foreground text-center">
-            Versão profissional para marcas e projetos.
-          </p>
         </div>
       </div>
     </div>
