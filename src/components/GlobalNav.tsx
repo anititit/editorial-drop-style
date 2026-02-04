@@ -45,27 +45,6 @@ const GlobalNav = ({ showEditionLabel = true }: GlobalNavProps) => {
             >
               Studio
             </Link>
-            <span className="text-muted-foreground/30">·</span>
-            <Link 
-              to="/global/privacy-policy" 
-              className={`text-xs transition-colors ${
-                isActive("/global/privacy-policy") 
-                  ? "text-foreground" 
-                  : "text-muted-foreground/60 hover:text-foreground"
-              }`}
-            >
-              Privacy
-            </Link>
-            <Link 
-              to="/global/terms-of-service" 
-              className={`text-xs transition-colors ${
-                isActive("/global/terms-of-service") 
-                  ? "text-foreground" 
-                  : "text-muted-foreground/60 hover:text-foreground"
-              }`}
-            >
-              Terms
-            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-4">
