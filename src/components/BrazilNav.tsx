@@ -53,12 +53,9 @@ const BrazilNav = ({ showEditionLabel = true }: BrazilNavProps) => {
               Brasil
             </span>
           )}
-          <Link 
-            to="/global" 
-            className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-          >
-            Global →
-          </Link>
+          <span className="text-[10px] tracking-[0.15em] text-muted-foreground/40 uppercase">
+            Global em breve
+          </span>
         </div>
       </div>
     </header>
