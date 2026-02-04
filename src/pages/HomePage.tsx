@@ -49,8 +49,24 @@ const HomePage = () => {
             </Link>
           </div>
 
+          {/* Capsule CTA */}
+          <div className="pt-2">
+            <Link to="/capsula">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-block"
+              >
+                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Sparkles className="w-4 h-4" />
+                  Já sabe sua direção? Comece pela cápsula →
+                </span>
+              </motion.div>
+            </Link>
+          </div>
+
           {/* Helper text */}
-          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto pt-4">
             Use referências de moodboard, looks, beleza ou editoriais.
             <br />
             <span className="italic">Para estilo pessoal.</span>
