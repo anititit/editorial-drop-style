@@ -5,11 +5,13 @@ import { EditorialButton } from "@/components/ui/EditorialButton";
 
 interface CapsuleCTAProps {
   locale?: "en" | "pt-BR";
+  resultId?: string;
 }
 
-export function CapsuleCTA({ locale = "pt-BR" }: CapsuleCTAProps) {
+export function CapsuleCTA({ locale = "pt-BR", resultId }: CapsuleCTAProps) {
   const isEnglish = locale === "en";
-  const targetPath = isEnglish ? "/global/build-capsule" : "/build-capsule";
+  const basePath = isEnglish ? "/global/build-capsule" : "/build-capsule";
+  const targetPath = resultId ? `${basePath}?from=${resultId}` : basePath;
 
   return (
     <motion.section

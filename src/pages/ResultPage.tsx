@@ -483,7 +483,7 @@ const ResultPage = () => {
         )}
 
         {/* Capsule CTA */}
-        <CapsuleCTA locale="pt-BR" />
+        <CapsuleCTA locale="pt-BR" resultId={id} />
 
         {/* Social Share Section */}
         <SocialShareSection 
