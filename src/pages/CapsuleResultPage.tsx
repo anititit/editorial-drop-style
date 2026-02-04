@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, AlertCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Sparkles, ChevronDown } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
 import { CapsuleResult, CAPSULE_AESTHETICS } from "@/lib/capsule-types";
 import BrazilNav from "@/components/BrazilNav";
@@ -10,6 +10,7 @@ const CapsuleResultPage = () => {
   const navigate = useNavigate();
   const [capsule, setCapsule] = useState<CapsuleResult | null>(null);
   const [aestheticId, setAestheticId] = useState<string>("");
+  const [showBonusItems, setShowBonusItems] = useState(false);
 
   useEffect(() => {
     const storedCapsule = sessionStorage.getItem("capsule_result");
@@ -33,6 +34,7 @@ const CapsuleResultPage = () => {
   }
 
   const aesthetic = CAPSULE_AESTHETICS.find((a) => a.id === aestheticId);
+  const hasBonusItems = capsule.bonus_items && capsule.bonus_items.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,7 +105,7 @@ const CapsuleResultPage = () => {
             </div>
           </motion.section>
 
-          {/* Section: If you only fix 3 things */}
+          {/* Section: The 5 pieces that transform */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,62 +113,74 @@ const CapsuleResultPage = () => {
           >
             <div className="flex items-center gap-2 mb-6">
               <Sparkles className="w-5 h-5 text-foreground" />
-              <h2 className="editorial-headline text-xl">Se você só resolver 3 coisas</h2>
+              <h2 className="editorial-headline text-xl">As 5 Peças que Transformam Seu Guarda-Roupa</h2>
             </div>
-            <div className="space-y-6">
-              {capsule.top_three.map((item, index) => (
+            <div className="space-y-5">
+              {capsule.priority_five.slice(0, 5).map((item, index) => (
                 <div
                   key={index}
-                  className="border border-foreground/20 rounded-lg p-5"
+                  className="flex items-start gap-4 p-4 border border-foreground/15 rounded-lg"
                 >
-                  <div className="flex items-start gap-4">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-foreground text-background text-sm font-semibold shrink-0">
-                      {item.priority}
-                    </span>
-                    <div className="space-y-2">
-                      <p className="font-semibold text-foreground text-lg leading-tight">
-                        {item.item}
-                      </p>
-                      <p className="text-muted-foreground leading-relaxed" style={{ lineHeight: '1.6' }}>
-                        {item.impact}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* Section: What's missing */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <AlertCircle className="w-5 h-5 text-foreground" />
-              <h2 className="editorial-headline text-xl">O que falta, por ordem de prioridade</h2>
-            </div>
-            <div className="space-y-4">
-              {capsule.missing.slice(0, 10).map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-4 p-4 border border-border/50 rounded-lg"
-                >
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-muted text-foreground text-xs font-semibold shrink-0 mt-0.5">
-                    {item.priority}
+                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-foreground text-background text-sm font-semibold shrink-0">
+                    {item.position}
                   </span>
-                  <div className="space-y-1.5">
-                    <p className="font-semibold text-foreground leading-tight">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-foreground text-lg leading-tight">
                       {item.item}
                     </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed" style={{ lineHeight: '1.6' }}>
-                      {item.why}
+                    <p className="text-muted-foreground" style={{ lineHeight: '1.5' }}>
+                      {item.impact}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Bonus items toggle */}
+            {hasBonusItems && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6"
+              >
+                {!showBonusItems ? (
+                  <button
+                    onClick={() => setShowBonusItems(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-border/50 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                  >
+                    Precisa de Mais Sugestões?
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-3 pt-4 border-t border-border/30"
+                  >
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">
+                      Também considere
+                    </p>
+                    {capsule.bonus_items?.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg"
+                      >
+                        <span className="text-muted-foreground text-sm mt-0.5">+</span>
+                        <div>
+                          <p className="font-medium text-foreground text-sm">
+                            {item.item}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {item.impact}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
           </motion.section>
         </div>
 
