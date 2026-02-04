@@ -3,74 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import { EditorialButton } from "@/components/ui/EditorialButton";
-import { LoadingEditorial } from "@/components/LoadingEditorial";
-import { saveResult } from "@/lib/storage";
-import { EditorialResult } from "@/lib/types";
+import { LoadingCapsule } from "@/components/LoadingCapsule";
+import { CAPSULE_AESTHETICS } from "@/lib/capsule-types";
 import BrazilNav from "@/components/BrazilNav";
-
-// Aesthetic definitions with editorial micro-descriptions
-const AESTHETICS = [
-  {
-    id: "clean_glow",
-    name: "Glow limpo",
-    description: "Pele luminosa, minimalismo fresco, presença leve.",
-  },
-  {
-    id: "minimal_chic",
-    name: "Minimal chic",
-    description: "Cortes precisos, neutros sofisticados, menos, melhor.",
-  },
-  {
-    id: "romantic_modern",
-    name: "Romântico moderno",
-    description: "Suavidade com estrutura, feminilidade atual, gesto delicado.",
-  },
-  {
-    id: "after_dark_minimal",
-    name: "Minimal noturno",
-    description: "Alto contraste, linhas limpas, noite polida.",
-  },
-  {
-    id: "soft_grunge",
-    name: "Grunge suave",
-    description: "Texturas vividas, preto lavado, charme sem esforço.",
-  },
-  {
-    id: "street_sporty",
-    name: "Street sporty",
-    description: "Energia urbana, peças utilitárias, conforto com intenção.",
-  },
-  {
-    id: "color_pop",
-    name: "Cor em destaque",
-    description: "Paleta ousada, impacto controlado, statement inteligente.",
-  },
-  {
-    id: "boho_updated",
-    name: "Boho polido",
-    description: "Fluidez, naturalidade, boho com acabamento.",
-  },
-  {
-    id: "classic_luxe",
-    name: "Clássico luxo",
-    description: "Ícones atemporais, materiais nobres, elegância óbvia.",
-  },
-  {
-    id: "coastal_cool",
-    name: "Coastal cool",
-    description: "Natural, claro, textura orgânica, refinamento relaxado.",
-  },
-  {
-    id: "soft_glam",
-    name: "Glam suave",
-    description: "Polido, brilho sutil, beleza pronta para a câmera.",
-  },
-  {
-    id: "artsy_eclectic",
-    name: "Artsy eclético",
-    description: "Combinações inesperadas, repertório criativo, assinatura própria.",
-  },
-];
 
 type Step = 1 | 2;
 
@@ -81,13 +16,12 @@ const CapsulePage = () => {
   
   // Step 2 states
   const [existingPieces, setExistingPieces] = useState<string>("");
+  const [validationError, setValidationError] = useState<string>("");
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorType, setErrorType] = useState<string | undefined>();
-
-  const hasValidInput = existingPieces.trim().length > 0;
 
   const handleAestheticSelect = (id: string) => {
     setSelectedAesthetic(id === selectedAesthetic ? null : id);
@@ -101,13 +35,14 @@ const CapsulePage = () => {
 
   const handleBackToStep1 = () => {
     setStep(1);
+    setValidationError("");
   };
 
-  const callGenerateEditorial = async () => {
+  const callGenerateCapsule = async () => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     
-    const response = await fetch(`${supabaseUrl}/functions/v1/generate-editorial`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate-capsule`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -115,8 +50,8 @@ const CapsulePage = () => {
         "Authorization": `Bearer ${supabaseKey}`,
       },
       body: JSON.stringify({
-        existingPieces,
-        preferredAesthetic: selectedAesthetic,
+        aesthetic_id: selectedAesthetic,
+        owned_items_text: existingPieces.trim(),
       }),
     });
 
@@ -130,43 +65,43 @@ const CapsulePage = () => {
       };
     }
 
-    if (response.status === 401) {
-      throw { type: "unauthorized", message: data.message || "Acesso não autorizado." };
-    }
-
     if (data?.error) {
       console.error("API error:", data.error, data.message);
       throw { type: data.error, message: data.message };
     }
 
-    if (!data?.profile || !data?.editorial) {
-      throw { type: "incomplete_editorial", message: "Estrutura inválida" };
+    if (!data?.success || !data?.capsule) {
+      throw { type: "incomplete_capsule", message: "Estrutura inválida" };
     }
 
-    return data as EditorialResult;
+    return data;
   };
 
   const handleGenerate = async () => {
-    if (!hasValidInput || !selectedAesthetic) return;
+    // Validate minimum 10 characters
+    if (existingPieces.trim().length < 10) {
+      setValidationError("Escreva algumas peças, mesmo poucas já resolvem a base.");
+      return;
+    }
 
+    if (!selectedAesthetic) return;
+
+    setValidationError("");
     setIsLoading(true);
     setHasError(false);
     setErrorType(undefined);
 
     try {
-      const result = await callGenerateEditorial();
+      const result = await callGenerateCapsule();
 
-      // Store data in sessionStorage
-      sessionStorage.setItem("capsule_pieces", existingPieces);
-      sessionStorage.setItem("capsule_aesthetic", selectedAesthetic);
+      // Store result in sessionStorage
+      sessionStorage.setItem("capsule_result", JSON.stringify(result.capsule));
+      sessionStorage.setItem("capsule_aesthetic_id", selectedAesthetic);
 
-      // Save to history
-      const id = saveResult(result);
-
-      // Navigate to results
-      navigate(`/resultado/${id}`);
+      // Navigate to capsule results
+      navigate("/capsula/resultado");
     } catch (err: any) {
-      console.error("Generation failed:", err);
+      console.error("Capsule generation failed:", err);
       setErrorType(err?.type);
       setHasError(true);
     }
@@ -179,7 +114,7 @@ const CapsulePage = () => {
   };
 
   if (isLoading || hasError) {
-    return <LoadingEditorial hasError={hasError} errorType={errorType} onRetry={handleRetry} />;
+    return <LoadingCapsule hasError={hasError} errorType={errorType} onRetry={handleRetry} />;
   }
 
   return (
@@ -211,7 +146,7 @@ const CapsulePage = () => {
 
               {/* Aesthetic Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {AESTHETICS.map((aesthetic) => (
+                {CAPSULE_AESTHETICS.map((aesthetic) => (
                   <motion.button
                     key={aesthetic.id}
                     onClick={() => handleAestheticSelect(aesthetic.id)}
@@ -265,7 +200,7 @@ const CapsulePage = () => {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Step 2: Upload References */}
+              {/* Step 2: Describe pieces */}
               <div className="mb-6">
                 <button
                   onClick={handleBackToStep1}
@@ -293,13 +228,24 @@ const CapsulePage = () => {
                 </label>
                 <textarea
                   value={existingPieces}
-                  onChange={(e) => setExistingPieces(e.target.value)}
+                  onChange={(e) => {
+                    setExistingPieces(e.target.value);
+                    if (validationError) setValidationError("");
+                  }}
                   placeholder="Ex: calça reta de alfaiataria, camisa de seda, blazer bem estruturado, trench coat, camiseta branca encorpada, jeans escuro reto, loafer de couro, bota de cano curto, bolsa pequena estruturada"
-                  className="w-full min-h-[120px] p-4 text-sm bg-background border border-border/50 rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/60"
+                  className={`w-full min-h-[120px] p-4 text-sm bg-background border rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-foreground/20 placeholder:text-muted-foreground/60 ${
+                    validationError ? "border-destructive" : "border-border/50"
+                  }`}
                 />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Mesmo poucas peças já resolvem a base, o resto a gente edita.
-                </p>
+                {validationError ? (
+                  <p className="text-xs text-destructive mt-2">
+                    {validationError}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Mesmo poucas peças já resolvem a base, o resto a gente edita.
+                  </p>
+                )}
               </div>
 
               {/* Generate Button */}
@@ -313,16 +259,10 @@ const CapsulePage = () => {
                   variant="primary"
                   size="lg"
                   className="w-full"
-                  disabled={!hasValidInput}
                   onClick={handleGenerate}
                 >
-                  Gerar Editorial
+                  Montar minha cápsula
                 </EditorialButton>
-                {!hasValidInput && (
-                  <p className="text-xs text-muted-foreground text-center mt-3">
-                    Descreva as peças que você já tem
-                  </p>
-                )}
               </motion.div>
             </motion.div>
           )}

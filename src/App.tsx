@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import InputPage from "./pages/InputPage";
 import ResultPage from "./pages/ResultPage";
 import CapsulePage from "./pages/CapsulePage";
+import CapsuleResultPage from "./pages/CapsuleResultPage";
 import EditorialPage from "./pages/EditorialPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import AuthPage from "./pages/AuthPage";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/" element={<HomePage />} />
           <Route path="/input" element={<InputPage />} />
           <Route path="/capsula" element={<CapsulePage />} />
+          <Route path="/capsula/resultado" element={<CapsuleResultPage />} />
           <Route path="/resultado/:id" element={<ResultPage />} />
           <Route path="/editorial" element={<EditorialPage />} />
           <Route path="/manifesto" element={<ManifestoPage />} />
