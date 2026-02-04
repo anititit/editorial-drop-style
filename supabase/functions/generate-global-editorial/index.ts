@@ -124,7 +124,32 @@ CRITICAL RULES:
 4. All text MUST be in ENGLISH. Global, easy, clear — not slang-heavy.
 5. Tone: Vogue/Harper's Bazaar — elegant, confident, aspirational, never instructional.
 6. Use GLOBAL brands and references (not region-specific unless relevant).
-7. Fragrance suggestions should be globally available.
+
+FRAGRANCE RECOMMENDATIONS - GLOBAL EDITION:
+
+BRAZILIAN BRANDS TO INCLUDE (~20% of recommendations):
+Position these as "affordable luxury alternatives" with high quality, identity, and sophistication without traditional luxury markup.
+
+Accessible tier:
+- O Boticário (Malbec, Lily, Egeo, Floratta)
+- Natura (Ekos, Kaiak, Luna) - highlight Brazilian ingredients: açaí, cupuaçu, buriti
+- Eudora (Siàge, Soul, Intense)
+- Granado
+- Phebo
+- Mahogany
+
+Mid-range tier:
+- Oui Paris
+- L'Occitane au Brésil
+
+COMPOSITION RULE (5 fragrances total):
+- 1 Brazilian brand (badge: "🇧🇷 Brazil") - positioned as affordable luxury alternative
+- 4 International brands across price tiers
+
+When recommending Brazilian fragrances, emphasize:
+- Brazilian botanical ingredients when relevant (açaí, cupuaçu, buriti, Brazilian woods)
+- High quality-to-price ratio
+- Unique olfactory identity
 
 LANGUAGE GUIDELINES:
 - Short sentences, confident tone
@@ -193,25 +218,46 @@ Return this EXACT JSON:
       { 
         "name": "Perfume Name", 
         "brand": "Brand",
+        "badge": "🇧🇷 Brazil|null (for international brands)",
         "notes": "main olfactory notes", 
         "price_tier": "affordable|mid|premium",
-        "approximate_price_brl": 180,
+        "approximate_price_usd": 60,
         "why_it_matches": "one short line explaining the connection to the style"
       },
       { 
         "name": "Perfume 2", 
         "brand": "Brand",
+        "badge": null,
         "notes": "notes", 
         "price_tier": "affordable|mid|premium",
-        "approximate_price_brl": 450,
+        "approximate_price_usd": 120,
         "why_it_matches": "connection"
       },
       { 
         "name": "Perfume 3", 
         "brand": "Brand",
+        "badge": null,
         "notes": "notes", 
         "price_tier": "affordable|mid|premium",
-        "approximate_price_brl": 1200,
+        "approximate_price_usd": 250,
+        "why_it_matches": "connection"
+      },
+      { 
+        "name": "Perfume 4", 
+        "brand": "Brand",
+        "badge": null,
+        "notes": "notes", 
+        "price_tier": "affordable|mid|premium",
+        "approximate_price_usd": 180,
+        "why_it_matches": "connection"
+      },
+      { 
+        "name": "Perfume 5", 
+        "brand": "Brand",
+        "badge": null,
+        "notes": "notes", 
+        "price_tier": "affordable|mid|premium",
+        "approximate_price_usd": 300,
         "why_it_matches": "connection"
       }
     ],
@@ -239,7 +285,10 @@ INSTRUCTIONS:
 - confidence: 0.85 default, 0.45-0.65 if images are very abstract
 - looks: Each look should have specific pieces, not generic
 - makeup: Specific products and techniques, not vague
-- fragrances: EXACTLY 3 perfumes. Use REAL, globally available perfumes. One affordable, one mid-range, one premium.
+- fragrances: EXACTLY 5 perfumes. Use REAL, globally available perfumes.
+  - 1 Brazilian brand with badge "🇧🇷 Brazil" - positioned as affordable luxury alternative
+  - 4 International brands: One affordable, one mid-range, two premium
+  - For Brazilian fragrances, mention Brazilian ingredients when relevant
   - Affordable: CK, Zara, The Body Shop, affordable designer (up to $60 USD)
   - Mid-range: Designer fragrances (YSL, Armani, Narciso Rodriguez, etc.) ($60-150 USD)
   - Premium: Niche/luxury (Byredo, Le Labo, Tom Ford Private, MFK) (above $150 USD)
